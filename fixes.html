@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HarimHire – תיקונים</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="harimhire.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDhvquMr_6zODjgFIiU2y1Uzpc2wNgmX0",
+      authDomain: "harimhire.firebaseapp.com",
+      projectId: "harimhire",
+      storageBucket: "harimhire.firebasestorage.app",
+      messagingSenderId: "723909250338",
+      appId: "1:723909250338:web:70f5ac52e307083379697b"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+<style>
+.nav-dropdown { position: relative; display: inline-block; }
+.nav-dropdown > a { display: flex; align-items: center; gap: 5px; padding: 6px 4px; }
+.nav-dropdown > a::after { content: "\25BE"; font-size: 10px; opacity: 0.8; }
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border: 1px solid #dde2ea;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.14);
+  min-width: 200px;
+  z-index: 99999;
+  display: none;
+  overflow: hidden;
+  padding: 5px 0;
+}
+.dropdown-menu.open { display: block; }
+.dropdown-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 18px !important;
+  font-size: 13px !important;
+  color: #1a2332 !important;
+  text-decoration: none !important;
+  background: #ffffff !important;
+  border-bottom: 0.5px solid #f0f2f5 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  border-right: none !important;
+  border-left: none !important;
+  border-top: none !important;
+}
+.dropdown-item:last-child { border-bottom: none !important; }
+.dropdown-item:hover { background: #f4f6f9 !important; color: #1e3461 !important; }
+.dropdown-item i {
+  font-size: 14px !important;
+  color: #6b7a99 !important;
+  width: 18px !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+}
+.dropdown-item:hover i { color: #1e3461 !important; }
+</style>
+
+<style>
+.fix-topbar {
+  background: var(--white);
+  border-bottom: 0.5px solid var(--border);
+  padding: 8px 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.fix-counter {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fix-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 14px;
+  min-height: calc(100vh - 160px);
+}
+/* RIGHT: edit form */
+.fix-form {
+  background: var(--white);
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+}
+.fix-form-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-light);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 0.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.field-group { margin-bottom: 14px; }
+.field-group label {
+  font-size: 12px;
+  color: var(--text);
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+.field-group label .req { color: var(--red); margin-right: 2px; }
+.field-input {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--white);
+  color: var(--text);
+  font-family: var(--font);
+  transition: border-color 0.15s;
+}
+.field-input:focus { outline: none; border-color: var(--blue); }
+.field-input.missing {
+  border-color: var(--red);
+  background: rgba(220,53,69,0.03);
+}
+.field-input.ok { border-color: var(--green); }
+.missing-tag {
+  font-size: 10px;
+  color: var(--red);
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+/* LEFT: lead raw */
+.lead-panel {
+  background: var(--white);
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.lead-header {
+  background: #f8f9fb;
+  padding: 10px 14px;
+  border-bottom: 0.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.lead-header-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.lead-body {
+  padding: 14px;
+  flex: 1;
+  overflow-y: auto;
+}
+.lead-email-box {
+  background: var(--white);
+  border: 0.5px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 2;
+}
+.lead-email-row { display: flex; gap: 10px; padding: 4px 0; border-bottom: 0.5px solid #f4f4f4; }
+.lead-email-row:last-child { border-bottom: none; }
+.lead-email-key { font-size: 12px; color: var(--blue); font-weight: 500; min-width: 70px; flex-shrink: 0; }
+.lead-email-val { font-size: 13px; color: var(--text); }
+.lead-email-val.missing-val { color: var(--red); font-style: italic; font-size: 12px; }
+.lead-footer {
+  padding: 8px 14px;
+  border-top: 0.5px solid var(--border);
+  font-size: 11px;
+  color: var(--text-light);
+  background: #fafafa;
+}
+.source-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  background: rgba(30,52,97,0.08);
+  color: var(--blue);
+  font-weight: 500;
+}
+.fix-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 0.5px solid var(--border);
+}
+.btn-save { flex: 2; padding: 10px; font-size: 13px; border: none; border-radius: 6px; background: var(--blue); color: #fff; cursor: pointer; font-weight: 500; font-family: var(--font); }
+.btn-save:hover { opacity: 0.9; }
+.btn-reject { flex: 1; padding: 10px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; background: var(--white); color: var(--text); cursor: pointer; font-family: var(--font); }
+.btn-reject:hover { background: var(--bg); }
+.missing-banner {
+  background: rgba(220,53,69,0.06);
+  border: 0.5px solid rgba(220,53,69,0.3);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: var(--red);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.days-select {
+  padding: 4px 8px;
+  font-size: 11px;
+  border: 0.5px solid var(--border);
+  border-radius: 5px;
+  background: var(--white);
+  color: var(--text);
+  font-family: var(--font);
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+                    <div class="nav-links">
+    <div class="nav-dropdown">
+      <a href="candidates.html">מועמדים</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="candidates.html"><i class="fa-solid fa-users"></i> מועמדים</a>
+        <a class="dropdown-item" href="new_candidate.html"><i class="fa-solid fa-user-plus"></i> מועמד חדש</a>
+        <a class="dropdown-item" href="segments.html"><i class="fa-solid fa-filter"></i> חיתוכי מועמדים</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="clients.html">לקוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="clients.html"><i class="fa-solid fa-building"></i> לקוחות</a>
+        <a class="dropdown-item" href="new_client.html"><i class="fa-solid fa-building-circle-arrow-right"></i> לקוח חדש</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="jobs.html">משרות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="jobs.html"><i class="fa-solid fa-briefcase"></i> משרות</a>
+        <a class="dropdown-item" href="my_jobs.html"><i class="fa-solid fa-briefcase-arrow-right"></i> המשרות שלי</a>
+        <a class="dropdown-item" href="new_job.html"><i class="fa-solid fa-plus"></i> משרה חדשה</a>
+      </div>
+    </div>
+    <a href="process.html">תהליך ראשוני</a>
+    <a href="fixes.html" class="active">תיקונים</a>
+    <a href="tags.html">תגיות</a>
+    <div class="nav-dropdown">
+      <a href="#">דוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-bar"></i> דוחות</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-clock-rotate-left"></i> היסטוריית הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-phone-slash"></i> פסילות בסינון ראשוני</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-calendar-day"></i> דוח יומי לרכז</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-bullseye"></i> דוח מקורות גיוס</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-briefcase"></i> דוח סוגי משרה</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-users"></i> סטטיסטיקות מועמדים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-building"></i> סטטיסטיקות משרות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-user-tie"></i> סטטיסטיקות רכזים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-pie"></i> סטטיסטיקות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-right-to-bracket"></i> לוג כניסות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-envelope"></i> מיילים מסוננים</a>
+      </div>
+    </div>
+  </div>
+  <div class="navbar-right">
+    <div class="navbar-icons">
+      <i class="fa-regular fa-bell"></i>
+      <i class="fa-solid fa-gear"></i>
+      <i class="fa-regular fa-circle-question"></i>
+    </div>
+    <div class="navbar-logo" onclick="window.location.href='index.html'">
+      <svg width="30" height="22" viewBox="0 0 34 26">
+        <polygon points="2,24 13,4 24,24" fill="rgba(255,255,255,0.92)"/>
+        <polygon points="12,24 19,10 24,24" fill="#e8992e" opacity="0.85"/>
+      </svg>
+      <div>
+        <div class="logo-text">Harim<span>Hire</span></div>
+        <div class="logo-sub">HR SOLUTIONS</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+  <!-- TOP BAR -->
+  <div class="fix-topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="btn" onclick="showHistory()">
+        <i class="fa-solid fa-clock-rotate-left"></i> היסטוריית תיקונים
+      </button>
+      <div class="fix-counter">
+        <span>מועמד לתיקון:</span>
+        <strong id="fixPos">1</strong>
+        <span>מתוך</span>
+        <strong id="fixTotal">0</strong>
+        <div style="display:flex;gap:5px;"><button class="btn" onclick="prevFix()"><i class="fa-solid fa-arrow-right" style="font-size:10px"></i> הקודם</button><button class="btn" onclick="nextFix()">הבא <i class="fa-solid fa-arrow-left" style="font-size:10px"></i></button></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="padding:0 1rem;">
+    <div class="fix-layout">
+
+      <!-- LEFT: FORM -->
+      <div class="fix-form">
+        <div class="fix-form-title">
+          <span>השלמת פרטים</span>
+          <span id="formCandId" style="font-size:11px;color:var(--text-light);"></span>
+        </div>
+
+        <div class="missing-banner hidden" id="missingBanner">
+          <i class="fa-solid fa-circle-exclamation" style="font-size:14px;flex-shrink:0;"></i>
+          <div>
+            <div style="font-weight:600;margin-bottom:2px;">שדות חובה חסרים:</div>
+            <div id="missingList" style="font-weight:400;"></div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>שם פרטי <span class="req">*</span></label>
+          <input class="field-input" id="fFirst" type="text" placeholder="שם פרטי..." oninput="liveValidate('fFirst')">
+          <div class="missing-tag hidden" id="err-fFirst"><i class="fa-solid fa-circle-exclamation"></i> שדה חובה</div>
+        </div>
+
+        <div class="field-group">
+          <label>שם משפחה <span class="req">*</span></label>
+          <input class="field-input" id="fLast" type="text" placeholder="שם משפחה..." oninput="liveValidate('fLast')">
+          <div class="missing-tag hidden" id="err-fLast"><i class="fa-solid fa-circle-exclamation"></i> שדה חובה</div>
+        </div>
+
+        <div class="field-group">
+          <label>טלפון <span class="req">*</span></label>
+          <input class="field-input" id="fPhone" type="text" placeholder="05X-XXXXXXX..." oninput="liveValidate('fPhone')">
+          <div class="missing-tag hidden" id="err-fPhone"><i class="fa-solid fa-circle-exclamation"></i> שדה חובה</div>
+        </div>
+
+        <div class="field-group">
+          <label>מתעניין במשרות <span class="req">*</span></label>
+          <select class="field-input" id="fJob" onchange="liveValidate('fJob')">
+            <option value="">--- בחר משרה ---</option>
+            <option>1001 – שליח עצמאי</option>
+            <option>1002 – שליח שכיר</option>
+            <option>1003 – מוקדנים</option>
+            <option>1004 – דואר נע</option>
+            <option>1000 – עובד מיון</option>
+          </select>
+          <div class="missing-tag hidden" id="err-fJob"><i class="fa-solid fa-circle-exclamation"></i> שדה חובה</div>
+        </div>
+
+        <div class="fix-actions">
+          <button class="btn-reject" onclick="showRejectModal()">פסילה + הבא</button>
+          <button class="btn-save" onclick="saveFix()">שמירה + הבא</button>
+        </div>
+      </div>
+
+      <!-- RIGHT: LEAD RAW -->
+      <div class="lead-panel">
+        <div class="lead-header">
+          <div class="lead-header-title">
+            <i class="fa-solid fa-envelope" style="color:var(--blue);"></i>
+            הודעת דוא"ל
+          </div>
+
+        </div>
+        <div class="lead-body">
+  
+          <div class="lead-email-box" id="leadContent"></div>
+        </div>
+        <div class="lead-footer">
+          מס׳ קליטה: <strong id="leadId"></strong>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- REJECT MODAL -->
+<div id="rejectModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title"><i class="fa-solid fa-x" style="margin-left:6px;color:var(--red);"></i>פסילת מועמד</div>
+    <div class="modal-field">
+      <div class="modal-label">סיבת פסילה</div>
+      <select class="modal-select" id="rejectReason">
+        <option>מספר טלפון לא תקין / לא עובד</option>
+        <option>ספאם / פנייה לא רלוונטית</option>
+        <option>כפילות – מועמד קיים במערכת</option>
+        <option>מועמד ביקש להסיר</option>
+        <option>אחר</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">הערה (אופציונלי)</div>
+      <input class="modal-input" id="rejectNote" placeholder="פרט אם רלוונטי...">
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="hideModal('rejectModal')">ביטול</button>
+      <button class="btn btn-danger" onclick="confirmReject()">אשר פסילה ועבור הבא</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY MODAL -->
+<div id="historyModal" class="modal-overlay hidden">
+  <div class="modal" style="width:500px;max-height:520px;display:flex;flex-direction:column;">
+    <div class="modal-title"><i class="fa-solid fa-clock-rotate-left" style="margin-left:6px;color:var(--blue);"></i>היסטוריית תיקונים</div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-light);margin-bottom:10px;">
+      <span>הצג מ-</span>
+      <select class="days-select" id="daysFilter" onchange="applyDaysFilter()">
+        <option value="7">7 ימים אחרונים</option>
+        <option value="14">14 ימים אחרונים</option>
+        <option value="30">30 ימים אחרונים</option>
+        <option value="999">הכל</option>
+      </select>
+    </div>
+    <div style="overflow-y:auto;flex:1;" id="historyList"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="hideModal('historyModal')">סגור</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const LEADS = [
+  {id:16882852, source:'לידים פייסבוק', date:'14/05/2026', time:'16:11',
+   clean:{'שם מלא':'שלמה', 'שם משפחה':'', 'טלפון':'0538630044', 'עיר מגורים':'אשדוד', 'ניסיון':'3-4 שנים'},
+   rawText:'שם פרטי: שלמה\nשם משפחה: (לא מולא)\nדוא"ל: shalom123@gmail.com\nטלפון: 0538630044\nאיזור מגורים: שפלה\nישוב: אשדוד\nתפקיד אחרון: שליח\nניסיון רלוונטי: 3-4 שנים\nמקור: לידים פייסבוק',
+   first:'שלמה', last:'', phone:'0538630044', job:'1002 – שליח שכיר', missing:['last']},
+  {id:16882901, source:'דרושים', date:'14/05/2026', time:'17:30',
+   clean:{'שם':'אחמד', 'שם משפחה':'', 'טלפון':'05', 'עיר':'חיפה', 'משרה':'שליח שכיר'},
+   rawText:'שם: אחמד\nשם משפחה: (לא מולא)\nטלפון: 05\nאיזור מגורים: שפלה\nישוב: חיפה\nתפקיד אחרון: ניהול לוגיסטי\nהערה: המועמד רשם את הטלפון שלו בצורה חלקית - יש לברר',
+   first:'אחמד', last:'', phone:'05', job:'', missing:['last','phone','job']},
+  {id:16882950, source:'אתר אינטרנט', date:'14/05/2026', time:'18:45',
+   clean:{'שם':'', 'טלפון':'0521234567', 'עיר':'תל אביב', 'גיל':'28', 'משרה':''},
+   rawText:'שם: (לא מולא)\nטלפון: 0521234567\nעיר: תל אביב\nגיל: 28\nמשרה: (לא נבחרה)\nהערות: מחפש עבודה באזור המרכז\nנשלח דרך טופס האתר',
+   first:'', last:'', phone:'0521234567', job:'', missing:['first','last','job']},
+  {id:16883010, source:'לידים פייסבוק', date:'15/05/2026', time:'09:15',
+   clean:{'שם':'Mohamed', 'שם משפחה':'', 'טלפון':'', 'משרה':'1001 שליח עצמאי'},
+   rawText:'שם מלא: Mohamed\nשם משפחה: (לא מולא)\nטלפון: (לא מולא)\nעיר: (לא מולא)\nכותרת: 1001 שליח עצמאי\nמקור: פייסבוק לידים',
+   first:'Mohamed', last:'', phone:'', job:'1001 – שליח עצמאי', missing:['last','phone']},
+  {id:16883055, source:'המלצה', date:'15/05/2026', time:'11:00',
+   clean:{'שם':'יוסי לוי', 'טלפון':'052-9999-999', 'עיר':'ירושלים', 'גיל':'35', 'משרה':''},
+   rawText:'שם: יוסי לוי\nטלפון: 052-9999-999\nעיר: ירושלים\nגיל: 35\nמשרה: (לא נבחרה)\nהגיע דרך המלצה של עובד קיים\nהערה: המספר נראה לא תקין - יש לבדוק',
+   first:'יוסי', last:'לוי', phone:'052-9999-999', job:'', missing:['job']},
+];
+
+const REQUIRED = {fFirst:'שם פרטי', fLast:'שם משפחה', fPhone:'טלפון', fJob:'מתעניין במשרות'};
+let filtered = [...LEADS];
+let idx = 0;
+const history = [];
+
+function applyDaysFilter() {
+  const days = parseInt(document.getElementById('daysFilter').value);
+  filtered = LEADS.filter(l => {
+    if(days===999) return true;
+    const [d,m,y] = l.date.split('/');
+    const ld = new Date(y+'-'+m+'-'+d);
+    return (new Date() - ld) / 86400000 <= days;
+  });
+  idx = 0;
+  loadLead();
+}
+
+window.loadLead = function loadLead() {
+  document.getElementById('fixPos').textContent = filtered.length ? idx+1 : 0;
+  document.getElementById('fixTotal').textContent = filtered.length;
+
+  if(!filtered.length) {
+    document.getElementById('leadContent').innerHTML = '<div style="font-size:13px;color:var(--text-light);padding:2rem 0;text-align:center;"><i class="fa-solid fa-circle-check" style="font-size:24px;color:var(--green);display:block;margin-bottom:8px;"></i>אין מועמדים לתיקון</div>';
+    document.getElementById('missingBanner').classList.add('hidden');
+    ['fFirst','fLast','fPhone','fJob'].forEach(f => {
+      document.getElementById(f).value = '';
+      document.getElementById(f).className = 'field-input';
+      document.getElementById('err-'+f).classList.add('hidden');
+    });
+    return;
+  }
+
+  const l = filtered[idx];
+  document.getElementById('formCandId').textContent = '#' + l.id;
+  // source now shown inside lead content
+  document.getElementById('leadId').textContent = l.id;
+  // datetime now shown inside lead content
+
+  // Render lead - clean data + raw text
+  const cleanRows = Object.entries(l.clean).map(([k,v]) =>
+    '<div class="lead-email-row">' +
+    '<span class="lead-email-key">' + k + ':</span>' +
+    '<span class="lead-email-val' + (!v ? ' missing-val' : '') + '">' + (v || 'חסר') + '</span>' +
+    '</div>'
+  ).join('');
+  document.getElementById('leadContent').innerHTML =
+    '<div style="font-size:11px;color:var(--text-light);margin-bottom:8px;">מקור גיוס: <strong style=\'color:var(--blue);\'>' + l.source + '</strong> &nbsp;&middot;&nbsp; ' + l.time + ' ' + l.date + '</div>' +
+    '<div style="margin-bottom:12px;">' + cleanRows + '</div>' +
+    '<div style="font-size:10px;font-weight:600;color:var(--text-light);padding-top:10px;border-top:1px dashed #ddd;margin-bottom:6px;">חומר גלם – כפי שהגיע</div>' +
+    '<div style="background:#fafafa;border:0.5px solid #e2e6ea;border-radius:5px;padding:10px 12px;font-size:12px;line-height:2;color:#1a2332;white-space:pre-wrap;font-family:Courier,monospace;">' + (l.rawText||'') + '</div>';
+
+  // Fill form fields
+  document.getElementById('fFirst').value = l.first || '';
+  document.getElementById('fLast').value = l.last || '';
+  document.getElementById('fPhone').value = l.phone || '';
+  document.getElementById('fJob').value = l.job || '';
+
+  // Mark missing required fields
+  Object.keys(REQUIRED).forEach(fid => {
+    const el = document.getElementById(fid);
+    const isMissing = l.missing.includes(fid.slice(1).toLowerCase()) ||
+                      (fid==='fFirst' && l.missing.includes('first')) ||
+                      (fid==='fLast' && l.missing.includes('last')) ||
+                      (fid==='fPhone' && l.missing.includes('phone')) ||
+                      (fid==='fJob' && l.missing.includes('job'));
+    el.className = 'field-input' + (isMissing ? ' missing' : (el.value ? ' ok' : ''));
+    document.getElementById('err-'+fid).classList.toggle('hidden', !isMissing);
+  });
+
+  // Missing banner
+  const missingNames = l.missing.map(f => {
+    const map = {first:'שם פרטי', last:'שם משפחה', phone:'טלפון', job:'מתעניין במשרות'};
+    return map[f] || f;
+  });
+  document.getElementById('missingList').textContent = missingNames.join(', ');
+  document.getElementById('missingBanner').classList.toggle('hidden', l.missing.length===0);
+}
+
+function liveValidate(fid) {
+  const el = document.getElementById(fid);
+  const val = el.value.trim();
+  if(val) {
+    el.classList.remove('missing');
+    el.classList.add('ok');
+    document.getElementById('err-'+fid).classList.add('hidden');
+  } else {
+    el.classList.add('missing');
+    el.classList.remove('ok');
+    document.getElementById('err-'+fid).classList.remove('hidden');
+  }
+}
+
+function saveFix() {
+  const missing = [];
+  Object.entries(REQUIRED).forEach(([fid, label]) => {
+    const val = document.getElementById(fid).value.trim();
+    if(!val) missing.push(label);
+  });
+
+  if(missing.length) {
+    document.getElementById('missingList').textContent = missing.join(', ');
+    document.getElementById('missingBanner').classList.remove('hidden');
+    Object.keys(REQUIRED).forEach(fid => {
+      if(!document.getElementById(fid).value.trim()) {
+        document.getElementById(fid).classList.add('missing');
+        document.getElementById('err-'+fid).classList.remove('hidden');
+      }
+    });
+    return;
+  }
+
+  const l = filtered[idx];
+  history.unshift({
+    id: l.id,
+    name: document.getElementById('fFirst').value + ' ' + document.getElementById('fLast').value,
+    action: 'תוקן ונשמר',
+    date: new Date().toLocaleString('he-IL'),
+    color: 'var(--green)'
+  });
+
+  filtered.splice(idx, 1);
+  if(idx >= filtered.length) idx = Math.max(0, filtered.length-1);
+  loadLead();
+}
+
+function prevFix() { if(idx>0){idx--;loadLead();} }
+function nextFix() { if(idx<filtered.length-1){idx++;loadLead();} }
+
+function showRejectModal() { document.getElementById('rejectModal').classList.remove('hidden'); }
+function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+function confirmReject() {
+  const reason = document.getElementById('rejectReason').value;
+  const note = document.getElementById('rejectNote').value;
+  const l = filtered[idx];
+  history.unshift({
+    id: l.id,
+    name: (l.first||'?') + ' ' + (l.last||'?'),
+    action: 'נפסל – ' + reason + (note ? ' · ' + note : ''),
+    date: new Date().toLocaleString('he-IL'),
+    color: 'var(--red)'
+  });
+  hideModal('rejectModal');
+  document.getElementById('rejectNote').value = '';
+  filtered.splice(idx, 1);
+  if(idx >= filtered.length) idx = Math.max(0, filtered.length-1);
+  loadLead();
+}
+
+function showHistory() {
+  const list = document.getElementById('historyList');
+  list.innerHTML = history.length ? history.map(h =>
+    '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);">' +
+    '<div style="width:8px;height:8px;border-radius:50%;background:'+h.color+';flex-shrink:0;margin-top:4px;"></div>' +
+    '<div><div style="font-size:12px;font-weight:500;">'+h.name+' <span style="font-size:11px;color:var(--text-light);">#'+h.id+'</span></div>' +
+    '<div style="font-size:11px;color:var(--text-light);margin-top:2px;">'+h.action+'</div>' +
+    '<div style="font-size:10px;color:var(--text-light);margin-top:2px;">'+h.date+'</div></div></div>'
+  ).join('') : '<div style="font-size:12px;color:var(--text-light);padding:1.5rem;text-align:center;">אין היסטוריה עדיין</div>';
+  document.getElementById('historyModal').classList.remove('hidden');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', function(e){ if(e.target===this) this.classList.add('hidden'); }));
+
+window.onload = function() { loadLead(); };
+</script>
+
+<script>
+(function() {
+  var closeTimer = null;
+  var currentOpen = null;
+  function openMenu(wrapper) {
+    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+    if (currentOpen && currentOpen !== wrapper) {
+      var other = currentOpen.querySelector('.dropdown-menu');
+      if (other) other.classList.remove('open');
+    }
+    currentOpen = wrapper;
+    var menu = wrapper.querySelector('.dropdown-menu');
+    if (menu) menu.classList.add('open');
+  }
+  function closeMenu(wrapper) {
+    closeTimer = setTimeout(function() {
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) menu.classList.remove('open');
+      if (currentOpen === wrapper) currentOpen = null;
+    }, 250);
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.nav-dropdown').forEach(function(wrapper) {
+      wrapper.addEventListener('mouseenter', function() { openMenu(wrapper); });
+      wrapper.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) {
+        menu.addEventListener('mouseenter', function() { openMenu(wrapper); });
+        menu.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      }
+    });
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-dropdown')) {
+        document.querySelectorAll('.dropdown-menu.open').forEach(function(m) { m.classList.remove('open'); });
+        currentOpen = null;
+      }
+    });
+  });
+})();
+</script>
+
+<script>
+// Firebase: load candidates that need fixing
+db.collection('candidates')
+  .where('needsFix', '==', true)
+  .orderBy('createdAt', 'desc')
+  .onSnapshot(function(snap) {
+    var fixCands = snap.docs.map(function(d) {
+      var c = d.data();
+      return {
+        id: d.id,
+        num: c.num || 0,
+        source: c.source || 'לא ידוע',
+        date: c.date || '',
+        time: '',
+        clean: {
+          'שם מלא': (c.first||'') + ' ' + (c.last||''),
+          'טלפון': c.phone || '',
+          'עיר מגורים': c.city || '',
+          'גיל': c.age || ''
+        },
+        rawText: c.rawText || c.raw || 'אין חומר גלם',
+        first: c.first || '',
+        last: c.last || '',
+        phone: c.phone || '',
+        job: c.job || '',
+        missing: c.missing || []
+      };
+    });
+    if(fixCands.length > 0) {
+      window.LEADS = fixCands;
+      window.filtered = [...fixCands];
+      if(window.loadLead) window.loadLead();
+    }
+  }, function(err) {
+    console.log('Fixes Firebase error:', err);
+  });
+</script>
+</body>
+</html>

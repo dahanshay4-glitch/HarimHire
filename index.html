@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HarimHire</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="harimhire.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+.nav-dropdown { position: relative; display: inline-block; }
+.nav-dropdown > a { display: flex; align-items: center; gap: 5px; padding: 6px 4px; }
+.nav-dropdown > a::after { content: "\25BE"; font-size: 10px; opacity: 0.8; }
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border: 1px solid #dde2ea;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.14);
+  min-width: 200px;
+  z-index: 99999;
+  display: none;
+  overflow: hidden;
+  padding: 5px 0;
+}
+.dropdown-menu.open { display: block; }
+.dropdown-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 18px !important;
+  font-size: 13px !important;
+  color: #1a2332 !important;
+  text-decoration: none !important;
+  background: #ffffff !important;
+  border-bottom: 0.5px solid #f0f2f5 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  border-right: none !important;
+  border-left: none !important;
+  border-top: none !important;
+}
+.dropdown-item:last-child { border-bottom: none !important; }
+.dropdown-item:hover { background: #f4f6f9 !important; color: #1e3461 !important; }
+.dropdown-item i {
+  font-size: 14px !important;
+  color: #6b7a99 !important;
+  width: 18px !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+}
+.dropdown-item:hover i { color: #1e3461 !important; }
+</style>
+<style>
+.db-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:14px; }
+.db-card { background:var(--white); border:0.5px solid var(--border); border-radius:10px; padding:16px 18px; position:relative; overflow:hidden; cursor:pointer; transition:box-shadow 0.15s; }
+.db-card:hover { box-shadow:0 2px 12px rgba(0,0,0,0.08); }
+.db-card-num { font-size:32px; font-weight:600; color:var(--text); margin-bottom:4px; }
+.db-card-label { font-size:11px; color:var(--text-light); }
+.db-card-bar { height:3px; width:100%; border-radius:2px; margin-top:12px; }
+.db-widgets { display:grid; grid-template-columns:1fr 1.6fr 2fr; gap:10px; margin-bottom:10px; align-items:start; }
+.db-widgets2 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; align-items:start; }
+.widget { background:var(--white); border:0.5px solid var(--border); border-radius:10px; padding:16px 18px; }
+.widget-title { font-size:11px; color:var(--text-light); margin-bottom:4px; display:flex; align-items:center; justify-content:space-between; }
+.widget-num { font-size:28px; font-weight:600; color:var(--text); margin-bottom:10px; }
+.widget-link { font-size:10px; color:var(--blue); cursor:pointer; }
+.bar-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.bar-label { font-size:11px; color:var(--text); min-width:110px; text-align:right; }
+.bar-track { flex:1; height:8px; background:var(--bg); border-radius:4px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:4px; }
+.bar-val { font-size:11px; color:var(--text-light); min-width:24px; }
+.edit-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.3); z-index:500; display:none; align-items:center; justify-content:center; }
+.edit-overlay.open { display:flex; }
+.edit-panel { background:var(--white); border-radius:12px; padding:20px 24px; width:360px; max-height:80vh; overflow-y:auto; }
+.widget-toggle { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:0.5px solid var(--border); font-size:12px; }
+.toggle-sw { position:relative; width:34px; height:18px; cursor:pointer; }
+.toggle-sw input { opacity:0; width:0; height:0; position:absolute; }
+.toggle-track { position:absolute; inset:0; border-radius:18px; background:#ccc; transition:.2s; }
+.toggle-track.on { background:var(--blue); }
+.toggle-thumb { position:absolute; width:14px; height:14px; left:2px; bottom:2px; border-radius:50%; background:#fff; transition:.2s; }
+.toggle-thumb.on { left:18px; }
+</style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-links">
+    <div class="nav-dropdown">
+      <a href="candidates.html">מועמדים</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="candidates.html"><i class="fa-solid fa-users"></i> מועמדים</a>
+        <a class="dropdown-item" href="new_candidate.html"><i class="fa-solid fa-user-plus"></i> מועמד חדש</a>
+        <a class="dropdown-item" href="segments.html"><i class="fa-solid fa-filter"></i> חיתוכי מועמדים</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="clients.html">לקוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="clients.html"><i class="fa-solid fa-building"></i> לקוחות</a>
+        <a class="dropdown-item" href="new_client.html"><i class="fa-solid fa-building-circle-arrow-right"></i> לקוח חדש</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="jobs.html">משרות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="jobs.html"><i class="fa-solid fa-briefcase"></i> משרות</a>
+        <a class="dropdown-item" href="my_jobs.html"><i class="fa-solid fa-briefcase-arrow-right"></i> המשרות שלי</a>
+        <a class="dropdown-item" href="new_job.html"><i class="fa-solid fa-plus"></i> משרה חדשה</a>
+      </div>
+    </div>
+    <a href="process.html">תהליך ראשוני</a>
+    <a href="fixes.html">תיקונים</a>
+    <a href="tags.html">תגיות</a>
+    <div class="nav-dropdown">
+      <a href="#">דוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-bar"></i> דוחות</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-clock-rotate-left"></i> היסטוריית הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-phone-slash"></i> פסילות בסינון ראשוני</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-calendar-day"></i> דוח יומי לרכז</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-bullseye"></i> דוח מקורות גיוס</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-briefcase"></i> דוח סוגי משרה</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-users"></i> סטטיסטיקות מועמדים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-building"></i> סטטיסטיקות משרות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-user-tie"></i> סטטיסטיקות רכזים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-pie"></i> סטטיסטיקות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-right-to-bracket"></i> לוג כניסות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-envelope"></i> מיילים מסוננים</a>
+      </div>
+    </div>
+  </div>
+  <div class="navbar-right">
+    <div class="navbar-icons">
+      <i class="fa-regular fa-bell"></i>
+      <i class="fa-solid fa-gear"></i>
+      <i class="fa-regular fa-circle-question"></i>
+    </div>
+    <div class="navbar-logo" onclick="window.location.href='index.html'">
+      <svg width="30" height="22" viewBox="0 0 34 26">
+        <polygon points="2,24 13,4 24,24" fill="rgba(255,255,255,0.92)"/>
+        <polygon points="12,24 19,10 24,24" fill="#e8992e" opacity="0.85"/>
+      </svg>
+      <div>
+        <div class="logo-text">Harim<span>Hire</span></div>
+        <div class="logo-sub">HR SOLUTIONS</div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="main" style="padding:2rem 1.5rem 1rem;">
+
+  <!-- Edit button -->
+  <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+    <button class="btn" onclick="openEdit()"><i class="fa-solid fa-sliders"></i> ערוך דשבורד</button>
+  </div>
+
+  <!-- TOP STATS -->
+  <div class="db-grid" id="statsRow">
+    <div class="db-card" onclick="window.location.href='process.html'">
+      <div class="db-card-num" id="s1">27</div>
+      <div class="db-card-label">מועמדים בתהליך</div>
+      <div class="db-card-bar" style="background:var(--orange);"></div>
+    </div>
+    <div class="db-card" onclick="window.location.href='referrals.html'">
+      <div class="db-card-num" id="s2">44</div>
+      <div class="db-card-label">הפניות החודש</div>
+      <div class="db-card-bar" style="background:var(--blue);"></div>
+    </div>
+    <div class="db-card">
+      <div class="db-card-num" id="s3">7</div>
+      <div class="db-card-label">התקבלו לעבודה החודש</div>
+      <div class="db-card-bar" style="background:var(--green);"></div>
+    </div>
+    <div class="db-card">
+      <div class="db-card-num" id="s4">8</div>
+      <div class="db-card-label">התחילו לעבוד החודש</div>
+      <div class="db-card-bar" style="background:var(--blue);opacity:0.6;"></div>
+    </div>
+    <div class="db-card" onclick="window.location.href='fixes.html'">
+      <div class="db-card-num" id="s5">12</div>
+      <div class="db-card-label">תיקונים</div>
+      <div class="db-card-bar" style="background:var(--red);"></div>
+    </div>
+  </div>
+
+  <!-- WIDGETS ROW 1 -->
+  <div class="db-widgets">
+
+    <!-- מקורות גיוס -->
+    <div class="widget">
+      <div class="widget-title"><span>מקורות גיוס</span><span style="font-size:10px;color:var(--text-light);">שנה אחרונה</span></div>
+      <div class="widget-num">7</div>
+      <div style="height:140px;position:relative;"><canvas id="donutChart"></canvas></div>
+      <a class="widget-link" onclick="window.location.href='index.html'">דוח מקורות ›</a>
+    </div>
+
+    <!-- מועמדים בתהליך -->
+    <div class="widget">
+      <div class="widget-title"><span>מועמדים בתהליך</span><span style="font-size:10px;color:var(--text-light);">חודש אחרון</span></div>
+      <div class="widget-num">27</div>
+      <div style="margin-bottom:10px;">
+        <div class="bar-row"><span class="bar-label">תואם ראיון</span><div class="bar-track"><div class="bar-fill" style="width:70%;background:var(--blue);"></div></div><span class="bar-val">10</span></div>
+        <div class="bar-row"><span class="bar-label">נשלח ביטחון</span><div class="bar-track"><div class="bar-fill" style="width:14%;background:var(--orange);"></div></div><span class="bar-val">2</span></div>
+        <div class="bar-row"><span class="bar-label">הגיע – המתנה</span><div class="bar-track"><div class="bar-fill" style="width:14%;background:var(--orange);opacity:0.7;"></div></div><span class="bar-val">2</span></div>
+        <div class="bar-row"><span class="bar-label">עבר ביטחון</span><div class="bar-track"><div class="bar-fill" style="width:63%;background:var(--blue);opacity:0.7;"></div></div><span class="bar-val">9</span></div>
+        <div class="bar-row"><span class="bar-label">התחיל לעבוד</span><div class="bar-track"><div class="bar-fill" style="width:28%;background:var(--green);"></div></div><span class="bar-val">4</span></div>
+      </div>
+      <a class="widget-link" onclick="window.location.href='referrals.html'">כל המועמדים בתהליך ›</a>
+    </div>
+
+    <!-- מועמדים שנכנסו -->
+    <div class="widget">
+      <div class="widget-title"><span>מועמדים שנכנסו למערכת</span><span style="font-size:10px;color:var(--text-light);">חודשים אחרונים</span></div>
+      <div class="widget-num">11,704</div>
+      <div style="height:130px;position:relative;"><canvas id="barChart"></canvas></div>
+      <a class="widget-link" onclick="window.location.href='index.html'">כל המועמדים ›</a>
+    </div>
+  </div>
+
+  <!-- WIDGETS ROW 2 -->
+  <div class="db-widgets2">
+
+    <!-- מועמדים שהתקבלו -->
+    <div class="widget">
+      <div class="widget-title"><span>מועמדים שהתקבלו</span><span style="font-size:10px;color:var(--text-light);">שנה אחרונה</span></div>
+      <div class="widget-num">62</div>
+      <div style="height:100px;position:relative;"><canvas id="lineChart"></canvas></div>
+      <a class="widget-link">התקבל לעבודה ›</a>
+    </div>
+
+    <!-- התחילו לעבוד -->
+    <div class="widget">
+      <div class="widget-title"><span>התחילו לעבוד</span><span style="font-size:10px;color:var(--text-light);">מתחילת השנה</span></div>
+      <div class="widget-num">64</div>
+      <div>
+        <div class="bar-row"><span class="bar-label">היום</span><div class="bar-track"><div class="bar-fill" style="width:0%;background:var(--green);"></div></div><span class="bar-val">0</span></div>
+        <div class="bar-row"><span class="bar-label">השבוע</span><div class="bar-track"><div class="bar-fill" style="width:6%;background:var(--green);"></div></div><span class="bar-val">4</span></div>
+        <div class="bar-row"><span class="bar-label">החודש</span><div class="bar-track"><div class="bar-fill" style="width:12%;background:var(--green);"></div></div><span class="bar-val">8</span></div>
+        <div class="bar-row"><span class="bar-label">השנה</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--blue);"></div></div><span class="bar-val">64</span></div>
+      </div>
+    </div>
+
+    <!-- מקורות גיוס מספרים -->
+    <div class="widget">
+      <div class="widget-title"><span>מקורות גיוס</span><span style="font-size:10px;color:var(--text-light);">חודש אחרון</span></div>
+      <div class="widget-num">2,004</div>
+      <div>
+        <div class="bar-row"><span class="bar-label">לידים</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--blue);"></div></div><span class="bar-val">1,297</span></div>
+        <div class="bar-row"><span class="bar-label">דרושים</span><div class="bar-track"><div class="bar-fill" style="width:45%;background:var(--orange);"></div></div><span class="bar-val">590</span></div>
+        <div class="bar-row"><span class="bar-label">אחר</span><div class="bar-track"><div class="bar-fill" style="width:8%;background:var(--gray,#8a9ab5);"></div></div><span class="bar-val">109</span></div>
+      </div>
+    </div>
+
+    <!-- עלויות -->
+    <div class="widget">
+      <div class="widget-title"><span>עלויות גיוס</span><span style="font-size:10px;color:var(--text-light);">מתחילת השנה</span></div>
+      <div class="widget-num">₪9,000</div>
+      <div>
+        <div class="bar-row"><span class="bar-label">לידים</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--blue);"></div></div><span class="bar-val">4,800</span></div>
+        <div class="bar-row"><span class="bar-label">דרושים</span><div class="bar-track"><div class="bar-fill" style="width:80%;background:var(--orange);"></div></div><span class="bar-val">3,800</span></div>
+        <div class="bar-row"><span class="bar-label">אחר</span><div class="bar-track"><div class="bar-fill" style="width:8%;background:var(--gray,#8a9ab5);"></div></div><span class="bar-val">400</span></div>
+      </div>
+      <a class="widget-link">דוח עלויות ›</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- EDIT OVERLAY -->
+<div class="edit-overlay" id="editOverlay" onclick="closeEdit(event)">
+  <div class="edit-panel" onclick="event.stopPropagation()">
+    <div style="font-size:14px;font-weight:500;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+      <span>ערוך דשבורד</span>
+      <button class="btn" onclick="closeEdit()" style="padding:3px 8px;"><i class="fa-solid fa-x" style="font-size:10px;"></i></button>
+    </div>
+    <div style="font-size:10px;color:var(--text-light);margin-bottom:10px;">הצג / הסתר כרטיסיות</div>
+
+    <div id="widgetToggles"></div>
+
+    <div style="margin-top:14px;padding-top:10px;border-top:0.5px solid var(--border);display:flex;gap:6px;justify-content:flex-end;">
+      <button class="btn" onclick="closeEdit()">ביטול</button>
+      <button class="btn btn-primary" onclick="saveEdit()">שמור</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Charts
+window.addEventListener('DOMContentLoaded', function() {
+  // Donut
+  new Chart(document.getElementById('donutChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['לידים', 'דרושים', 'פייסבוק', 'אחר'],
+      datasets: [{ data: [4, 1, 1, 1], backgroundColor: ['#1e3461','#e8992e','#6b7ab8','#c5cad6'], borderWidth: 0 }]
+    },
+    options: { plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10, padding: 8 } } }, cutout: '65%', responsive: true, maintainAspectRatio: false, animation: false }
+  });
+
+  // Bar chart
+  new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels: ['נוב','דצ','ינ','פבר','מרץ','אפר','מאי'],
+      datasets: [{ data: [1650,1420,1380,1510,1680,1750,1820], backgroundColor: '#e8992e', borderRadius: 4, barPercentage: 0.6 }]
+    },
+    options: { plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 9 } } }, y: { display: false } }, responsive: true, maintainAspectRatio: false }
+  });
+
+  // Line chart
+  new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: {
+      labels: ['נוב','דצ','ינ','פבר','מרץ','אפר','מאי'],
+      datasets: [{ data: [6,8,7,9,10,11,11], borderColor: '#1e3461', backgroundColor: 'rgba(30,52,97,0.06)', fill: true, tension: 0.4, pointRadius: 3, pointBackgroundColor: '#1e3461', borderWidth: 2 }]
+    },
+    options: { plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 9 } } }, y: { display: false } }, responsive: true, maintainAspectRatio: false }
+  });
+});
+
+// Edit dashboard
+const WIDGETS = [
+  { id: 'statsRow', label: 'שורת סטטיסטיקות עליונה', on: true },
+  { id: 'w-sources', label: 'מקורות גיוס (עוגה)', on: true },
+  { id: 'w-process', label: 'מועמדים בתהליך', on: true },
+  { id: 'w-entered', label: 'מועמדים שנכנסו למערכת', on: true },
+  { id: 'w-hired', label: 'מועמדים שהתקבלו', on: true },
+  { id: 'w-started', label: 'התחילו לעבוד', on: true },
+  { id: 'w-sources2', label: 'מקורות גיוס (מספרים)', on: true },
+  { id: 'w-costs', label: 'עלויות גיוס', on: true },
+];
+
+function openEdit() {
+  const cont = document.getElementById('widgetToggles');
+  cont.innerHTML = WIDGETS.map((w,i) =>
+    '<div class="widget-toggle">' +
+    '<span>' + w.label + '</span>' +
+    '<label class="toggle-sw"><input type="checkbox"' + (w.on?' checked':'') + ' onchange="WIDGETS['+i+'].on=this.checked">' +
+    '<div class="toggle-track' + (w.on?' on':'') + '" id="tt'+i+'"></div>' +
+    '<div class="toggle-thumb' + (w.on?' on':'') + '" id="th'+i+'"></div></label></div>'
+  ).join('');
+  document.getElementById('editOverlay').classList.add('open');
+}
+
+function closeEdit(e) {
+  if(!e || e.target === document.getElementById('editOverlay'))
+    document.getElementById('editOverlay').classList.remove('open');
+}
+
+function saveEdit() {
+  document.getElementById('editOverlay').classList.remove('open');
+}
+</script>
+<script>
+(function() {
+  var closeTimer = null;
+  var currentOpen = null;
+  function openMenu(wrapper) {
+    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+    if (currentOpen && currentOpen !== wrapper) {
+      var other = currentOpen.querySelector('.dropdown-menu');
+      if (other) other.classList.remove('open');
+    }
+    currentOpen = wrapper;
+    var menu = wrapper.querySelector('.dropdown-menu');
+    if (menu) menu.classList.add('open');
+  }
+  function closeMenu(wrapper) {
+    closeTimer = setTimeout(function() {
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) menu.classList.remove('open');
+      if (currentOpen === wrapper) currentOpen = null;
+    }, 250);
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.nav-dropdown').forEach(function(wrapper) {
+      wrapper.addEventListener('mouseenter', function() { openMenu(wrapper); });
+      wrapper.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) {
+        menu.addEventListener('mouseenter', function() { openMenu(wrapper); });
+        menu.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      }
+    });
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-dropdown')) {
+        document.querySelectorAll('.dropdown-menu.open').forEach(function(m) { m.classList.remove('open'); });
+        currentOpen = null;
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

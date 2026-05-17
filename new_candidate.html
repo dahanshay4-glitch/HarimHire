@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HarimHire – מועמד חדש</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="harimhire.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDhvquMr_6zODjgFIiU2y1Uzpc2wNgmX0",
+      authDomain: "harimhire.firebaseapp.com",
+      projectId: "harimhire",
+      storageBucket: "harimhire.firebasestorage.app",
+      messagingSenderId: "723909250338",
+      appId: "1:723909250338:web:70f5ac52e307083379697b"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+<style>
+.nav-dropdown { position: relative; display: inline-block; }
+.nav-dropdown > a { display: flex; align-items: center; gap: 5px; padding: 6px 4px; }
+.nav-dropdown > a::after { content: "\25BE"; font-size: 10px; opacity: 0.8; }
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border: 1px solid #dde2ea;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.14);
+  min-width: 200px;
+  z-index: 99999;
+  display: none;
+  overflow: hidden;
+  padding: 5px 0;
+}
+.dropdown-menu.open { display: block; }
+.dropdown-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 18px !important;
+  font-size: 13px !important;
+  color: #1a2332 !important;
+  text-decoration: none !important;
+  background: #ffffff !important;
+  border-bottom: 0.5px solid #f0f2f5 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  border-right: none !important;
+  border-left: none !important;
+  border-top: none !important;
+}
+.dropdown-item:last-child { border-bottom: none !important; }
+.dropdown-item:hover { background: #f4f6f9 !important; color: #1e3461 !important; }
+.dropdown-item i {
+  font-size: 14px !important;
+  color: #6b7a99 !important;
+  width: 18px !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+}
+.dropdown-item:hover i { color: #1e3461 !important; }
+</style>
+
+<style>
+.form-section { background: var(--white); border: 0.5px solid var(--border); border-radius: 8px; padding: 16px 20px; margin-bottom: 10px; }
+.form-section-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px 20px; }
+.fg-full { grid-column: 1/-1; }
+.form-group { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; }
+.form-label { font-size: 11px; color: var(--text-light); }
+.form-label .req { color: var(--red); margin-right: 2px; }
+.form-input { padding: 7px 10px; font-size: 12px; border: 0.5px solid var(--border); border-radius: 6px; background: var(--white); color: var(--text); font-family: var(--font); width: 100%; }
+.form-input:focus { outline: none; border-color: var(--blue); }
+.form-input.missing { border-color: var(--red); background: rgba(220,53,69,0.03); }
+.form-select { padding: 7px 10px; font-size: 12px; border: 0.5px solid var(--border); border-radius: 6px; background: var(--white); color: var(--text); font-family: var(--font); width: 100%; appearance: none; }
+.form-select:focus { outline: none; border-color: var(--blue); }
+.status-indicator { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; font-size: 11px; background: rgba(30,52,97,0.06); color: var(--blue); border: 0.5px solid rgba(30,52,97,0.2); }
+.checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text); }
+.checkbox-row input { width: 14px; height: 14px; accent-color: var(--blue); }
+</style>
+</head>
+<body>
+<nav class="navbar">
+                  <div class="nav-links">
+    <div class="nav-dropdown">
+      <a href="candidates.html" class="active">מועמדים</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="candidates.html"><i class="fa-solid fa-users"></i> מועמדים</a>
+        <a class="dropdown-item" href="new_candidate.html"><i class="fa-solid fa-user-plus"></i> מועמד חדש</a>
+        <a class="dropdown-item" href="segments.html"><i class="fa-solid fa-filter"></i> חיתוכי מועמדים</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="clients.html">לקוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="clients.html"><i class="fa-solid fa-building"></i> לקוחות</a>
+        <a class="dropdown-item" href="new_client.html"><i class="fa-solid fa-building-circle-arrow-right"></i> לקוח חדש</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="jobs.html">משרות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="jobs.html"><i class="fa-solid fa-briefcase"></i> משרות</a>
+        <a class="dropdown-item" href="my_jobs.html"><i class="fa-solid fa-briefcase-arrow-right"></i> המשרות שלי</a>
+        <a class="dropdown-item" href="new_job.html"><i class="fa-solid fa-plus"></i> משרה חדשה</a>
+      </div>
+    </div>
+    <a href="process.html">תהליך ראשוני</a>
+    <a href="fixes.html">תיקונים</a>
+    <a href="tags.html">תגיות</a>
+    <div class="nav-dropdown">
+      <a href="#">דוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-bar"></i> דוחות</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-clock-rotate-left"></i> היסטוריית הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-phone-slash"></i> פסילות בסינון ראשוני</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-calendar-day"></i> דוח יומי לרכז</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-bullseye"></i> דוח מקורות גיוס</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-briefcase"></i> דוח סוגי משרה</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-users"></i> סטטיסטיקות מועמדים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-building"></i> סטטיסטיקות משרות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-user-tie"></i> סטטיסטיקות רכזים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-pie"></i> סטטיסטיקות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-right-to-bracket"></i> לוג כניסות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-envelope"></i> מיילים מסוננים</a>
+      </div>
+    </div>
+  </div>
+  <div class="navbar-right">
+    <div class="navbar-icons">
+      <i class="fa-regular fa-bell"></i>
+      <i class="fa-solid fa-gear"></i>
+      <i class="fa-regular fa-circle-question"></i>
+    </div>
+    <div class="navbar-logo" onclick="window.location.href='index.html'">
+      <svg width="30" height="22" viewBox="0 0 34 26">
+        <polygon points="2,24 13,4 24,24" fill="rgba(255,255,255,0.92)"/>
+        <polygon points="12,24 19,10 24,24" fill="#e8992e" opacity="0.85"/>
+      </svg>
+      <div>
+        <div class="logo-text">Harim<span>Hire</span></div>
+        <div class="logo-sub">HR SOLUTIONS</div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="main" style="padding:0.75rem 1rem;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <div class="breadcrumb">
+      <a href="candidates.html">מועמדים</a>
+      <i class="fa-solid fa-chevron-left" style="font-size:9px"></i>
+      <span>מועמד חדש</span>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button class="btn" onclick="window.location.href='index.html'">ביטול</button>
+      <button class="btn btn-primary" onclick="saveCandidate()"><i class="fa-solid fa-check"></i> צור מועמד והמשך</button>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 280px;gap:12px;">
+    <div>
+
+      <!-- פרטים אישיים -->
+      <div class="form-section">
+        <div class="form-section-title" onclick="toggleSection(this)">
+          <span>פרטים אישיים</span>
+          <i class="fa-solid fa-chevron-up" style="font-size:11px;color:var(--text-light);"></i>
+        </div>
+        <div class="section-body">
+          <div class="form-group" style="margin-bottom:10px;">
+            <div class="form-label">איכות המועמד</div>
+            <select class="form-select" style="max-width:220px;">
+              <option>עבר בדיקה ראשונית</option>
+              <option>לא עבר בדיקה</option>
+              <option>ממתין לבדיקה</option>
+            </select>
+          </div>
+          <div class="form-grid">
+            <div class="form-group"><div class="form-label">שם פרטי <span class="req">*</span></div><input class="form-input" id="fFirst" type="text" placeholder="שם פרטי..." oninput="validateReq('fFirst')"></div>
+            <div class="form-group"><div class="form-label">שם משפחה <span class="req">*</span></div><input class="form-input" id="fLast" type="text" placeholder="שם משפחה..." oninput="validateReq('fLast')"></div>
+            <div class="form-group"><div class="form-label">כינוי</div><input class="form-input" type="text" placeholder="כינוי..."></div>
+            <div class="form-group"><div class="form-label">דוא"ל</div><input class="form-input" type="email" placeholder="email@example.com"></div>
+            <div class="form-group"><div class="form-label">טלפון 1 <span class="req">*</span></div><input class="form-input" id="fPhone" type="text" placeholder="05X-XXXXXXX" oninput="validateReq('fPhone')"></div>
+            <div class="form-group"><div class="form-label">טלפון 2</div><input class="form-input" type="text" placeholder="טלפון נוסף..."></div>
+            <div class="form-group"><div class="form-label">תעודת זהות</div><input class="form-input" type="text" placeholder="תעודת זהות..."></div>
+            <div class="form-group"><div class="form-label">עיר <span class="req">*</span></div><input class="form-input" id="fCity" type="text" placeholder="עיר מגורים..."></div>
+            <div class="form-group"><div class="form-label">רחוב</div><input class="form-input" type="text" placeholder="רחוב..."></div>
+            <div class="form-group"><div class="form-label">מס׳ בית</div><input class="form-input" type="text" placeholder="מס׳ בית..."></div>
+            <div class="form-group"><div class="form-label">מין</div><select class="form-select"><option value="">-</option><option>זכר</option><option>נקבה</option></select></div>
+            <div class="form-group"><div class="form-label">מצב משפחתי</div><select class="form-select"><option value="">-</option><option>רווק/ה</option><option>נשוי/אה</option><option>גרוש/ה</option><option>אלמן/ה</option></select></div>
+            <div class="form-group"><div class="form-label">ניידות</div><select class="form-select"><option value="">-</option><option>יש רכב</option><option>אין רכב</option><option>תחבורה ציבורית</option></select></div>
+            <div class="form-group"><div class="form-label">רישיון נהיגה</div><select class="form-select"><option value="">-</option><option>כן</option><option>לא</option></select></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ערוצי תפוצה -->
+      <div class="form-section">
+        <div class="form-section-title" onclick="toggleSection(this)">
+          <span>ערוצי תפוצה</span>
+          <i class="fa-solid fa-chevron-up" style="font-size:11px;color:var(--text-light);"></i>
+        </div>
+        <div class="section-body">
+          <div style="display:flex;gap:20px;flex-wrap:wrap;">
+            <label class="checkbox-row"><input type="checkbox" checked> דוא"ל</label>
+            <label class="checkbox-row"><input type="checkbox" checked> סמס</label>
+            <label class="checkbox-row"><input type="checkbox" checked> WhatsApp</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- פרטים נוספים -->
+      <div class="form-section">
+        <div class="form-section-title" onclick="toggleSection(this)">
+          <span>פרטים נוספים</span>
+          <i class="fa-solid fa-chevron-up" style="font-size:11px;color:var(--text-light);"></i>
+        </div>
+        <div class="section-body">
+          <div class="form-group">
+            <div class="form-label">הערה פנימית</div>
+            <textarea class="form-input" style="height:80px;resize:vertical;" placeholder="הערה..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- מקורות גיוס -->
+      <div class="form-section">
+        <div class="form-section-title" onclick="toggleSection(this)">
+          <span>מקורות גיוס</span>
+          <i class="fa-solid fa-chevron-up" style="font-size:11px;color:var(--text-light);"></i>
+        </div>
+        <div class="section-body">
+          <div class="form-group">
+            <div class="form-label">מקור גיוס נוכחי</div>
+            <select class="form-select" style="max-width:280px;">
+              <option value="">(לא מוגדר)</option>
+              <option>לידים פייסבוק</option>
+              <option>דרושים</option>
+              <option>אתר אינטרנט</option>
+              <option>המלצה</option>
+              <option>אחר</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div>
+      <div class="card" style="position:sticky;top:54px;">
+        <div class="rs-title">מתעניין במשרות <span style="color:var(--red);">*</span></div>
+        <select class="form-select" id="fJob" style="margin-bottom:8px;" onchange="validateReq('fJob')">
+          <option value="">--- בחר משרה ---</option>
+          <option>1001 – שליח עצמאי</option>
+          <option>1002 – שליח שכיר</option>
+          <option>1003 – מוקדנים</option>
+          <option>1004 – דואר נע</option>
+          <option>1000 – עובד מיון</option>
+        </select>
+        <div class="rs-divider"></div>
+        <div class="rs-title">רכז מטפל</div>
+        <select class="form-select" style="margin-bottom:8px;">
+          <option>נטלי</option>
+          <option>שי דהן</option>
+          <option>בתאל</option>
+          <option>אייל מוצניק</option>
+        </select>
+        <div class="rs-divider"></div>
+        <div id="missingAlert" class="hidden" style="background:rgba(220,53,69,0.06);border:0.5px solid rgba(220,53,69,0.3);border-radius:6px;padding:8px 10px;font-size:11px;color:var(--red);margin-bottom:8px;">
+          <i class="fa-solid fa-circle-exclamation" style="margin-left:4px;"></i>
+          <span id="missingMsg"></span>
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:8px;" onclick="saveCandidate()">
+          <i class="fa-solid fa-check"></i> צור מועמד והמשך
+        </button>
+        <button class="btn" style="width:100%;justify-content:center;padding:8px;margin-top:6px;" onclick="window.location.href='index.html'">ביטול</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleSection(el) {
+  const body = el.nextElementSibling;
+  const icon = el.querySelector('i');
+  if(body.style.display === 'none') {
+    body.style.display = '';
+    icon.className = 'fa-solid fa-chevron-up';
+    icon.style.fontSize = '11px';
+    icon.style.color = 'var(--text-light)';
+  } else {
+    body.style.display = 'none';
+    icon.className = 'fa-solid fa-chevron-down';
+    icon.style.fontSize = '11px';
+    icon.style.color = 'var(--text-light)';
+  }
+}
+
+function validateReq(id) {
+  const el = document.getElementById(id);
+  if(el) {
+    el.classList.toggle('missing', !el.value.trim());
+  }
+}
+
+function saveCandidate() {
+  const missing = [];
+  if(!document.getElementById('fFirst').value.trim()) missing.push('שם פרטי');
+  if(!document.getElementById('fLast').value.trim()) missing.push('שם משפחה');
+  if(!document.getElementById('fPhone').value.trim()) missing.push('טלפון');
+  if(!document.getElementById('fJob').value) missing.push('מתעניין במשרות');
+
+  if(missing.length) {
+    document.getElementById('missingMsg').textContent = 'שדות חובה חסרים: ' + missing.join(', ');
+    document.getElementById('missingAlert').classList.remove('hidden');
+    ['fFirst','fLast','fPhone','fJob'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el && !el.value.trim()) el.classList.add('missing');
+    });
+    return;
+  }
+  // Save to Firebase
+  var first = document.getElementById('fFirst').value.trim();
+  var last = document.getElementById('fLast').value.trim();
+  var data = {
+    first: first,
+    last: last,
+    phone: document.getElementById('fPhone').value.trim(),
+    job: document.getElementById('fJob').value,
+    city: document.getElementById('fCity') ? document.getElementById('fCity').value.trim() : '',
+    age: document.getElementById('fAge') ? document.getElementById('fAge').value : '',
+    gender: document.getElementById('fGender') ? document.getElementById('fGender').value : '',
+    license: document.getElementById('fLicense') ? document.getElementById('fLicense').value : '',
+    source: 'הקמה ידנית',
+    status: 'ממתין לסינון',
+    av: (first[0]||'?') + (last[0]||'?'),
+    avBg: 'rgba(30,52,97,0.12)',
+    avColor: '#1e3461',
+    date: new Date().toLocaleDateString('he-IL'),
+    needsFix: false,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  db.collection('candidates').get().then(function(snap) {
+    data.num = snap.size + 1;
+    return db.collection('candidates').add(data);
+  }).then(function() {
+    window.location.href = 'candidates.html';
+  }).catch(function(e) {
+    alert('שגיאה בשמירה: ' + e.message);
+  });
+}
+</script>
+
+<script>
+(function() {
+  var closeTimer = null;
+  var currentOpen = null;
+  function openMenu(wrapper) {
+    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+    if (currentOpen && currentOpen !== wrapper) {
+      var other = currentOpen.querySelector('.dropdown-menu');
+      if (other) other.classList.remove('open');
+    }
+    currentOpen = wrapper;
+    var menu = wrapper.querySelector('.dropdown-menu');
+    if (menu) menu.classList.add('open');
+  }
+  function closeMenu(wrapper) {
+    closeTimer = setTimeout(function() {
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) menu.classList.remove('open');
+      if (currentOpen === wrapper) currentOpen = null;
+    }, 250);
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.nav-dropdown').forEach(function(wrapper) {
+      wrapper.addEventListener('mouseenter', function() { openMenu(wrapper); });
+      wrapper.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) {
+        menu.addEventListener('mouseenter', function() { openMenu(wrapper); });
+        menu.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      }
+    });
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-dropdown')) {
+        document.querySelectorAll('.dropdown-menu.open').forEach(function(m) { m.classList.remove('open'); });
+        currentOpen = null;
+      }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

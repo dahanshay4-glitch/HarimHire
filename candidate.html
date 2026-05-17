@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HarimHire – כרטיס מועמד</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="harimhire.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDhvquMr_6zODjgFIiU2y1Uzpc2wNgmX0",
+      authDomain: "harimhire.firebaseapp.com",
+      projectId: "harimhire",
+      storageBucket: "harimhire.firebasestorage.app",
+      messagingSenderId: "723909250338",
+      appId: "1:723909250338:web:70f5ac52e307083379697b"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+<style>
+.nav-dropdown { position: relative; display: inline-block; }
+.nav-dropdown > a { display: flex; align-items: center; gap: 5px; padding: 6px 4px; }
+.nav-dropdown > a::after { content: "\25BE"; font-size: 10px; opacity: 0.8; }
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border: 1px solid #dde2ea;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.14);
+  min-width: 200px;
+  z-index: 99999;
+  display: none;
+  overflow: hidden;
+  padding: 5px 0;
+}
+.dropdown-menu.open { display: block; }
+.dropdown-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 18px !important;
+  font-size: 13px !important;
+  color: #1a2332 !important;
+  text-decoration: none !important;
+  background: #ffffff !important;
+  border-bottom: 0.5px solid #f0f2f5 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  border-right: none !important;
+  border-left: none !important;
+  border-top: none !important;
+}
+.dropdown-item:last-child { border-bottom: none !important; }
+.dropdown-item:hover { background: #f4f6f9 !important; color: #1e3461 !important; }
+.dropdown-item i {
+  font-size: 14px !important;
+  color: #6b7a99 !important;
+  width: 18px !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+}
+.dropdown-item:hover i { color: #1e3461 !important; }
+</style>
+
+<style>.subbar{margin:0 0 0.75rem 0 !important;padding:8px 1.2rem;}</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+                    <div class="nav-links">
+    <div class="nav-dropdown">
+      <a href="candidates.html" class="active">מועמדים</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="candidates.html"><i class="fa-solid fa-users"></i> מועמדים</a>
+        <a class="dropdown-item" href="new_candidate.html"><i class="fa-solid fa-user-plus"></i> מועמד חדש</a>
+        <a class="dropdown-item" href="segments.html"><i class="fa-solid fa-filter"></i> חיתוכי מועמדים</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="clients.html">לקוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="clients.html"><i class="fa-solid fa-building"></i> לקוחות</a>
+        <a class="dropdown-item" href="new_client.html"><i class="fa-solid fa-building-circle-arrow-right"></i> לקוח חדש</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="jobs.html">משרות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="jobs.html"><i class="fa-solid fa-briefcase"></i> משרות</a>
+        <a class="dropdown-item" href="my_jobs.html"><i class="fa-solid fa-briefcase-arrow-right"></i> המשרות שלי</a>
+        <a class="dropdown-item" href="new_job.html"><i class="fa-solid fa-plus"></i> משרה חדשה</a>
+      </div>
+    </div>
+    <a href="process.html">תהליך ראשוני</a>
+    <a href="fixes.html">תיקונים</a>
+    <a href="tags.html">תגיות</a>
+    <div class="nav-dropdown">
+      <a href="#">דוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-bar"></i> דוחות</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-clock-rotate-left"></i> היסטוריית הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-phone-slash"></i> פסילות בסינון ראשוני</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-calendar-day"></i> דוח יומי לרכז</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-bullseye"></i> דוח מקורות גיוס</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-briefcase"></i> דוח סוגי משרה</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-users"></i> סטטיסטיקות מועמדים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-building"></i> סטטיסטיקות משרות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-user-tie"></i> סטטיסטיקות רכזים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-pie"></i> סטטיסטיקות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-right-to-bracket"></i> לוג כניסות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-envelope"></i> מיילים מסוננים</a>
+      </div>
+    </div>
+  </div>
+  <div class="navbar-right">
+    <div class="navbar-icons">
+      <i class="fa-regular fa-bell"></i>
+      <i class="fa-solid fa-gear"></i>
+      <i class="fa-regular fa-circle-question"></i>
+    </div>
+    <div class="navbar-logo" onclick="window.location.href='index.html'">
+      <svg width="30" height="22" viewBox="0 0 34 26">
+        <polygon points="2,24 13,4 24,24" fill="rgba(255,255,255,0.92)"/>
+        <polygon points="12,24 19,10 24,24" fill="#e8992e" opacity="0.85"/>
+      </svg>
+      <div>
+        <div class="logo-text">Harim<span>Hire</span></div>
+        <div class="logo-sub">HR SOLUTIONS</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+  <!-- SUBBAR -->
+  <div class="subbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="display:flex;gap:5px;">
+        <button class="btn" onclick="navigate(-1)"><i class="fa-solid fa-arrow-right" style="font-size:10px"></i> הקודם</button>
+        <button class="btn" onclick="navigate(1)">הבא <i class="fa-solid fa-arrow-left" style="font-size:10px"></i></button>
+      </div>
+      <div class="breadcrumb">
+        <a href="candidates.html">מועמדים</a>
+        <i class="fa-solid fa-chevron-left" style="font-size:9px"></i>
+        <span id="breadName"></span>
+      </div>
+      <div style="font-size:10px;color:var(--text-light);">מועמד <strong id="candPos"></strong> מתוך <strong id="candTotal"></strong></div>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button class="btn btn-export"><i class="fa-solid fa-download"></i> ייצוא</button>
+      <button class="btn btn-wa" id="waTopBtn"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+      <button class="btn btn-primary"><i class="fa-solid fa-rotate"></i> שנה סטטוס</button>
+    </div>
+  </div>
+
+  <div class="detail-layout">
+    <!-- LEFT COLUMN -->
+    <div class="detail-left">
+
+      <!-- CANDIDATE HEADER -->
+      <div class="cand-header">
+        <div class="ch-row1">
+          <div class="cav-lg" id="cdAv"></div>
+          <div>
+            <div class="cand-name-lg" id="cdName"></div>
+            <div class="cand-meta-sm" id="cdMeta"></div>
+          </div>
+          <div class="ch-right">
+            <div style="font-size:10px;color:var(--text-light);" id="cdEntryDate"></div>
+          </div>
+        </div>
+        <div class="ch-row2" id="cdPills"></div>
+        <div class="divider-line"></div>
+        <div class="clients-row">
+          <span class="clients-label">לקוחות רלוונטיים:</span>
+          <span class="client-pill cp1" onclick="window.location.href='clients.html'">מוקד ירושלים</span>
+          <span class="client-pill cp2" onclick="window.location.href='clients.html'">מוקד בית שמש</span>
+          <span class="client-pill cp4" onclick="window.location.href='clients.html'">מוקד אשקלון</span>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div>
+        <div class="tabs">
+          <div class="tab active" onclick="swTab('personal',this)">פרטי המועמד</div>
+          <div class="tab" onclick="swTab('jobs',this)">מתעניין במשרה</div>
+          <div class="tab" onclick="swTab('referrals',this)">הפניות</div>
+          <div class="tab" onclick="swTab('tags',this)">תגיות</div>
+          <div class="tab" onclick="swTab('history',this)">סטטוסים</div>
+          <div class="tab" onclick="swTab('docs',this)">מסמכים</div>
+        </div>
+        <div class="tab-content">
+
+          <!-- פרטי המועמד -->
+          <div class="tab-pane active" id="tab-personal">
+            <div class="section-title">פרטים אישיים</div>
+            <div class="two-col">
+              <div class="field-row"><div class="field-label">שם פרטי</div><div class="field-val" id="cdFirst"></div></div>
+              <div class="field-row"><div class="field-label">שם משפחה</div><div class="field-val" id="cdLast"></div></div>
+              <div class="field-row"><div class="field-label">טלפון</div><div class="field-val" id="cdPhone"></div></div>
+              <div class="field-row"><div class="field-label">גיל</div><div class="field-val" id="cdAge"></div></div>
+              <div class="field-row"><div class="field-label">עיר</div><div class="field-val" id="cdCity"></div></div>
+              <div class="field-row"><div class="field-label">מין</div><div class="field-val" id="cdGender"></div></div>
+              <div class="field-row"><div class="field-label">תעודת זהות</div><div class="field-val empty">לא הוזן</div></div>
+              <div class="field-row"><div class="field-label">מצב משפחתי</div><div class="field-val empty">לא הוזן</div></div>
+            </div>
+            <div class="section-title">פרטי רכב ורישיון</div>
+            <div class="two-col">
+              <div class="field-row"><div class="field-label">סוג רכב</div><div class="field-val" id="cdVehicle"></div></div>
+              <div class="field-row"><div class="field-label">רישיון נהיגה</div><div class="field-val" id="cdLicense"></div></div>
+            </div>
+          </div>
+
+          <!-- מתעניין במשרה -->
+          <div class="tab-pane" id="tab-jobs">
+            <div class="section-divider">תהליכים פעילים<span class="section-badge badge-active">1 משרה</span></div>
+            <div class="job-row">
+              <div class="avatar-sm" style="background:rgba(30,52,97,0.12);color:var(--blue);">1</div>
+              <div style="flex:1;">
+                <div style="font-size:11px;font-weight:500;"><a class="link" id="cdJobTitle" href="jobs.html"></a></div>
+                <div style="font-size:10px;color:var(--text-light);">מוקד בית שמש · נכנס 15/05/2026</div>
+              </div>
+              <span class="pill" id="cdJobStatus"></span>
+            </div>
+            <div class="section-divider" style="margin-top:14px;">פניות ללא תהליך<span class="section-badge badge-pending">2 משרות</span></div>
+            <div class="job-row">
+              <div class="avatar-sm" style="background:var(--bg);color:var(--text-light);border:0.5px solid var(--border);">2</div>
+              <div style="flex:1;">
+                <div style="font-size:11px;font-weight:500;">1001 – שליח עצמאי</div>
+                <div style="font-size:10px;color:var(--text-light);">מוקד ירושלים · נכנס 15/05/2026</div>
+              </div>
+              <span class="pill pill-gray">ממתין לטיפול</span>
+              <button class="start-btn" onclick="window.location.href='process.html'">התחל תהליך</button>
+            </div>
+            <div class="job-row">
+              <div class="avatar-sm" style="background:var(--bg);color:var(--text-light);border:0.5px solid var(--border);">3</div>
+              <div style="flex:1;">
+                <div style="font-size:11px;font-weight:500;">1001 – שליח עצמאי</div>
+                <div style="font-size:10px;color:var(--text-light);">מוקד אשקלון · נכנס 15/05/2026</div>
+              </div>
+              <span class="pill pill-gray">ממתין לטיפול</span>
+              <button class="start-btn" onclick="window.location.href='process.html'">התחל תהליך</button>
+            </div>
+          </div>
+
+          <!-- הפניות -->
+          <div class="tab-pane" id="tab-referrals">
+            <div class="section-title">הפניות</div>
+            <div style="font-size:11px;color:var(--text-light);padding:1rem 0;">אין הפניות רשומות למועמד זה</div>
+            <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> הוסף הפניה</button>
+          </div>
+
+          <!-- תגיות -->
+          <div class="tab-pane" id="tab-tags">
+            <div class="section-title">תגיות</div>
+            <div style="padding:6px 0;">
+              <span class="tag tag-blue" id="tagCity"></span>
+              <span class="tag tag-orange" id="tagVehicle"></span>
+              <span class="tag tag-green" id="tagSource"></span>
+            </div>
+            <button class="btn" style="margin-top:8px;"><i class="fa-solid fa-plus"></i> הוסף תגית</button>
+          </div>
+
+          <!-- סטטוסים -->
+          <div class="tab-pane" id="tab-history">
+            <div class="section-title">היסטוריית סטטוסים ותיעוד</div>
+            <div id="logList">
+              <div class="tl-item">
+                <div class="tl-dot" style="background:var(--gray);"><i class="fa-solid fa-plus" style="font-size:9px"></i></div>
+                <div>
+                  <div class="tl-status">נכנס למערכת</div>
+                  <div class="tl-meta" id="logEntryMeta"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- מסמכים -->
+          <div class="tab-pane" id="tab-docs">
+            <div class="section-title">מסמכים</div>
+            <div style="font-size:11px;color:var(--text-light);padding:1rem 0;">אין מסמכים מצורפים</div>
+            <button class="btn"><i class="fa-solid fa-upload"></i> העלאת מסמך</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="detail-right">
+      <div class="card">
+        <div class="rs-title">סיכום מהיר</div>
+        <div class="rs-row"><span class="rs-key">מס׳ מועמד</span><span class="rs-val" id="cdId"></span></div>
+        <div class="rs-row"><span class="rs-key">מקור גיוס</span><span class="rs-val" id="cdSource"></span></div>
+        <div class="rs-row"><span class="rs-key">תאריך כניסה</span><span class="rs-val" id="cdDate"></span></div>
+        <div class="rs-row"><span class="rs-key">משתמש מטפל</span><span class="rs-val">נטלי</span></div>
+
+        <div class="rs-divider"></div>
+        <div class="rs-title">שינוי סטטוס</div>
+        <select class="status-select" onchange="changeStatus(this.value)">
+          <option value="">-- בחר סטטוס --</option>
+          <option>תואם ראיון פרונטלי</option>
+          <option>נשלח ביטחון</option>
+          <option>עבר ביטחון – בהמתנה</option>
+          <option>התחיל לעבוד</option>
+          <option>לא התקבל</option>
+          <option>עזב</option>
+        </select>
+
+        <div class="rs-divider"></div>
+        <div class="rs-title">הערה</div>
+        <textarea class="note-area" id="noteInput" placeholder="הוסף הערה..."></textarea>
+        <button class="save-note" onclick="addNote()">שמור הערה</button>
+
+        <div class="rs-divider"></div>
+        <div class="rs-title">פעולות מהירות</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <button class="btn btn-wa" style="width:100%;justify-content:center;" id="waQuickBtn"><i class="fa-brands fa-whatsapp"></i> שלח WhatsApp</button>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="showInterviewModal()"><i class="fa-regular fa-calendar"></i> קבע ראיון</button>
+          <button class="btn btn-export" style="width:100%;justify-content:center;"><i class="fa-solid fa-download"></i> ייצוא לאקסל</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW MODAL -->
+<div id="interviewModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title"><i class="fa-regular fa-calendar" style="margin-left:6px;color:var(--blue);"></i>תיאום ראיון פרונטלי</div>
+    <div class="modal-field"><div class="modal-label">שם מועמד</div><input class="modal-input" id="iCandName" readonly style="background:var(--bg);"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="modal-field"><div class="modal-label">תאריך ראיון</div><input class="modal-input" id="iDate" type="date" onchange="updateWAPreview()"></div>
+      <div class="modal-field"><div class="modal-label">שעה</div><input class="modal-input" id="iTime" type="time" value="10:00" onchange="updateWAPreview()"></div>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">כתובת ראיון</div>
+      <select class="modal-select" id="iAddress" onchange="updateWAPreview()">
+        <option>רח' הרצל 5, חיפה</option>
+        <option>רח' הנמל 12, חיפה</option>
+        <option>רח' הבנים 3, קרית אתא</option>
+      </select>
+    </div>
+    <div class="modal-label" style="margin-bottom:4px;">תצוגה מקדימה – WhatsApp</div>
+    <div class="wa-preview" id="waPreview"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="hideModal('interviewModal')">ביטול</button>
+      <button class="btn btn-wa" onclick="sendWA()"><i class="fa-brands fa-whatsapp"></i> שלח WhatsApp</button>
+      <button class="btn btn-primary" onclick="confirmInterview()">אשר ושמור</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── LOAD DATA ──
+let cand = null;
+let candList = [];
+let candIdx = 0;
+
+function statusClass(s) {
+  if(!s) return 'pill-gray';
+  if(s.includes('ראיון')) return 'pill-orange';
+  if(s.includes('ביטחון')) return 'pill-blue';
+  if(s.includes('התחיל')) return 'pill-green';
+  if(s.includes('לא התקבל') || s.includes('עזב')) return 'pill-red';
+  return 'pill-gray';
+}
+
+function loadCandidate(c) {
+  cand = c;
+  const waPhone = 'https://wa.me/972' + c.phone.replace(/^0/, '').replace(/-/g, '');
+
+  // Header
+  document.getElementById('cdAv').textContent = c.av;
+  document.getElementById('cdAv').style.background = c.avBg;
+  document.getElementById('cdAv').style.color = c.avColor;
+  document.getElementById('cdName').textContent = c.first + ' ' + c.last;
+  document.getElementById('cdMeta').textContent = c.id + ' · מקור: ' + c.source;
+  document.getElementById('cdEntryDate').textContent = 'נכנס ' + c.date;
+  document.getElementById('breadName').textContent = c.first + ' ' + c.last;
+
+  // Pills
+  const sc = statusClass(c.status);
+  document.getElementById('cdPills').innerHTML =
+    '<span class="pill pill-gray"><i class="fa-solid fa-location-dot" style="font-size:9px"></i> ' + c.city + '</span>' +
+    '<span class="pill pill-blue"><i class="fa-solid fa-briefcase" style="font-size:9px"></i> ' + c.job + '</span>' +
+    '<span class="pill ' + sc + '"><i class="fa-regular fa-clock" style="font-size:9px"></i> ' + c.status + '</span>' +
+    '<span class="pill pill-gray"><i class="fa-regular fa-calendar" style="font-size:9px"></i> נכנס ' + c.date + '</span>';
+
+  // Personal tab
+  document.getElementById('cdFirst').textContent = c.first;
+  document.getElementById('cdLast').textContent = c.last;
+  document.getElementById('cdPhone').innerHTML = '<a href="' + waPhone + '" target="_blank" style="color:#25d366;text-decoration:none;"><i class="fa-brands fa-whatsapp"></i> ' + c.phone + '</a>';
+  document.getElementById('cdAge').textContent = c.age;
+  document.getElementById('cdCity').textContent = c.city;
+  document.getElementById('cdGender').textContent = c.gender;
+  document.getElementById('cdVehicle').textContent = c.vehicle;
+  document.getElementById('cdLicense').textContent = c.license;
+
+  // Jobs tab
+  document.getElementById('cdJobTitle').textContent = c.job;
+  const js = document.getElementById('cdJobStatus');
+  js.textContent = c.status;
+  js.className = 'pill ' + sc;
+
+  // Tags tab
+  document.getElementById('tagCity').textContent = c.city;
+  document.getElementById('tagVehicle').textContent = c.vehicle !== 'אין' ? 'רכב ' + c.vehicle : 'אין רכב';
+  document.getElementById('tagSource').textContent = c.source;
+
+  // Right panel
+  document.getElementById('cdId').textContent = c.id;
+  document.getElementById('cdSource').textContent = c.source;
+  document.getElementById('cdDate').textContent = c.date;
+
+  // Log
+  document.getElementById('logEntryMeta').textContent = c.date + ' · אוטומטי (מקור: ' + c.source + ')';
+
+  // WA buttons
+  document.getElementById('waTopBtn').onclick = () => window.open(waPhone, '_blank');
+  document.getElementById('waQuickBtn').onclick = () => window.open(waPhone, '_blank');
+
+  // Interview modal
+  document.getElementById('iCandName').value = c.first + ' ' + c.last;
+  updateWAPreview();
+
+  // Status select default
+  document.querySelector('.status-select').value = '';
+}
+
+function navigate(dir) {
+  const newIdx = candIdx + dir;
+  if(newIdx >= 0 && newIdx < candList.length) {
+    candIdx = newIdx;
+    sessionStorage.setItem('currentCand', JSON.stringify(candList[candIdx]));
+    loadCandidate(candList[candIdx]);
+    updateNavButtons();
+  }
+}
+
+function updateNavButtons() {
+  document.getElementById('candPos').textContent = candIdx + 1;
+  document.getElementById('candTotal').textContent = candList.length;
+}
+
+function swTab(id, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
+
+function changeStatus(val) {
+  if(!val) return;
+  addLogEntry(val, 'var(--blue)', 'fa-rotate');
+  var cand = JSON.parse(sessionStorage.getItem('currentCand') || '{}');
+  if(cand.id && window.saveStatusToFirebase) window.saveStatusToFirebase(cand.id, val);
+}
+
+function addNote() {
+  const note = document.getElementById('noteInput').value.trim();
+  if(!note) return;
+  addLogEntry(note, 'var(--blue)', 'fa-comment');
+  document.getElementById('noteInput').value = '';
+  // Switch to history tab automatically
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', t.textContent === 'סטטוסים'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-history').classList.add('active');
+}
+
+function addLogEntry(text, color, icon) {
+  const list = document.getElementById('logList');
+  const now = new Date().toLocaleString('he-IL');
+  const div = document.createElement('div');
+  div.className = 'tl-item';
+  div.innerHTML =
+    '<div class="tl-dot" style="background:' + color + ';"><i class="fa-solid ' + icon + '" style="font-size:9px"></i></div>' +
+    '<div><div class="tl-status">' + text + '</div><div class="tl-meta">' + now + ' · נטלי</div></div>';
+  list.appendChild(div);
+}
+
+function showInterviewModal() { document.getElementById('interviewModal').classList.remove('hidden'); }
+function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+function updateWAPreview() {
+  const name = document.getElementById('iCandName').value;
+  const date = document.getElementById('iDate').value;
+  const time = document.getElementById('iTime').value;
+  const addr = document.getElementById('iAddress').value;
+  const dateStr = date ? new Date(date).toLocaleDateString('he-IL') : '--/--/----';
+  document.getElementById('waPreview').textContent =
+    'שלום ' + name + ',\n' +
+    'רוצים לעדכן אותך שנקבע לך ראיון עבודה.\n\n' +
+    '\uD83D\uDCC5 תאריך: ' + dateStr + '\n' +
+    '\uD83D\uDD50 שעה: ' + (time || '--:--') + '\n' +
+    '\uD83D\uDCCD כתובת: ' + addr + '\n\n' +
+    'אנא אשר/י הגעה.\n' +
+    'בהצלחה! \uD83D\uDE42\n' +
+    '– צוות HarimHire';
+}
+
+function sendWA() {
+  if(!cand) return;
+  const phone = '972' + cand.phone.replace(/^0/, '').replace(/-/g, '');
+  const text = encodeURIComponent(document.getElementById('waPreview').textContent);
+  window.open('https://wa.me/' + phone + '?text=' + text, '_blank');
+}
+
+function confirmInterview() {
+  const date = document.getElementById('iDate').value;
+  const time = document.getElementById('iTime').value;
+  const addr = document.getElementById('iAddress').value;
+  const dateStr = date ? new Date(date).toLocaleDateString('he-IL') : '-';
+  addLogEntry('תואם ראיון פרונטלי – ' + dateStr + ' ' + time + ' · ' + addr, 'var(--green)', 'fa-calendar-check');
+  hideModal('interviewModal');
+}
+
+// Close modal on overlay click
+document.querySelector('.modal-overlay').addEventListener('click', function(e) {
+  if(e.target === this) this.classList.add('hidden');
+});
+
+// ── INIT ──
+window.onload = function() {
+  const savedCand = sessionStorage.getItem('currentCand');
+  const savedList = sessionStorage.getItem('candList');
+
+  if(savedList) candList = JSON.parse(savedList);
+  
+  if(savedCand) {
+    cand = JSON.parse(savedCand);
+    candIdx = candList.findIndex(c => c.id === cand.id);
+    if(candIdx === -1) candIdx = 0;
+  } else {
+    // Default fallback - first candidate
+    cand = {id:'#18080',first:'שלמה',last:'בנלולו',phone:'0525371524',city:'בית שמש',age:34,gender:'זכר',source:'לידים פייסבוק',job:'1001 – שליח עצמאי',status:'תואם ראיון',date:'15/05/2026',vehicle:'פרטי',license:'כן',av:'שב',avBg:'rgba(30,52,97,0.12)',avColor:'#1e3461'};
+    candList = [cand];
+    candIdx = 0;
+  }
+
+  loadCandidate(cand);
+  updateNavButtons();
+};
+</script>
+
+<script>
+(function() {
+  var closeTimer = null;
+  var currentOpen = null;
+  function openMenu(wrapper) {
+    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+    if (currentOpen && currentOpen !== wrapper) {
+      var other = currentOpen.querySelector('.dropdown-menu');
+      if (other) other.classList.remove('open');
+    }
+    currentOpen = wrapper;
+    var menu = wrapper.querySelector('.dropdown-menu');
+    if (menu) menu.classList.add('open');
+  }
+  function closeMenu(wrapper) {
+    closeTimer = setTimeout(function() {
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) menu.classList.remove('open');
+      if (currentOpen === wrapper) currentOpen = null;
+    }, 250);
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.nav-dropdown').forEach(function(wrapper) {
+      wrapper.addEventListener('mouseenter', function() { openMenu(wrapper); });
+      wrapper.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) {
+        menu.addEventListener('mouseenter', function() { openMenu(wrapper); });
+        menu.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      }
+    });
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-dropdown')) {
+        document.querySelectorAll('.dropdown-menu.open').forEach(function(m) { m.classList.remove('open'); });
+        currentOpen = null;
+      }
+    });
+  });
+})();
+</script>
+
+<script>
+// Firebase: save candidate status/note changes
+window.saveStatusToFirebase = function(candId, status) {
+  if(!candId) return;
+  db.collection('candidates').doc(candId).update({
+    status: status,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(function(e) { console.log('Status save error:', e); });
+};
+
+window.saveNoteToFirebase = function(candId, note) {
+  if(!candId) return;
+  db.collection('referrals').add({
+    candidateId: candId,
+    note: note,
+    type: 'note',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(function(e) { console.log('Note save error:', e); });
+};
+</script>
+</body>
+</html>

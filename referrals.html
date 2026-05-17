@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HarimHire – הפניות</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="harimhire.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDhvquMr_6zODjgFIiU2y1Uzpc2wNgmX0",
+      authDomain: "harimhire.firebaseapp.com",
+      projectId: "harimhire",
+      storageBucket: "harimhire.firebasestorage.app",
+      messagingSenderId: "723909250338",
+      appId: "1:723909250338:web:70f5ac52e307083379697b"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+<style>
+.nav-dropdown { position: relative; display: inline-block; }
+.nav-dropdown > a { display: flex; align-items: center; gap: 5px; padding: 6px 4px; }
+.nav-dropdown > a::after { content: "\25BE"; font-size: 10px; opacity: 0.8; }
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border: 1px solid #dde2ea;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.14);
+  min-width: 200px;
+  z-index: 99999;
+  display: none;
+  overflow: hidden;
+  padding: 5px 0;
+}
+.dropdown-menu.open { display: block; }
+.dropdown-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 18px !important;
+  font-size: 13px !important;
+  color: #1a2332 !important;
+  text-decoration: none !important;
+  background: #ffffff !important;
+  border-bottom: 0.5px solid #f0f2f5 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  border-right: none !important;
+  border-left: none !important;
+  border-top: none !important;
+}
+.dropdown-item:last-child { border-bottom: none !important; }
+.dropdown-item:hover { background: #f4f6f9 !important; color: #1e3461 !important; }
+.dropdown-item i {
+  font-size: 14px !important;
+  color: #6b7a99 !important;
+  width: 18px !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+}
+.dropdown-item:hover i { color: #1e3461 !important; }
+</style>
+
+</head>
+<body>
+<nav class="navbar">
+                  <div class="nav-links">
+    <div class="nav-dropdown">
+      <a href="candidates.html" class="active">מועמדים</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="candidates.html"><i class="fa-solid fa-users"></i> מועמדים</a>
+        <a class="dropdown-item" href="new_candidate.html"><i class="fa-solid fa-user-plus"></i> מועמד חדש</a>
+        <a class="dropdown-item" href="segments.html"><i class="fa-solid fa-filter"></i> חיתוכי מועמדים</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="clients.html">לקוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="clients.html"><i class="fa-solid fa-building"></i> לקוחות</a>
+        <a class="dropdown-item" href="new_client.html"><i class="fa-solid fa-building-circle-arrow-right"></i> לקוח חדש</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="jobs.html">משרות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="jobs.html"><i class="fa-solid fa-briefcase"></i> משרות</a>
+        <a class="dropdown-item" href="my_jobs.html"><i class="fa-solid fa-briefcase-arrow-right"></i> המשרות שלי</a>
+        <a class="dropdown-item" href="new_job.html"><i class="fa-solid fa-plus"></i> משרה חדשה</a>
+      </div>
+    </div>
+    <a href="process.html">תהליך ראשוני</a>
+    <a href="fixes.html">תיקונים</a>
+    <a href="tags.html">תגיות</a>
+    <div class="nav-dropdown">
+      <a href="#">דוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-bar"></i> דוחות</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-clock-rotate-left"></i> היסטוריית הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-phone-slash"></i> פסילות בסינון ראשוני</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-calendar-day"></i> דוח יומי לרכז</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-bullseye"></i> דוח מקורות גיוס</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-briefcase"></i> דוח סוגי משרה</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-users"></i> סטטיסטיקות מועמדים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-building"></i> סטטיסטיקות משרות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-user-tie"></i> סטטיסטיקות רכזים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-pie"></i> סטטיסטיקות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-right-to-bracket"></i> לוג כניסות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-envelope"></i> מיילים מסוננים</a>
+      </div>
+    </div>
+  </div>
+  <div class="navbar-right">
+    <div class="navbar-icons">
+      <i class="fa-regular fa-bell"></i>
+      <i class="fa-solid fa-gear"></i>
+      <i class="fa-regular fa-circle-question"></i>
+    </div>
+    <div class="navbar-logo" onclick="window.location.href='index.html'">
+      <svg width="30" height="22" viewBox="0 0 34 26">
+        <polygon points="2,24 13,4 24,24" fill="rgba(255,255,255,0.92)"/>
+        <polygon points="12,24 19,10 24,24" fill="#e8992e" opacity="0.85"/>
+      </svg>
+      <div>
+        <div class="logo-text">Harim<span>Hire</span></div>
+        <div class="logo-sub">HR SOLUTIONS</div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="main" style="padding:0.75rem 1rem;">
+
+  <div class="filter-bar">
+    <div class="fg"><div class="fl">שם מועמד</div><div class="fiw"><input type="text" id="srch" placeholder="חיפוש..." oninput="filterRefs()"><i class="fa-solid fa-search ic"></i></div></div>
+    <div class="fg narrow"><div class="fl">שם לקוח</div><div class="fiw"><select id="fClient" onchange="filterRefs()"><option value="">הכל</option><option>מוקד חיפה</option><option>מוקד מגדל העמק</option><option>מוקד ירושלים</option><option>מוקד אשדוד</option><option>מוקד באר שבע</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
+    <div class="fg narrow"><div class="fl">כותרת המשרה</div><div class="fiw"><select id="fJob" onchange="filterRefs()"><option value="">הכל</option><option>שליח שכיר</option><option>שליח עצמאי</option><option>עובד מיון</option><option>מוקדנים</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
+    <div class="fg narrow"><div class="fl">סטטוס</div><div class="fiw"><select id="fStatus" onchange="filterRefs()"><option value="">הכל</option><option>תואם ראיון פרונטלי</option><option>נשלח ביטחון</option><option>הגיע – בהמתנה</option><option>עבר ביטחון – בהמתנה</option><option>לא התקבל</option><option>התחיל לעבוד</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
+    <div class="fg narrow"><div class="fl">קבוצת סטטוסים</div><div class="fiw"><select id="fGroup" onchange="filterRefs()"><option value="">הכל</option><option>בתהליך</option><option>לא בתהליך</option><option>התקבלו</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
+    <button class="btn btn-export"><i class="fa-solid fa-download"></i> ייצוא</button>
+  </div>
+
+  <div class="count-bar">מציג <strong id="refCount">0</strong> הפניות</div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:28px;"><input type="checkbox"></th>
+          <th onclick="sortRefs('name')">שם המועמד <span>&#8597;</span></th>
+          <th onclick="sortRefs('client')">שם הלקוח <span>&#8597;</span></th>
+          <th onclick="sortRefs('job')">כותרת המשרה <span>&#8597;</span></th>
+          <th onclick="sortRefs('recruiter')">רכז <span>&#8597;</span></th>
+          <th onclick="sortRefs('refDate')">תאריך הפניה <span>&#8597;</span></th>
+          <th onclick="sortRefs('status')">סטטוס <span>&#8597;</span></th>
+          <th onclick="sortRefs('source')">מקור גיוס <span>&#8597;</span></th>
+          <th onclick="sortRefs('city')">עיר המועמד <span>&#8597;</span></th>
+          <th onclick="sortRefs('phone')">טלפון <span>&#8597;</span></th>
+          <th>פעולות</th>
+        </tr>
+      </thead>
+      <tbody id="refsTbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- STATUS EDIT MODAL -->
+<div id="statusModal" class="modal-overlay hidden">
+  <div class="modal" style="width:320px;">
+    <div class="modal-title"><i class="fa-solid fa-pen" style="margin-left:6px;color:var(--blue);"></i>עריכת סטטוס</div>
+    <div class="modal-field">
+      <div class="modal-label">סטטוס חדש</div>
+      <select class="modal-select" id="newStatus">
+        <option>תואם ראיון פרונטלי</option>
+        <option>נשלח ביטחון</option>
+        <option>הגיע – בהמתנה</option>
+        <option>עבר ביטחון – בהמתנה</option>
+        <option>עבר ביטחון – יתחיל לעבוד בקרוב</option>
+        <option>התחיל לעבוד</option>
+        <option>לא התקבל</option>
+        <option>עזב</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="hideModal('statusModal')">ביטול</button>
+      <button class="btn btn-primary" onclick="confirmStatus()">שמור</button>
+    </div>
+  </div>
+</div>
+
+<script>
+window.REFS = [
+  {name:'נר נאסאוקר',client:'מוקד חיפה',job:'שליח שכיר',recruiter:'נטלי',refDate:'14/05/2026 12:12',status:'תואם ראיון פרונטלי',source:'דרושים',city:'קרית אתא',phone:'050-4335637'},
+  {name:'לאום לטרי',client:'מוקד חיפה',job:'שליח שכיר',recruiter:'נטלי',refDate:'14/05/2026 12:04',status:'תואם ראיון פרונטלי',source:'דרושים',city:'צריאל',phone:'054-9876980'},
+  {name:'ניב בונדר',client:'מוקד חיפה',job:'שליח שכיר',recruiter:'נטלי',refDate:'14/05/2026 11:58',status:'תואם ראיון פרונטלי',source:'לידים',city:'עכו',phone:'052-8602688'},
+  {name:'רועי בן דוד',client:'מוקד חיפה',job:'שליח שכיר',recruiter:'נטלי',refDate:'14/05/2026 11:35',status:'תואם ראיון פרונטלי',source:'אחר',city:'מעלות-תרשיחא',phone:'054-5358508'},
+  {name:'נקים ונגנו',client:'מוקד חיפה',job:'שליח שכיר',recruiter:'נטלי',refDate:'14/05/2026 10:51',status:'תואם ראיון פרונטלי',source:'לידים',city:'נהריה',phone:'052-6864448'},
+  {name:'דודו בוזגלו',client:'מוקד חיפה',job:'שליח שכיר',recruiter:'נטלי',refDate:'14/05/2026 10:39',status:'תואם ראיון פרונטלי',source:'לידים',city:'נהריה',phone:'053-4258935'},
+  {name:'דניאל פורטמן-יירושלמי',client:'מוקד ירושלים',job:'שליח שכיר',recruiter:'נטלי',refDate:'11/05/2026 11:42',status:'לא התקבל',source:'דרושים',city:'ירושלים',phone:'052-5106164'},
+  {name:'אבי ברטש',client:'מוקד ירושלים',job:'שליח עצמאי (קבלן)',recruiter:'נטלי',refDate:'11/05/2026 11:27',status:'לא התקבל',source:'לידים',city:'ירושלים',phone:'055-6602839'},
+  {name:'אלמנדו פיליפס',client:'מוקד ירושלים',job:'שליח שכיר',recruiter:'נטלי',refDate:'11/05/2026 09:28',status:'נשלח ביטחון',source:'דרושים',city:'ירושלים',phone:'050-3020407'},
+  {name:'אמיר קוסטרו',client:'מוקד רמת גן',job:'שליח שכיר',recruiter:'נטלי',refDate:'07/05/2026 10:13',status:'עבר ביטחון – בהמתנה',source:'לידים',city:'רמת גן',phone:'056-6761706'},
+  {name:'שלמה בנלולו',client:'מוקד בית שמש',job:'שליח עצמאי',recruiter:'נטלי',refDate:'15/05/2026 10:00',status:'תואם ראיון פרונטלי',source:'לידים',city:'בית שמש',phone:'052-5371524'},
+  {name:'אברהם בסול',client:'מוקד מגדל העמק',job:'שליח שכיר',recruiter:'שי דהן',refDate:'15/05/2026 09:30',status:'נשלח ביטחון',source:'דרושים',city:'כפר כנא',phone:'052-9409451'},
+  {name:'רועי עזרי',client:'מוקד מגדל העמק',job:'שליח עצמאי',recruiter:'שי דהן',refDate:'14/05/2026 14:20',status:'עבר ביטחון – בהמתנה',source:'לידים',city:'גן יבנה',phone:'052-5483086'},
+  {name:'דנה לוי',client:'מוקד מגדל העמק',job:'דואר נע',recruiter:'נטלי',refDate:'07/05/2026 09:00',status:'התחיל לעבוד',source:'המלצה',city:'ירושלים',phone:'052-1234567'},
+];
+
+let filtered = [...REFS];
+let sortCol='refDate', sortDir=-1;
+let editIdx=null;
+
+function statusClass(s) {
+  if(s.includes('ראיון')) return 'pill-orange';
+  if(s.includes('ביטחון')) return 'pill-blue';
+  if(s.includes('התחיל')) return 'pill-green';
+  if(s.includes('לא התקבל') || s.includes('עזב')) return 'pill-red';
+  return 'pill-gray';
+}
+
+function statusGroup(s) {
+  if(s.includes('התחיל') || s.includes('יתחיל')) return 'התקבלו';
+  if(s.includes('לא התקבל') || s.includes('עזב') || s.includes('נפסל')) return 'לא בתהליך';
+  return 'בתהליך';
+}
+
+window.renderRefs = function renderRefs(list) {
+  document.getElementById('refCount').textContent = list.length;
+  document.getElementById('refsTbody').innerHTML = list.map((r,i) => `
+    <tr>
+      <td><input type="checkbox"></td>
+      <td><a class="link" href="candidate.html">${r.name}</a></td>
+      <td><a class="link" href="clients.html">${r.client}</a></td>
+      <td><a class="link" href="jobs.html">${r.job}</a></td>
+      <td>${r.recruiter}</td>
+      <td style="font-size:11px;">${r.refDate}</td>
+      <td><span class="pill ${statusClass(r.status)}">${r.status}</span></td>
+      <td><span class="pill pill-gray" style="font-size:9px;">${r.source}</span></td>
+      <td>${r.city}</td>
+      <td style="font-size:11px;">${r.phone}</td>
+      <td style="display:flex;gap:4px;align-items:center;">
+        <a href="candidate.html" title="פרטי מועמד"><i class="fa-solid fa-file-lines" style="font-size:14px;color:var(--green);cursor:pointer;"></i></a>
+        <a href="https://wa.me/972${r.phone.replace(/-/g,'').replace(/^0/,'')}" target="_blank" title="שלח להפניה"><i class="fa-solid fa-share" style="font-size:14px;color:var(--orange);cursor:pointer;"></i></a>
+        <i class="fa-solid fa-pen" style="font-size:13px;color:var(--blue);cursor:pointer;" onclick="editStatus(${REFS.indexOf(r)})" title="ערוך סטטוס"></i>
+      </td>
+    </tr>`).join('');
+}
+
+function filterRefs() {
+  const s = document.getElementById('srch').value.toLowerCase();
+  const cl = document.getElementById('fClient').value;
+  const jb = document.getElementById('fJob').value;
+  const st = document.getElementById('fStatus').value;
+  const gr = document.getElementById('fGroup').value;
+  filtered = REFS.filter(r => {
+    if(s && !r.name.toLowerCase().includes(s) && !r.phone.includes(s)) return false;
+    if(cl && r.client !== cl) return false;
+    if(jb && !r.job.includes(jb.split(' ')[0])) return false;
+    if(st && r.status !== st) return false;
+    if(gr && statusGroup(r.status) !== gr) return false;
+    return true;
+  });
+  doSort();
+}
+
+function sortRefs(col) {
+  if(sortCol===col) sortDir*=-1; else {sortCol=col;sortDir=1;}
+  doSort();
+}
+
+function doSort() {
+  filtered.sort((a,b) => {
+    let av=a[sortCol]||'', bv=b[sortCol]||'';
+    return String(av).localeCompare(String(bv),'he')*sortDir;
+  });
+  renderRefs(filtered);
+}
+
+function editStatus(idx) {
+  editIdx=idx;
+  document.getElementById('newStatus').value = REFS[idx].status;
+  document.getElementById('statusModal').classList.remove('hidden');
+}
+
+function confirmStatus() {
+  if(editIdx!==null) {
+    REFS[editIdx].status = document.getElementById('newStatus').value;
+    filterRefs();
+  }
+  hideModal('statusModal');
+}
+
+function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', function(e){ if(e.target===this) this.classList.add('hidden'); }));
+
+window.onload = function() { renderRefs(REFS); };
+</script>
+
+<script>
+(function() {
+  var closeTimer = null;
+  var currentOpen = null;
+  function openMenu(wrapper) {
+    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+    if (currentOpen && currentOpen !== wrapper) {
+      var other = currentOpen.querySelector('.dropdown-menu');
+      if (other) other.classList.remove('open');
+    }
+    currentOpen = wrapper;
+    var menu = wrapper.querySelector('.dropdown-menu');
+    if (menu) menu.classList.add('open');
+  }
+  function closeMenu(wrapper) {
+    closeTimer = setTimeout(function() {
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) menu.classList.remove('open');
+      if (currentOpen === wrapper) currentOpen = null;
+    }, 250);
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.nav-dropdown').forEach(function(wrapper) {
+      wrapper.addEventListener('mouseenter', function() { openMenu(wrapper); });
+      wrapper.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) {
+        menu.addEventListener('mouseenter', function() { openMenu(wrapper); });
+        menu.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      }
+    });
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-dropdown')) {
+        document.querySelectorAll('.dropdown-menu.open').forEach(function(m) { m.classList.remove('open'); });
+        currentOpen = null;
+      }
+    });
+  });
+})();
+</script>
+
+<script>
+// Firebase: load referrals in real time
+db.collection('referrals').orderBy('createdAt', 'desc').onSnapshot(function(snap) {
+  if(snap.empty) return;
+  var liveRefs = snap.docs.map(function(d) {
+    var r = d.data();
+    var refDate = '';
+    if(r.createdAt && r.createdAt.toDate) {
+      refDate = r.createdAt.toDate().toLocaleString('he-IL');
+    }
+    return {
+      id: d.id,
+      name: r.candidateName || r.name || '',
+      client: r.clientName || r.client || '',
+      job: r.jobTitle || r.job || '',
+      recruiter: r.recruiter || 'נטלי',
+      refDate: r.refDate || refDate,
+      status: r.status || 'ממתין לסינון',
+      source: r.source || '',
+      city: r.city || '',
+      phone: r.phone || ''
+    };
+  });
+  window.REFS = liveRefs;
+  if(window.renderRefs) window.renderRefs(liveRefs);
+}, function(err) {
+  console.log('Referrals Firebase error:', err);
+});
+</script>
+</body>
+</html>

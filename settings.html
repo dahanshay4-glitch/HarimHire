@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הגדרות - HarimHire</title>
+    <link rel="stylesheet" href="harimhire.css">
+    <style>
+        .settings-container {
+            max-width: 1200px;
+            margin: 80px auto 20px;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 20px;
+        }
+        
+        .settings-sidebar {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            height: fit-content;
+            overflow: hidden;
+        }
+        
+        .settings-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .settings-menu li {
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .settings-menu button {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            background: none;
+            text-align: right;
+            cursor: pointer;
+            font-size: 13px;
+            color: #666;
+            transition: all 0.2s;
+        }
+        
+        .settings-menu button:hover {
+            background: #f5f5f5;
+            color: #1e3461;
+        }
+        
+        .settings-menu button.active {
+            background: #e8992e;
+            color: white;
+        }
+        
+        .settings-content {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 24px;
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1e3461;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #e8992e;
+            padding-bottom: 12px;
+        }
+        
+        .job-types-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+        
+        .job-types-table th {
+            background: #f5f5f5;
+            padding: 12px;
+            text-align: right;
+            font-weight: bold;
+            font-size: 13px;
+            color: #333;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .job-types-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+        
+        .job-type-code {
+            font-weight: bold;
+            color: #1e3461;
+            font-size: 14px;
+        }
+        
+        .job-type-name {
+            color: #333;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        
+        .btn-edit {
+            background: #2196f3;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .btn-delete {
+            background: #f44336;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .btn-edit:hover {
+            background: #1976d2;
+        }
+        
+        .btn-delete:hover {
+            background: #d32f2f;
+        }
+        
+        .btn-add {
+            background: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+        
+        .btn-add:hover {
+            background: #45a049;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+        
+        .modal.active {
+            display: block;
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 24px;
+            border: 1px solid #888;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        .modal-header {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e3461;
+            margin-bottom: 20px;
+        }
+        
+        .modal-form {
+            display: grid;
+            gap: 16px;
+        }
+        
+        .form-group {
+            display: grid;
+            gap: 6px;
+        }
+        
+        .form-group label {
+            font-weight: bold;
+            font-size: 13px;
+            color: #333;
+        }
+        
+        .form-group input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        .btn-primary {
+            background: #1e3461;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .btn-primary:hover {
+            background: #152540;
+        }
+        
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+        
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-right">
+            <span class="logo-text" onclick="window.location.href='index.html'" style="cursor: pointer;">Harim<span class="logo-hire">Hire</span></span>
+        </div>
+        <div class="navbar-left">
+            <button class="nav-link" onclick="window.location.href='index.html'">דף בית</button>
+        </div>
+    </div>
+
+    <div class="settings-container">
+        <div class="settings-sidebar">
+            <ul class="settings-menu">
+                <li>
+                    <button class="active" onclick="switchSection('job-types')">
+                        ניהול סוגי משרה
+                    </button>
+                </li>
+                <li>
+                    <button onclick="switchSection('interview-addresses')">
+                        כתובות ראיון
+                    </button>
+                </li>
+                <li>
+                    <button onclick="switchSection('alerts')">
+                        התראות חכמות
+                    </button>
+                </li>
+                <li>
+                    <button onclick="switchSection('templates')">
+                        תבניות הודעות
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="settings-content">
+            <!-- סוגי משרה -->
+            <div id="job-types" class="content-section active">
+                <div class="section-title">ניהול סוגי משרה</div>
+                
+                <button class="btn-add" onclick="openJobTypeModal()">+ הוסף סוג משרה חדש</button>
+                
+                <table class="job-types-table" id="jobTypesTable">
+                    <thead>
+                        <tr>
+                            <th>קוד משרה</th>
+                            <th>שם משרה</th>
+                            <th>פעולות</th>
+                        </tr>
+                    </thead>
+                    <tbody id="jobTypesBody">
+                    </tbody>
+                </table>
+                
+                <div id="emptyJobTypes" class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <div>אין סוגי משרה מוגדרים עדיין</div>
+                </div>
+            </div>
+
+            <!-- כתובות ראיון -->
+            <div id="interview-addresses" class="content-section">
+                <div class="section-title">כתובות ראיון</div>
+                <p style="color: #999;">תוכנייה זו בשלב בנייה</p>
+            </div>
+
+            <!-- התראות -->
+            <div id="alerts" class="content-section">
+                <div class="section-title">התראות חכמות</div>
+                <p style="color: #999;">תוכנייה זו בשלב בנייה</p>
+            </div>
+
+            <!-- תבניות -->
+            <div id="templates" class="content-section">
+                <div class="section-title">תבניות הודעות</div>
+                <p style="color: #999;">תוכנייה זו בשלב בנייה</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal להוספה/עריכה סוג משרה -->
+    <div id="jobTypeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="modalTitle">הוסף סוג משרה חדש</div>
+            
+            <div class="modal-form">
+                <div class="form-group">
+                    <label>קוד משרה (לדוגמה: 1001) *</label>
+                    <input type="text" id="jobTypeCode" placeholder="1001">
+                </div>
+                <div class="form-group">
+                    <label>שם משרה (לדוגמה: שליח עצמאי) *</label>
+                    <input type="text" id="jobTypeName" placeholder="שליח עצמאי">
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="btn-secondary" onclick="closeJobTypeModal()">ביטול</button>
+                <button class="btn-primary" onclick="saveJobType()">שמור</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="firebase.js"></script>
+    <script>
+        let editingJobTypeId = null;
+        let allJobTypes = [];
+        
+        function switchSection(sectionId) {
+            // הסתר את כל הסקשנים
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.settings-menu button').forEach(b => b.classList.remove('active'));
+            
+            // הצג את הסקשן הנבחר
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        function openJobTypeModal() {
+            editingJobTypeId = null;
+            document.getElementById('modalTitle').textContent = 'הוסף סוג משרה חדש';
+            document.getElementById('jobTypeCode').value = '';
+            document.getElementById('jobTypeName').value = '';
+            document.getElementById('jobTypeCode').disabled = false;
+            document.getElementById('jobTypeModal').classList.add('active');
+        }
+        
+        function closeJobTypeModal() {
+            document.getElementById('jobTypeModal').classList.remove('active');
+        }
+        
+        async function saveJobType() {
+            const code = document.getElementById('jobTypeCode').value.trim();
+            const name = document.getElementById('jobTypeName').value.trim();
+            
+            if (!code || !name) {
+                alert('כל השדות חובה');
+                return;
+            }
+            
+            try {
+                if (editingJobTypeId) {
+                    // עריכה
+                    await firestore.collection('jobTypes').doc(editingJobTypeId).update({
+                        name: name,
+                        updatedAt: new Date().toISOString()
+                    });
+                    alert('סוג משרה עודכן בהצלחה');
+                } else {
+                    // הוספה חדשה
+                    const existing = await firestore.collection('jobTypes')
+                        .where('code', '==', code)
+                        .get();
+                    
+                    if (!existing.empty) {
+                        alert('קוד משרה זה כבר קיים');
+                        return;
+                    }
+                    
+                    await firestore.collection('jobTypes').add({
+                        code: code,
+                        name: name,
+                        createdAt: new Date().toISOString(),
+                        active: true
+                    });
+                    alert('סוג משרה נוצר בהצלחה');
+                }
+                
+                closeJobTypeModal();
+                loadJobTypes();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('שגיאה: ' + error.message);
+            }
+        }
+        
+        function loadJobTypes() {
+            firestore.collection('jobTypes')
+                .orderBy('code')
+                .onSnapshot(snapshot => {
+                    allJobTypes = [];
+                    const tbody = document.getElementById('jobTypesBody');
+                    tbody.innerHTML = '';
+                    
+                    let hasData = false;
+                    snapshot.forEach(doc => {
+                        hasData = true;
+                        const jt = doc.data();
+                        jt.id = doc.id;
+                        allJobTypes.push(jt);
+                        
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="job-type-code">${jt.code}</td>
+                            <td class="job-type-name">${jt.name}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-edit" onclick="editJobType('${jt.id}', '${jt.code}', '${jt.name}')">ערוך</button>
+                                    <button class="btn-delete" onclick="deleteJobType('${jt.id}', '${jt.code}')">מחק</button>
+                                </div>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                    
+                    document.getElementById('emptyJobTypes').style.display = hasData ? 'none' : 'block';
+                    document.getElementById('jobTypesTable').style.display = hasData ? 'table' : 'none';
+                });
+        }
+        
+        function editJobType(id, code, name) {
+            editingJobTypeId = id;
+            document.getElementById('modalTitle').textContent = 'ערוך סוג משרה';
+            document.getElementById('jobTypeCode').value = code;
+            document.getElementById('jobTypeName').value = name;
+            document.getElementById('jobTypeCode').disabled = true;
+            document.getElementById('jobTypeModal').classList.add('active');
+        }
+        
+        async function deleteJobType(id, code) {
+            if (!confirm(`האם אתה בטוח שברצונך למחוק את סוג משרה ${code}?`)) {
+                return;
+            }
+            
+            try {
+                await firestore.collection('jobTypes').doc(id).delete();
+                alert('סוג משרה נמחק בהצלחה');
+                loadJobTypes();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('שגיאה: ' + error.message);
+            }
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('jobTypeModal');
+            if (event.target === modal) {
+                closeJobTypeModal();
+            }
+        }
+        
+        loadJobTypes();
+    </script>
+</body>
+</html>

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HarimHire – לקוח חדש</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="harimhire.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDhvquMr_6zODjgFIiU2y1Uzpc2wNgmX0",
+      authDomain: "harimhire.firebaseapp.com",
+      projectId: "harimhire",
+      storageBucket: "harimhire.firebasestorage.app",
+      messagingSenderId: "723909250338",
+      appId: "1:723909250338:web:70f5ac52e307083379697b"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+<style>
+.nav-dropdown { position: relative; display: inline-block; }
+.nav-dropdown > a { display: flex; align-items: center; gap: 5px; padding: 6px 4px; }
+.nav-dropdown > a::after { content: "\25BE"; font-size: 10px; opacity: 0.8; }
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border: 1px solid #dde2ea;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.14);
+  min-width: 200px;
+  z-index: 99999;
+  display: none;
+  overflow: hidden;
+  padding: 5px 0;
+}
+.dropdown-menu.open { display: block; }
+.dropdown-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 18px !important;
+  font-size: 13px !important;
+  color: #1a2332 !important;
+  text-decoration: none !important;
+  background: #ffffff !important;
+  border-bottom: 0.5px solid #f0f2f5 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  border-right: none !important;
+  border-left: none !important;
+  border-top: none !important;
+}
+.dropdown-item:last-child { border-bottom: none !important; }
+.dropdown-item:hover { background: #f4f6f9 !important; color: #1e3461 !important; }
+.dropdown-item i {
+  font-size: 14px !important;
+  color: #6b7a99 !important;
+  width: 18px !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+}
+.dropdown-item:hover i { color: #1e3461 !important; }
+</style>
+<style>
+.form-page { max-width: 700px; margin: 0 auto; padding: 1rem; }
+.form-section { background: var(--white); border: 0.5px solid var(--border); border-radius: 8px; padding: 20px 24px; margin-bottom: 12px; }
+.form-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 18px; padding-bottom: 10px; border-bottom: 0.5px solid var(--border); }
+.form-row { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 14px; }
+.form-label { font-size: 12px; color: var(--text); min-width: 120px; padding-top: 8px; text-align: right; flex-shrink: 0; }
+.form-label .req { color: var(--red); margin-right: 2px; }
+.form-control { flex: 1; padding: 7px 10px; font-size: 12px; border: 0.5px solid var(--border); border-radius: 6px; background: var(--white); color: var(--text); font-family: var(--font); width: 100%; }
+.form-control:focus { outline: none; border-color: var(--blue); }
+.form-control.missing { border-color: var(--red); background: rgba(220,53,69,0.03); }
+select.form-control { appearance: none; cursor: pointer; }
+textarea.form-control { height: 120px; resize: vertical; }
+.info-icon { color: var(--text-light); font-size: 13px; cursor: help; flex-shrink: 0; padding-top: 8px; }
+.submit-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.btn-submit { padding: 9px 20px; font-size: 13px; border: none; border-radius: 6px; background: var(--blue); color: #fff; cursor: pointer; font-weight: 500; font-family: var(--font); opacity: 0.7; }
+.btn-submit.ready { opacity: 1; }
+.btn-submit:hover.ready { opacity: 0.9; }
+</style>
+</head>
+<body>
+<nav class="navbar">
+              <div class="nav-links">
+    <div class="nav-dropdown">
+      <a href="candidates.html">מועמדים</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="candidates.html"><i class="fa-solid fa-users"></i> מועמדים</a>
+        <a class="dropdown-item" href="new_candidate.html"><i class="fa-solid fa-user-plus"></i> מועמד חדש</a>
+        <a class="dropdown-item" href="segments.html"><i class="fa-solid fa-filter"></i> חיתוכי מועמדים</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="clients.html" class="active">לקוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="clients.html"><i class="fa-solid fa-building"></i> לקוחות</a>
+        <a class="dropdown-item" href="new_client.html"><i class="fa-solid fa-building-circle-arrow-right"></i> לקוח חדש</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="jobs.html">משרות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="jobs.html"><i class="fa-solid fa-briefcase"></i> משרות</a>
+        <a class="dropdown-item" href="my_jobs.html"><i class="fa-solid fa-briefcase-arrow-right"></i> המשרות שלי</a>
+        <a class="dropdown-item" href="new_job.html"><i class="fa-solid fa-plus"></i> משרה חדשה</a>
+      </div>
+    </div>
+    <a href="process.html">תהליך ראשוני</a>
+    <a href="fixes.html">תיקונים</a>
+    <a href="tags.html">תגיות</a>
+    <div class="nav-dropdown">
+      <a href="#">דוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-bar"></i> דוחות</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-clock-rotate-left"></i> היסטוריית הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-phone-slash"></i> פסילות בסינון ראשוני</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-calendar-day"></i> דוח יומי לרכז</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-bullseye"></i> דוח מקורות גיוס</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-briefcase"></i> דוח סוגי משרה</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-users"></i> סטטיסטיקות מועמדים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-building"></i> סטטיסטיקות משרות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-user-tie"></i> סטטיסטיקות רכזים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-pie"></i> סטטיסטיקות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-right-to-bracket"></i> לוג כניסות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-envelope"></i> מיילים מסוננים</a>
+      </div>
+    </div>
+  </div>
+  <div class="navbar-right">
+    <div class="navbar-icons">
+      <i class="fa-regular fa-bell"></i>
+      <i class="fa-solid fa-gear"></i>
+      <i class="fa-regular fa-circle-question"></i>
+    </div>
+    <div class="navbar-logo" onclick="window.location.href='index.html'">
+      <svg width="30" height="22" viewBox="0 0 34 26">
+        <polygon points="2,24 13,4 24,24" fill="rgba(255,255,255,0.92)"/>
+        <polygon points="12,24 19,10 24,24" fill="#e8992e" opacity="0.85"/>
+      </svg>
+      <div>
+        <div class="logo-text">Harim<span>Hire</span></div>
+        <div class="logo-sub">HR SOLUTIONS</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="main" style="padding:0.75rem 1rem;">
+  <div class="breadcrumb" style="margin-bottom:12px;">
+    <a href="clients.html">לקוחות</a>
+    <i class="fa-solid fa-chevron-left" style="font-size:9px"></i>
+    <span>לקוח חדש</span>
+  </div>
+
+  <div class="form-page">
+    <div class="form-section">
+      <div class="form-title">פרטי לקוח</div>
+
+      <div class="form-row">
+        <div class="form-label">שם הלקוח <span class="req">*</span></div>
+        <input class="form-control" id="fName" type="text" placeholder="" oninput="checkReady()">
+      </div>
+
+      <div class="form-row">
+        <div class="form-label">סוג לקוח</div>
+        <select class="form-control" id="fType">
+          <option>לקוח פעיל</option>
+          <option>לקוח לא פעיל</option>
+          <option>ליד</option>
+        </select>
+        <i class="fa-solid fa-circle-info info-icon" title="סוג הלקוח קובע את הסטטוס שלו במערכת"></i>
+      </div>
+
+      <div class="form-row">
+        <div class="form-label">תעשייה</div>
+        <select class="form-control">
+          <option>כללי</option>
+          <option>לוגיסטיקה</option>
+          <option>תחבורה</option>
+          <option>מסחר</option>
+          <option>שירותים</option>
+          <option>בנייה</option>
+          <option>תעשייה</option>
+          <option>בריאות</option>
+          <option>חינוך</option>
+          <option>אחר</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-label">יישוב</div>
+        <input class="form-control" type="text" placeholder="">
+      </div>
+
+      <div class="form-row">
+        <div class="form-label">כתובת</div>
+        <input class="form-control" type="text" placeholder="">
+      </div>
+
+      <div class="form-row">
+        <div class="form-label">מזהה לקוח</div>
+        <input class="form-control" type="text" placeholder="">
+        <i class="fa-solid fa-circle-info info-icon" title="מזהה ייחודי לקישור עם מערכות חיצוניות"></i>
+      </div>
+
+      <div class="form-row">
+        <div class="form-label">רכז מטפל</div>
+        <select class="form-control">
+          <option value="">---</option>
+          <option>שי דהן</option>
+          <option>נטלי</option>
+          <option>בתאל</option>
+          <option>אייל מוצניק</option>
+        </select>
+        <i class="fa-solid fa-circle-info info-icon" title="הרכז האחראי על הלקוח"></i>
+      </div>
+
+      <div class="form-row">
+        <div class="form-label">רכז גיוס</div>
+        <select class="form-control">
+          <option value="">---</option>
+          <option>שי דהן</option>
+          <option>נטלי</option>
+          <option>בתאל</option>
+          <option>אייל מוצניק</option>
+        </select>
+        <i class="fa-solid fa-circle-info info-icon" title="רכז הגיוס הראשי של הלקוח"></i>
+      </div>
+
+      <div class="form-row">
+        <div class="form-label">רכזים נוספים</div>
+        <div style="flex:1;position:relative;">
+          <div id="multiSelectBtn" onclick="toggleMultiSelect()" style="padding:7px 10px;font-size:12px;border:0.5px solid var(--border);border-radius:6px;background:var(--white);cursor:pointer;min-height:34px;display:flex;align-items:center;justify-content:space-between;user-select:none;">
+            <span id="multiSelectLabel" style="color:var(--text-light);">בחר רכזים...</span>
+            <i class="fa-solid fa-chevron-down" style="font-size:10px;color:var(--text-light);"></i>
+          </div>
+          <div id="multiSelectMenu" style="display:none;position:absolute;top:calc(100% + 3px);right:0;left:0;background:#fff;border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,0.1);z-index:100;overflow:hidden;padding:4px 0;">
+            <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;font-size:12px;border-bottom:0.5px solid #f0f2f5;">
+              <input type="checkbox" value="שי דהן" onchange="updateMultiSelect()" style="width:15px;height:15px;accent-color:var(--blue);"> שי דהן
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;font-size:12px;border-bottom:0.5px solid #f0f2f5;">
+              <input type="checkbox" value="נטלי" onchange="updateMultiSelect()" style="width:15px;height:15px;accent-color:var(--blue);"> נטלי
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;font-size:12px;border-bottom:0.5px solid #f0f2f5;">
+              <input type="checkbox" value="בתאל" onchange="updateMultiSelect()" style="width:15px;height:15px;accent-color:var(--blue);"> בתאל
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;font-size:12px;">
+              <input type="checkbox" value="אייל מוצניק" onchange="updateMultiSelect()" style="width:15px;height:15px;accent-color:var(--blue);"> אייל מוצניק
+            </label>
+          </div>
+        </div>
+        <i class="fa-solid fa-circle-info info-icon" title="רכזים נוספים שיש להם גישה ללקוח זה"></i>
+      </div>
+
+      <div class="form-row">
+        <div class="form-label">הערה פנימית</div>
+        <textarea class="form-control" placeholder=""></textarea>
+      </div>
+    </div>
+
+    <div class="submit-row">
+      <button class="btn" onclick="window.location.href='clients.html'">ביטול</button>
+      <button class="btn-submit" id="submitBtn" onclick="saveClient()">צור לקוח והמשך</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+function toggleMultiSelect() {
+  var menu = document.getElementById('multiSelectMenu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+function updateMultiSelect() {
+  var checked = Array.from(document.querySelectorAll('#multiSelectMenu input:checked')).map(function(el) { return el.value; });
+  var label = document.getElementById('multiSelectLabel');
+  if (checked.length === 0) {
+    label.textContent = 'בחר רכזים...';
+    label.style.color = 'var(--text-light)';
+  } else {
+    label.textContent = checked.join(', ');
+    label.style.color = 'var(--text)';
+  }
+}
+
+// Close multi-select when clicking outside
+document.addEventListener('click', function(e) {
+  var btn = document.getElementById('multiSelectBtn');
+  var menu = document.getElementById('multiSelectMenu');
+  if (btn && menu && !btn.contains(e.target) && !menu.contains(e.target)) {
+    menu.style.display = 'none';
+  }
+});
+
+function checkReady() {
+  const ready = document.getElementById('fName').value.trim() !== '';
+  document.getElementById('submitBtn').classList.toggle('ready', ready);
+}
+
+function saveClient() {
+  const name = document.getElementById('fName').value.trim();
+  if(!name) {
+    document.getElementById('fName').classList.add('missing');
+    document.getElementById('fName').focus();
+    return;
+  }
+  // Get selected extra coordinators
+  var extras = [];
+  document.querySelectorAll('#multiSelectMenu input:checked').forEach(function(el) {
+    extras.push(el.value);
+  });
+  var data = {
+    name: name,
+    type: document.getElementById('fType') ? document.getElementById('fType').value : 'לקוח פעיל',
+    city: document.querySelector('input[placeholder=""]') ? '' : '',
+    handler: '',
+    recruiter: '',
+    extraCoords: extras,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  // Auto-generate client number
+  db.collection('clients').get().then(function(snap) {
+    data.num = snap.size + 1;
+    return db.collection('clients').add(data);
+  }).then(function() {
+    window.location.href = 'clients.html';
+  }).catch(function(e) {
+    alert('שגיאה בשמירה: ' + e.message);
+  });
+  return; // prevent double save below
+  // Get all form values
+  document.querySelectorAll('.form-control').forEach(function(el) {
+    if(el.id === 'fName') data.name = el.value;
+    else if(el.id === 'fType') data.type = el.value;
+  });
+
+}
+
+// Init
+checkReady();
+</script>
+<script>
+(function() {
+  var closeTimer = null;
+  var currentOpen = null;
+  function openMenu(wrapper) {
+    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+    if (currentOpen && currentOpen !== wrapper) {
+      var other = currentOpen.querySelector('.dropdown-menu');
+      if (other) other.classList.remove('open');
+    }
+    currentOpen = wrapper;
+    var menu = wrapper.querySelector('.dropdown-menu');
+    if (menu) menu.classList.add('open');
+  }
+  function closeMenu(wrapper) {
+    closeTimer = setTimeout(function() {
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) menu.classList.remove('open');
+      if (currentOpen === wrapper) currentOpen = null;
+    }, 250);
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.nav-dropdown').forEach(function(wrapper) {
+      wrapper.addEventListener('mouseenter', function() { openMenu(wrapper); });
+      wrapper.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) {
+        menu.addEventListener('mouseenter', function() { openMenu(wrapper); });
+        menu.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      }
+    });
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-dropdown')) {
+        document.querySelectorAll('.dropdown-menu.open').forEach(function(m) { m.classList.remove('open'); });
+        currentOpen = null;
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

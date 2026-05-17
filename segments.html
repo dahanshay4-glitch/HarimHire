@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HarimHire – חיתוכי מועמדים</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="harimhire.css">
+<style>
+.nav-dropdown { position: relative; display: inline-block; }
+.nav-dropdown > a { display: flex; align-items: center; gap: 5px; padding: 6px 4px; }
+.nav-dropdown > a::after { content: "\25BE"; font-size: 10px; opacity: 0.8; }
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border: 1px solid #dde2ea;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.14);
+  min-width: 200px;
+  z-index: 99999;
+  display: none;
+  overflow: hidden;
+  padding: 5px 0;
+}
+.dropdown-menu.open { display: block; }
+.dropdown-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 18px !important;
+  font-size: 13px !important;
+  color: #1a2332 !important;
+  text-decoration: none !important;
+  background: #ffffff !important;
+  border-bottom: 0.5px solid #f0f2f5 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  border-right: none !important;
+  border-left: none !important;
+  border-top: none !important;
+}
+.dropdown-item:last-child { border-bottom: none !important; }
+.dropdown-item:hover { background: #f4f6f9 !important; color: #1e3461 !important; }
+.dropdown-item i {
+  font-size: 14px !important;
+  color: #6b7a99 !important;
+  width: 18px !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+}
+.dropdown-item:hover i { color: #1e3461 !important; }
+</style>
+
+<style>
+.segment-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.seg-field { padding: 6px 10px; font-size: 11px; border: 0.5px solid var(--border); border-radius: 6px; background: var(--white); color: var(--text); font-family: var(--font); min-width: 160px; }
+.seg-op { padding: 6px 10px; font-size: 11px; border: 0.5px solid var(--border); border-radius: 6px; background: var(--white); color: var(--text); font-family: var(--font); min-width: 100px; }
+.seg-val { padding: 6px 10px; font-size: 11px; border: 0.5px solid var(--border); border-radius: 6px; background: var(--white); color: var(--text); font-family: var(--font); min-width: 160px; }
+.seg-val:focus, .seg-field:focus, .seg-op:focus { outline: none; border-color: var(--blue); }
+.seg-remove { width: 26px; height: 26px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--white); color: var(--red); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+.seg-remove:hover { background: rgba(220,53,69,0.06); }
+.saved-segment { background: var(--white); border: 0.5px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+.saved-segment:hover { background: var(--bg); }
+.saved-segment-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.saved-segment-meta { font-size: 10px; color: var(--text-light); margin-top: 2px; }
+.saved-segment-count { font-size: 20px; font-weight: 500; color: var(--blue); }
+</style>
+</head>
+<body>
+<nav class="navbar">
+                  <div class="nav-links">
+    <div class="nav-dropdown">
+      <a href="candidates.html" class="active">מועמדים</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="candidates.html"><i class="fa-solid fa-users"></i> מועמדים</a>
+        <a class="dropdown-item" href="new_candidate.html"><i class="fa-solid fa-user-plus"></i> מועמד חדש</a>
+        <a class="dropdown-item" href="segments.html"><i class="fa-solid fa-filter"></i> חיתוכי מועמדים</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="clients.html">לקוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="clients.html"><i class="fa-solid fa-building"></i> לקוחות</a>
+        <a class="dropdown-item" href="new_client.html"><i class="fa-solid fa-building-circle-arrow-right"></i> לקוח חדש</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="jobs.html">משרות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="jobs.html"><i class="fa-solid fa-briefcase"></i> משרות</a>
+        <a class="dropdown-item" href="my_jobs.html"><i class="fa-solid fa-briefcase-arrow-right"></i> המשרות שלי</a>
+        <a class="dropdown-item" href="new_job.html"><i class="fa-solid fa-plus"></i> משרה חדשה</a>
+      </div>
+    </div>
+    <a href="process.html">תהליך ראשוני</a>
+    <a href="fixes.html">תיקונים</a>
+    <a href="tags.html">תגיות</a>
+    <div class="nav-dropdown">
+      <a href="#">דוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-bar"></i> דוחות</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-clock-rotate-left"></i> היסטוריית הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-phone-slash"></i> פסילות בסינון ראשוני</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-calendar-day"></i> דוח יומי לרכז</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-bullseye"></i> דוח מקורות גיוס</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-briefcase"></i> דוח סוגי משרה</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-users"></i> סטטיסטיקות מועמדים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-building"></i> סטטיסטיקות משרות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-user-tie"></i> סטטיסטיקות רכזים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-pie"></i> סטטיסטיקות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-right-to-bracket"></i> לוג כניסות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-envelope"></i> מיילים מסוננים</a>
+      </div>
+    </div>
+  </div>
+  <div class="navbar-right">
+    <div class="navbar-icons">
+      <i class="fa-regular fa-bell"></i>
+      <i class="fa-solid fa-gear"></i>
+      <i class="fa-regular fa-circle-question"></i>
+    </div>
+    <div class="navbar-logo" onclick="window.location.href='index.html'">
+      <svg width="30" height="22" viewBox="0 0 34 26">
+        <polygon points="2,24 13,4 24,24" fill="rgba(255,255,255,0.92)"/>
+        <polygon points="12,24 19,10 24,24" fill="#e8992e" opacity="0.85"/>
+      </svg>
+      <div>
+        <div class="logo-text">Harim<span>Hire</span></div>
+        <div class="logo-sub">HR SOLUTIONS</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="main" style="padding:0.75rem 1rem;">
+  <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;">
+
+    <!-- LEFT: QUERY BUILDER -->
+    <div>
+      <div class="card" style="margin-bottom:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="font-size:13px;font-weight:500;">בחירת חיתוך שמור</div>
+          <select id="savedSelect" class="seg-field" style="min-width:220px;" onchange="loadSegment(this.value)">
+            <option value="">--- בחירת חיתוך שמור ---</option>
+            <option value="0">חיפה + רישיון ג׳</option>
+            <option value="1">מועמדים זמינים מיידית</option>
+            <option value="2">דוברי ערבית</option>
+          </select>
+        </div>
+
+        <div style="font-size:12px;font-weight:500;color:var(--text);margin-bottom:10px;padding-bottom:6px;border-bottom:0.5px solid var(--border);">
+          <i class="fa-solid fa-filter" style="margin-left:6px;color:var(--blue);font-size:11px;"></i>
+          בניית חיתוך
+        </div>
+
+        <div id="conditionsContainer"></div>
+
+        <div style="display:flex;gap:6px;margin-top:8px;">
+          <button class="btn" onclick="addCondition()"><i class="fa-solid fa-plus"></i> הוסף תנאי</button>
+          <button class="btn btn-primary" onclick="runSegment()"><i class="fa-solid fa-play"></i> חשב</button>
+          <button class="btn" onclick="saveSegment()"><i class="fa-solid fa-floppy-disk"></i> שמור חיתוך</button>
+          <button class="btn" onclick="resetSegment()"><i class="fa-solid fa-rotate-left"></i> איפוס</button>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div id="resultsSection" class="hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div class="count-bar">נמצאו <strong id="resultCount">0</strong> מועמדים</div>
+          <button class="btn btn-export"><i class="fa-solid fa-download"></i> ייצוא</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th style="width:28px;"><input type="checkbox"></th>
+              <th>שם מלא</th><th>טלפון</th><th>משרה</th><th>סטטוס</th><th>ישוב</th><th>גיל</th><th></th>
+            </tr></thead>
+            <tbody id="resultsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: SAVED SEGMENTS -->
+    <div>
+      <div style="font-size:12px;font-weight:500;color:var(--text);margin-bottom:8px;">חיתוכים שמורים</div>
+      <div id="savedList"></div>
+      <div style="font-size:11px;color:var(--text-light);text-align:center;margin-top:8px;" id="noSaved" class="hidden">אין חיתוכים שמורים</div>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE MODAL -->
+<div id="saveModal" class="modal-overlay hidden">
+  <div class="modal" style="width:320px;">
+    <div class="modal-title"><i class="fa-solid fa-floppy-disk" style="margin-left:6px;color:var(--blue);"></i>שמירת חיתוך</div>
+    <div class="modal-field">
+      <div class="modal-label">שם החיתוך</div>
+      <input class="modal-input" id="segmentName" placeholder="לדוגמא: חיפה + רישיון ג׳...">
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="hideModal('saveModal')">ביטול</button>
+      <button class="btn btn-primary" onclick="confirmSave()">שמור</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const FIELDS = ['עיר מגורים','גיל','מין','מקור גיוס','משרה','סטטוס','רישיון נהיגה','ניסיון','תגית'];
+const OPS = {'עיר מגורים':['שווה ל','מכיל'],'גיל':['שווה ל','גדול מ','קטן מ','בין'],'מין':['שווה ל'],'מקור גיוס':['שווה ל'],'משרה':['שווה ל'],'סטטוס':['שווה ל'],'רישיון נהיגה':['שווה ל'],'ניסיון':['גדול מ','קטן מ'],'תגית':['שווה ל','מכיל']};
+const VALS = {'מין':['זכר','נקבה'],'מקור גיוס':['לידים פייסבוק','דרושים','אתר אינטרנט','המלצה'],'משרה':['1001 – שליח עצמאי','1002 – שליח שכיר','1003 – מוקדנים','1004 – דואר נע','1000 – עובד מיון'],'סטטוס':['תואם ראיון','נשלח ביטחון','עבר ביטחון','התחיל לעבוד','לא התקבל'],'רישיון נהיגה':['כן','לא'],'תגית':['רישיון ג׳','דובר ערבית','רכב פרטי','זמין מיידית']};
+
+const CANDS = [
+  {name:'שלמה בנלולו',phone:'0525371524',job:'1001 – שליח עצמאי',status:'תואם ראיון',city:'בית שמש',age:34,gender:'זכר',source:'לידים פייסבוק',license:'כן'},
+  {name:'אברהם בסול',phone:'0529409451',job:'1002 – שליח שכיר',status:'נשלח ביטחון',city:'כפר כנא',age:28,gender:'זכר',source:'דרושים',license:'כן'},
+  {name:'רועי עזרי',phone:'0525483086',job:'1001 – שליח עצמאי',status:'עבר ביטחון',city:'גן יבנה',age:31,gender:'זכר',source:'לידים פייסבוק',license:'כן'},
+  {name:'רועי כהן',phone:'0725093639',job:'1002 – שליח שכיר',status:'נשלח ביטחון',city:'עפולה עלית',age:26,gender:'זכר',source:'אתר אינטרנט',license:'כן'},
+  {name:'דנה לוי',phone:'0521234567',job:'1004 – דואר נע',status:'התחיל לעבוד',city:'ירושלים',age:29,gender:'נקבה',source:'המלצה',license:'לא'},
+  {name:'משה כץ',phone:'0509876543',job:'1002 – שליח שכיר',status:'לא התקבל',city:'תל אביב',age:42,gender:'זכר',source:'דרושים',license:'כן'},
+];
+
+const SAVED_SEGS = [
+  {name:'חיפה + רישיון ג׳', conditions:[{field:'עיר מגורים',op:'מכיל',val:'חיפה'},{field:'רישיון נהיגה',op:'שווה ל',val:'כן'}], count:8, date:'12/05/2026'},
+  {name:'מועמדים זמינים מיידית', conditions:[{field:'תגית',op:'שווה ל',val:'זמין מיידית'}], count:3, date:'10/05/2026'},
+  {name:'דוברי ערבית', conditions:[{field:'תגית',op:'שווה ל',val:'דובר ערבית'}], count:2, date:'08/05/2026'},
+];
+
+let conditions = [];
+let condId = 0;
+
+function addCondition(field='', op='', val='') {
+  const id = condId++;
+  conditions.push({id, field, op, val});
+  renderConditions();
+}
+
+function renderConditions() {
+  const cont = document.getElementById('conditionsContainer');
+  if(!conditions.length) {
+    cont.innerHTML = '<div style="font-size:11px;color:var(--text-light);padding:8px 0;">לחץ "הוסף תנאי" כדי להתחיל לבנות חיתוך</div>';
+    return;
+  }
+  cont.innerHTML = conditions.map((c,i) =>
+    '<div class="segment-row">' +
+    (i>0 ? '<span style="font-size:11px;color:var(--text-light);min-width:30px;">וגם</span>' : '<span style="font-size:11px;color:var(--blue);font-weight:500;min-width:30px;">איפה</span>') +
+    '<select class="seg-field" onchange="updateCond('+c.id+','field',this.value)">' +
+    '<option value="">-- בחר שדה --</option>' +
+    FIELDS.map(f=>'<option'+(c.field===f?' selected':'')+'>'+f+'</option>').join('') +
+    '</select>' +
+    '<select class="seg-op" onchange="updateCond('+c.id+','op',this.value)">' +
+    (OPS[c.field]||['שווה ל']).map(o=>'<option'+(c.op===o?' selected':'')+'>'+o+'</option>').join('') +
+    '</select>' +
+    (VALS[c.field] ?
+      '<select class="seg-val" onchange="updateCond('+c.id+','val',this.value)"><option value="">-- בחר --</option>'+VALS[c.field].map(v=>'<option'+(c.val===v?' selected':'')+'>'+v+'</option>').join('')+'</select>' :
+      '<input class="seg-val" value="'+c.val+'" placeholder="ערך..." oninput="updateCond('+c.id+','val',this.value)">'
+    ) +
+    '<button class="seg-remove" onclick="removeCond('+c.id+')"><i class="fa-solid fa-x"></i></button>' +
+    '</div>'
+  ).join('');
+}
+
+function updateCond(id, key, val) {
+  const c = conditions.find(x=>x.id===id);
+  if(c) { c[key]=val; if(key==='field') { c.op=''; c.val=''; renderConditions(); } }
+}
+
+function removeCond(id) { conditions=conditions.filter(c=>c.id!==id); renderConditions(); }
+
+function resetSegment() { conditions=[]; renderConditions(); document.getElementById('resultsSection').classList.add('hidden'); document.getElementById('savedSelect').value=''; }
+
+function runSegment() {
+  let results = [...CANDS];
+  conditions.forEach(c => {
+    if(!c.field||!c.val) return;
+    results = results.filter(r => {
+      const map = {'עיר מגורים':'city','גיל':'age','מין':'gender','מקור גיוס':'source','משרה':'job','סטטוס':'status','רישיון נהיגה':'license'};
+      const key = map[c.field];
+      if(!key) return true;
+      const rv = String(r[key]||'');
+      if(c.op==='שווה ל') return rv===c.val;
+      if(c.op==='מכיל') return rv.includes(c.val);
+      if(c.op==='גדול מ') return parseFloat(rv)>parseFloat(c.val);
+      if(c.op==='קטן מ') return parseFloat(rv)<parseFloat(c.val);
+      return true;
+    });
+  });
+  document.getElementById('resultCount').textContent = results.length;
+  document.getElementById('resultsTbody').innerHTML = results.map(r =>
+    '<tr><td><input type="checkbox"></td>' +
+    '<td><a class="link" href="candidate.html">'+r.name+'</a></td>' +
+    '<td>'+r.phone+'</td>' +
+    '<td><span class="pill pill-blue" style="font-size:9px;">'+r.job+'</span></td>' +
+    '<td><span class="pill pill-gray">'+r.status+'</span></td>' +
+    '<td>'+r.city+'</td><td>'+r.age+'</td>' +
+    '<td><button class="btn" style="padding:2px 6px;"><i class="fa-solid fa-ellipsis-vertical"></i></button></td></tr>'
+  ).join('');
+  document.getElementById('resultsSection').classList.remove('hidden');
+}
+
+function loadSegment(idx) {
+  if(idx==='') return;
+  const seg = SAVED_SEGS[parseInt(idx)];
+  if(!seg) return;
+  conditions = seg.conditions.map((c,i) => ({id:condId++, ...c}));
+  renderConditions();
+  runSegment();
+}
+
+function saveSegment() { document.getElementById('segmentName').value=''; document.getElementById('saveModal').classList.remove('hidden'); }
+
+function confirmSave() {
+  const name = document.getElementById('segmentName').value.trim();
+  if(!name) return;
+  SAVED_SEGS.unshift({name, conditions:[...conditions], count:parseInt(document.getElementById('resultCount').textContent)||0, date:new Date().toLocaleDateString('he-IL')});
+  renderSaved();
+  hideModal('saveModal');
+}
+
+function renderSaved() {
+  const list = document.getElementById('savedList');
+  list.innerHTML = SAVED_SEGS.map((s,i) =>
+    '<div class="saved-segment" onclick="loadSegment('+i+')">' +
+    '<div><div class="saved-segment-name">'+s.name+'</div><div class="saved-segment-meta">'+s.conditions.length+' תנאים · '+s.date+'</div></div>' +
+    '<div style="text-align:left;"><div class="saved-segment-count">'+s.count+'</div><div style="font-size:10px;color:var(--text-light);">מועמדים</div></div>' +
+    '</div>'
+  ).join('');
+}
+
+function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', function(e){ if(e.target===this) this.classList.add('hidden'); }));
+
+window.onload = function() { renderConditions(); renderSaved(); };
+</script>
+
+<script>
+(function() {
+  var closeTimer = null;
+  var currentOpen = null;
+  function openMenu(wrapper) {
+    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+    if (currentOpen && currentOpen !== wrapper) {
+      var other = currentOpen.querySelector('.dropdown-menu');
+      if (other) other.classList.remove('open');
+    }
+    currentOpen = wrapper;
+    var menu = wrapper.querySelector('.dropdown-menu');
+    if (menu) menu.classList.add('open');
+  }
+  function closeMenu(wrapper) {
+    closeTimer = setTimeout(function() {
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) menu.classList.remove('open');
+      if (currentOpen === wrapper) currentOpen = null;
+    }, 250);
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.nav-dropdown').forEach(function(wrapper) {
+      wrapper.addEventListener('mouseenter', function() { openMenu(wrapper); });
+      wrapper.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) {
+        menu.addEventListener('mouseenter', function() { openMenu(wrapper); });
+        menu.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      }
+    });
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-dropdown')) {
+        document.querySelectorAll('.dropdown-menu.open').forEach(function(m) { m.classList.remove('open'); });
+        currentOpen = null;
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

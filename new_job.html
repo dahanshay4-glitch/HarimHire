@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>משרה חדשה - HarimHire</title>
+    <link rel="stylesheet" href="harimhire.css">
+    <style>
+        .wizard-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .wizard-header {
+            background: linear-gradient(135deg, #1e3461 0%, #e8992e 100%);
+            color: white;
+            padding: 24px;
+            margin-top: 60px;
+            font-size: 13px;
+        }
+        
+        .wizard-content {
+            padding: 40px;
+            min-height: 400px;
+        }
+        
+        .step-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 24px;
+            color: #1e3461;
+        }
+        
+        .client-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .client-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        
+        .client-card:hover {
+            border-color: #e8992e;
+            background: #f9f9f9;
+        }
+        
+        .client-card.selected {
+            border-color: #e8992e;
+            background: #fff8f0;
+            font-weight: bold;
+        }
+        
+        .client-info {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+        }
+        
+        .selected-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+            justify-content: flex-end;
+        }
+        
+        .btn-primary {
+            background: #1e3461;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .job-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+        }
+        
+        .job-type-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        
+        .job-type-card:hover {
+            border-color: #e8992e;
+        }
+        
+        .job-type-card.selected {
+            border-color: #e8992e;
+            background: #fff8f0;
+        }
+        
+        .job-type-number {
+            font-weight: bold;
+            font-size: 16px;
+            color: #1e3461;
+        }
+        
+        .job-type-name {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 13px;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 13px;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .navigation {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-right">
+            <span class="logo-text" onclick="window.location.href='index.html'" style="cursor: pointer;">Harim<span class="logo-hire">Hire</span></span>
+        </div>
+        <div class="navbar-left">
+            <button class="nav-link" onclick="window.location.href='jobs.html'">משרות</button>
+        </div>
+    </div>
+
+    <div class="wizard-container">
+        <div class="wizard-header">
+            <span id="stepCounter">משרה חדשה - שלב 1 מתוך 3</span>
+        </div>
+        
+        <div class="wizard-content">
+            <div id="step1" class="wizard-step">
+                <div class="step-title">בחר לקוח</div>
+                <div id="clientsList" class="client-grid"></div>
+                <div class="button-group">
+                    <button class="btn-primary" id="nextStep1" onclick="goToStep(2)" disabled>המשך</button>
+                </div>
+            </div>
+            
+            <div id="step2" class="wizard-step" style="display: none;">
+                <button class="btn-primary" onclick="goToStep(1)" style="margin-bottom: 20px;">← חזור</button>
+                <div class="selected-info" id="selectedClientInfo"></div>
+                <div class="step-title">בחר סוג משרה</div>
+                <div class="job-type-grid" id="jobTypesGrid"></div>
+                <div class="button-group">
+                    <button class="btn-primary" id="nextStep2" onclick="goToStep(3)" disabled>המשך</button>
+                </div>
+            </div>
+            
+            <div id="step3" class="wizard-step" style="display: none;">
+                <button class="btn-primary" onclick="goToStep(2)" style="margin-bottom: 20px;">← חזור</button>
+                <div class="selected-info" id="selectedJobTypeInfo"></div>
+                <div class="step-title">פרטי משרה</div>
+                
+                <div class="form-group">
+                    <label>כותרת משרה *</label>
+                    <input type="text" id="jobTitle" placeholder="לדוגמה: שליח שכיר - ירושלים">
+                </div>
+                
+                <div class="form-group">
+                    <label>תיאור משרה</label>
+                    <textarea id="jobDescription" placeholder="פרטי המשרה..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>מספר משרות פתוחות</label>
+                    <input type="number" id="openPositions" value="1" min="1">
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn-primary" onclick="saveJob()" style="background: #4caf50;">שמור ויצא</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="firebase.js"></script>
+    <script>
+        let selectedClient = null;
+        let selectedJobType = null;
+        let allClients = [];
+        
+        const jobTypes = {
+            '1001': { name: 'שליח עצמאי', icon: '🚗' },
+            '1002': { name: 'שליח שכיר', icon: '👔' },
+            '1003': { name: 'עובד מיון', icon: '📦' },
+            '1004': { name: 'מוקדן', icon: '☎️' },
+            '1005': { name: 'דואר נע', icon: '🚚' }
+        };
+        
+        function loadClients() {
+            firestore.collection('clients').onSnapshot(snapshot => {
+                allClients = [];
+                document.getElementById('clientsList').innerHTML = '';
+                
+                let counter = 1;
+                snapshot.forEach(doc => {
+                    const c = doc.data();
+                    c.id = doc.id;
+                    c.num = c.num || counter++;
+                    allClients.push(c);
+                    
+                    const card = document.createElement('div');
+                    card.className = 'client-card';
+                    card.innerHTML = `
+                        <strong>${c.name}</strong>
+                        <div class="client-info">${c.city || 'לא ידוע'}</div>
+                    `;
+                    card.onclick = () => selectClient(c, card);
+                    document.getElementById('clientsList').appendChild(card);
+                });
+            });
+        }
+        
+        function selectClient(client, cardElement) {
+            document.querySelectorAll('.client-card').forEach(c => c.classList.remove('selected'));
+            cardElement.classList.add('selected');
+            selectedClient = client;
+            document.getElementById('nextStep1').disabled = false;
+        }
+        
+        function goToStep(step) {
+            document.querySelectorAll('.wizard-step').forEach(s => s.style.display = 'none');
+            document.getElementById('step' + step).style.display = 'block';
+            document.getElementById('stepCounter').textContent = `משרה חדשה - שלב ${step} מתוך 3`;
+            
+            if (step === 2) {
+                document.getElementById('selectedClientInfo').innerHTML = `<strong>לקוח:</strong> ${selectedClient.name}`;
+                loadJobTypes();
+                history.pushState({step: 2}, '', '#step2');
+            } else if (step === 3) {
+                document.getElementById('selectedJobTypeInfo').innerHTML = `<strong>סוג משרה:</strong> ${selectedJobType.name}`;
+                history.pushState({step: 3}, '', '#step3');
+            } else if (step === 1) {
+                history.pushState({step: 1}, '', '#step1');
+            }
+        }
+        
+        function loadJobTypes() {
+            const grid = document.getElementById('jobTypesGrid');
+            grid.innerHTML = '';
+            
+            Object.entries(jobTypes).forEach(([code, details]) => {
+                const card = document.createElement('div');
+                card.className = 'job-type-card';
+                card.innerHTML = `
+                    <div style="font-size: 28px;">${details.icon}</div>
+                    <div class="job-type-number">${code}</div>
+                    <div class="job-type-name">${details.name}</div>
+                `;
+                card.onclick = () => selectJobType(code, details, card);
+                grid.appendChild(card);
+            });
+        }
+        
+        function selectJobType(code, details, cardElement) {
+            document.querySelectorAll('.job-type-card').forEach(c => c.classList.remove('selected'));
+            cardElement.classList.add('selected');
+            selectedJobType = { code, name: details.name };
+            document.getElementById('nextStep2').disabled = false;
+        }
+        
+        async function saveJob() {
+            const title = document.getElementById('jobTitle').value.trim();
+            
+            if (!title) {
+                alert('כותרת משרה חובה');
+                return;
+            }
+            
+            try {
+                const jobsSnapshot = await firestore.collection('jobs').get();
+                const jobNumber = 1000 + jobsSnapshot.size + 1;
+                
+                await firestore.collection('jobs').add({
+                    clientId: selectedClient.id,
+                    clientName: selectedClient.name,
+                    jobType: selectedJobType.code,
+                    jobTypeName: selectedJobType.name,
+                    number: jobNumber,
+                    title: title,
+                    description: document.getElementById('jobDescription').value,
+                    openPositions: parseInt(document.getElementById('openPositions').value),
+                    status: 'open',
+                    createdDate: new Date().toISOString(),
+                    interestedCount: 0,
+                    inProcessCount: 0,
+                    hiredCount: 0
+                });
+                
+                alert(`משרה ${jobNumber} נוצרה בהצלחה!`);
+                window.location.href = 'jobs.html';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('שגיאה בשמירה: ' + error.message);
+            }
+        }
+        
+        window.addEventListener('popstate', (e) => {
+            if (e.state && e.state.step) {
+                goToStep(e.state.step);
+            }
+        });
+        
+        loadClients();
+        history.pushState({step: 1}, '', '#step1');
+    </script>
+</body>
+</html>

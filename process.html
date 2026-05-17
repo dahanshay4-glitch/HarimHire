@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HarimHire – תהליך ראשוני</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="harimhire.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDhvquMr_6zODjgFIiU2y1Uzpc2wNgmX0",
+      authDomain: "harimhire.firebaseapp.com",
+      projectId: "harimhire",
+      storageBucket: "harimhire.firebasestorage.app",
+      messagingSenderId: "723909250338",
+      appId: "1:723909250338:web:70f5ac52e307083379697b"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+<style>
+.nav-dropdown { position: relative; display: inline-block; }
+.nav-dropdown > a { display: flex; align-items: center; gap: 5px; padding: 6px 4px; }
+.nav-dropdown > a::after { content: "\25BE"; font-size: 10px; opacity: 0.8; }
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border: 1px solid #dde2ea;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.14);
+  min-width: 200px;
+  z-index: 99999;
+  display: none;
+  overflow: hidden;
+  padding: 5px 0;
+}
+.dropdown-menu.open { display: block; }
+.dropdown-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 18px !important;
+  font-size: 13px !important;
+  color: #1a2332 !important;
+  text-decoration: none !important;
+  background: #ffffff !important;
+  border-bottom: 0.5px solid #f0f2f5 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  border-right: none !important;
+  border-left: none !important;
+  border-top: none !important;
+}
+.dropdown-item:last-child { border-bottom: none !important; }
+.dropdown-item:hover { background: #f4f6f9 !important; color: #1e3461 !important; }
+.dropdown-item i {
+  font-size: 14px !important;
+  color: #6b7a99 !important;
+  width: 18px !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+}
+.dropdown-item:hover i { color: #1e3461 !important; }
+</style>
+
+<style>.subbar{margin:0 0 0.75rem 0 !important;padding:8px 1.2rem;}</style>
+</head>
+<body>
+
+<nav class="navbar">
+                    <div class="nav-links">
+    <div class="nav-dropdown">
+      <a href="candidates.html">מועמדים</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="candidates.html"><i class="fa-solid fa-users"></i> מועמדים</a>
+        <a class="dropdown-item" href="new_candidate.html"><i class="fa-solid fa-user-plus"></i> מועמד חדש</a>
+        <a class="dropdown-item" href="segments.html"><i class="fa-solid fa-filter"></i> חיתוכי מועמדים</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="clients.html">לקוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="clients.html"><i class="fa-solid fa-building"></i> לקוחות</a>
+        <a class="dropdown-item" href="new_client.html"><i class="fa-solid fa-building-circle-arrow-right"></i> לקוח חדש</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="jobs.html">משרות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="jobs.html"><i class="fa-solid fa-briefcase"></i> משרות</a>
+        <a class="dropdown-item" href="my_jobs.html"><i class="fa-solid fa-briefcase-arrow-right"></i> המשרות שלי</a>
+        <a class="dropdown-item" href="new_job.html"><i class="fa-solid fa-plus"></i> משרה חדשה</a>
+      </div>
+    </div>
+    <a href="process.html" class="active">תהליך ראשוני</a>
+    <a href="fixes.html">תיקונים</a>
+    <a href="tags.html">תגיות</a>
+    <div class="nav-dropdown">
+      <a href="#">דוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-bar"></i> דוחות</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-clock-rotate-left"></i> היסטוריית הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-phone-slash"></i> פסילות בסינון ראשוני</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-calendar-day"></i> דוח יומי לרכז</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-bullseye"></i> דוח מקורות גיוס</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-briefcase"></i> דוח סוגי משרה</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-users"></i> סטטיסטיקות מועמדים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-building"></i> סטטיסטיקות משרות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-user-tie"></i> סטטיסטיקות רכזים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-pie"></i> סטטיסטיקות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-right-to-bracket"></i> לוג כניסות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-envelope"></i> מיילים מסוננים</a>
+      </div>
+    </div>
+  </div>
+  <div class="navbar-right">
+    <div class="navbar-icons">
+      <i class="fa-regular fa-bell"></i>
+      <i class="fa-solid fa-gear"></i>
+      <i class="fa-regular fa-circle-question"></i>
+    </div>
+    <div class="navbar-logo" onclick="window.location.href='index.html'">
+      <svg width="30" height="22" viewBox="0 0 34 26">
+        <polygon points="2,24 13,4 24,24" fill="rgba(255,255,255,0.92)"/>
+        <polygon points="12,24 19,10 24,24" fill="#e8992e" opacity="0.85"/>
+      </svg>
+      <div>
+        <div class="logo-text">Harim<span>Hire</span></div>
+        <div class="logo-sub">HR SOLUTIONS</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+
+<!-- ===== JOBS LIST ===== -->
+<div id="view-list" style="padding:0.75rem 1rem;">
+  <div class="filter-bar">
+    <div class="fg narrow"><div class="fl">שם לקוח</div><div class="fiw"><select id="srch" onchange="filterProcess()"><option value="">הכל</option><option>מוקד חיפה</option><option>מוקד מגדל העמק</option><option>מוקד אשדוד</option><option>מוקד ירושלים</option><option>מוקד באר שבע</option><option>מוקד הצפון</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
+    <div class="fg narrow"><div class="fl">כותרת משרה</div><div class="fiw"><select id="fJob" onchange="filterProcess()"><option value="">הכל</option><option>שליח שכיר</option><option>שליח עצמאי</option><option>עובד מיון</option><option>מוקדנים</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
+    <div class="fg narrow"><div class="fl">רמת סינון</div><div class="fiw"><select id="fScreen" onchange="filterProcess()"><option value="">הכל</option><option>טלפוני</option><option>פרונטלי</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
+    <div class="fg narrow"><div class="fl">רכז גיוס</div><div class="fiw"><select id="fRecruiter" onchange="filterProcess()"><option value="">הכל</option><option>נטלי</option><option>בתאל</option><option>המערכת</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
+    <button class="btn btn-export"><i class="fa-solid fa-download"></i> ייצוא</button>
+  </div>
+  <div class="count-bar">מציג <strong id="processCount">0</strong> משרות</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th onclick="sortProcess('title')">כותרת משרה <span>&#8597;</span></th>
+          <th onclick="sortProcess('client')">לקוח <span>&#8597;</span></th>
+          <th onclick="sortProcess('screening')">רמת סינון <span>&#8597;</span></th>
+          <th onclick="sortProcess('recruiter')">רכז גיוס <span>&#8597;</span></th>
+          <th onclick="sortProcess('handler')">רכז מטפל <span>&#8597;</span></th>
+          <th onclick="sortProcess('delivery')">שיטת שליחה <span>&#8597;</span></th>
+          <th onclick="sortProcess('waiting')">ממתינים לסינון <span>&#8597;</span></th>
+          <th onclick="sortProcess('process')">בתהליך <span>&#8597;</span></th>
+          <th onclick="sortProcess('total')">הפני סה"כ <span>&#8597;</span></th>
+        </tr>
+      </thead>
+      <tbody id="processTbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== CANDIDATES LIST ===== -->
+<div id="view-candidates" class="hidden" style="padding:0.75rem 1rem;">
+  <div class="subbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button class="btn" onclick="showList()"><i class="fa-solid fa-arrow-right" style="font-size:10px"></i> חזרה</button>
+      <div class="breadcrumb">
+        <a onclick="showList()">תהליך ראשוני</a>
+        <i class="fa-solid fa-chevron-left" style="font-size:9px"></i>
+        <span id="candListBread"></span>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button class="btn btn-export"><i class="fa-solid fa-download"></i> ייצוא</button>
+      <button class="btn btn-primary" onclick="startScreening()"><i class="fa-solid fa-play"></i> התחל סינון</button>
+    </div>
+  </div>
+
+  <!-- Filter Panel -->
+  <div class="filter-panel">
+    <div class="fp-title">
+      <span><i class="fa-solid fa-sliders" style="font-size:10px;margin-left:4px;"></i>סינון ומיון מועמדים</span>
+      <button class="btn" onclick="resetCandFilters()">איפוס</button>
+    </div>
+    <div class="fp-grid">
+      <div class="fp-group"><div class="fp-label">עיר מגורים</div><input class="fp-input" id="fcCity" placeholder="חפש עיר..." oninput="filterCandidates()"></div>
+      <div class="fp-group"><div class="fp-label">גיל מינימום</div><input class="fp-input" id="fcAgeMin" type="number" placeholder="מ..." oninput="filterCandidates()"></div>
+      <div class="fp-group"><div class="fp-label">גיל מקסימום</div><input class="fp-input" id="fcAgeMax" type="number" placeholder="עד..." oninput="filterCandidates()"></div>
+      <div class="fp-group"><div class="fp-label">מקור גיוס</div><select class="fp-select" id="fcSource" onchange="filterCandidates()"><option value="">הכל</option><option>לידים</option><option>דרושים</option><option>אחר</option></select></div>
+      <div class="fp-group"><div class="fp-label">מין</div><select class="fp-select" id="fcGender" onchange="filterCandidates()"><option value="">הכל</option><option>זכר</option><option>נקבה</option></select></div>
+      <div class="fp-group"><div class="fp-label">מיון לפי</div><select class="fp-select" id="fcSort" onchange="filterCandidates()"><option value="date">תאריך כניסה</option><option value="city">עיר</option><option value="age">גיל</option><option value="source">מקור</option></select></div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+    <div class="count-bar">מציג <strong id="candListCount">0</strong> מועמדים ממתינים</div>
+    <div style="display:flex;gap:5px;">
+      <button class="btn"><input type="checkbox" style="margin-left:4px;"> בחר הכל</button>
+      <button class="btn btn-primary" onclick="startScreening()"><i class="fa-solid fa-play"></i> התחל תהליך לנבחרים</button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:28px;"><input type="checkbox"></th>
+          <th style="width:32px;">#</th>
+          <th>שם מועמד</th>
+          <th>טלפון</th>
+          <th>עיר</th>
+          <th>גיל</th>
+          <th>מין</th>
+          <th>מקור גיוס</th>
+          <th>תאריך כניסה</th>
+          <th>הערה אחרונה</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="candListTbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== SCREENING SCREEN ===== -->
+<div id="view-screening" class="hidden">
+  <div style="padding:0 1rem;">
+    <div class="subbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="display:flex;gap:5px;">
+          <button class="btn" onclick="prevCand()"><i class="fa-solid fa-arrow-right" style="font-size:10px"></i> הקודם</button>
+          <button class="btn" onclick="nextCand()">הבא <i class="fa-solid fa-arrow-left" style="font-size:10px"></i></button>
+        </div>
+        <div class="breadcrumb">
+          <a onclick="showList()">תהליך ראשוני</a>
+          <i class="fa-solid fa-chevron-left" style="font-size:9px"></i>
+          <a onclick="showCandList()" id="screenJobBread"></a>
+          <i class="fa-solid fa-chevron-left" style="font-size:9px"></i>
+          <span id="screenCandName"></span>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--text-light);">מועמד <strong id="screenPos"></strong> מתוך <strong id="screenTotal"></strong></div>
+    </div>
+
+    <!-- Filter Panel (collapsed by default) -->
+    <div class="filter-panel">
+      <div class="fp-title">
+        <span><i class="fa-solid fa-sliders" style="font-size:10px;margin-left:4px;"></i>סינון ומיון</span>
+        <button class="btn" onclick="resetCandFilters()">איפוס</button>
+      </div>
+      <div class="fp-grid">
+        <div class="fp-group"><div class="fp-label">עיר מגורים</div><input class="fp-input" id="sfCity" placeholder="חפש עיר..." oninput="applyFilter()"></div>
+        <div class="fp-group"><div class="fp-label">גיל מינימום</div><input class="fp-input" id="sfAgeMin" type="number" placeholder="מ..." oninput="applyFilter()"></div>
+        <div class="fp-group"><div class="fp-label">גיל מקסימום</div><input class="fp-input" id="sfAgeMax" type="number" placeholder="עד..." oninput="applyFilter()"></div>
+        <div class="fp-group"><div class="fp-label">מקור גיוס</div><select class="fp-select" id="sfSource" onchange="applyFilter()"><option value="">הכל</option><option>לידים</option><option>דרושים</option><option>אחר</option></select></div>
+        <div class="fp-group"><div class="fp-label">מין</div><select class="fp-select" id="sfGender" onchange="applyFilter()"><option value="">הכל</option><option>זכר</option><option>נקבה</option></select></div>
+        <div class="fp-group"><div class="fp-label">מיון לפי</div><select class="fp-select" id="sfSort" onchange="applyFilter()"><option value="date">תאריך כניסה</option><option value="city">עיר</option><option value="age">גיל</option><option value="source">מקור</option></select></div>
+      </div>
+    </div>
+
+    <div class="screen-layout">
+      <!-- Left: candidate card + log -->
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="card">
+          <div style="font-size:15px;font-weight:500;margin-bottom:3px;" id="scName"></div>
+          <div style="font-size:10px;color:var(--text-light);margin-bottom:10px;" id="scMeta"></div>
+          <div style="margin-bottom:10px;">
+            <a id="scWALink" href="#" target="_blank" style="font-size:11px;color:#25d366;display:inline-flex;align-items:center;gap:4px;text-decoration:none;">
+              <i class="fa-brands fa-whatsapp" style="font-size:14px;"></i>
+              <span id="scPhone"></span>
+            </a>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="action-btn no-answer" onclick="doAction('noAnswer')"><i class="fa-solid fa-phone-slash" style="font-size:10px"></i> אין מענה</button>
+            <button class="action-btn later" onclick="showLaterModal()"><i class="fa-regular fa-clock" style="font-size:10px"></i> לחזור בהמשך</button>
+            <button class="action-btn reject" onclick="showRejectModal()"><i class="fa-solid fa-x" style="font-size:10px"></i> דחייה</button>
+            <button class="action-btn match" onclick="showMatchModal()"><i class="fa-solid fa-check" style="font-size:10px"></i> מתאים למשרה</button>
+          </div>
+        </div>
+
+        <div class="card" style="flex:1;">
+          <div class="rs-title">תיעוד השיחה</div>
+          <div id="screenLog"></div>
+          <div style="display:flex;gap:5px;margin-top:8px;">
+            <textarea id="scNote" style="flex:1;padding:5px 8px;font-size:10px;border:0.5px solid var(--border);border-radius:5px;background:var(--white);color:var(--text);resize:none;height:36px;font-family:var(--font);" placeholder="הוסף הערה..."></textarea>
+            <button class="btn btn-primary" style="align-self:flex-end;" onclick="addNote()">שמור</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: info + outcome -->
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="progress-bar" id="screenProgress">מועמד 1 מתוך 20</div>
+
+        <div class="card">
+          <div class="rs-title">פרטי מועמד</div>
+          <div class="rs-row"><span class="rs-key">שם מלא</span><span class="rs-val" id="scInfoName"></span></div>
+          <div class="rs-row"><span class="rs-key">טלפון</span><span class="rs-val" id="scInfoPhone"></span></div>
+          <div class="rs-row"><span class="rs-key">גיל</span><span class="rs-val" id="scInfoAge"></span></div>
+          <div class="rs-row"><span class="rs-key">עיר</span><span class="rs-val" id="scInfoCity"></span></div>
+          <div class="rs-row"><span class="rs-key">מין</span><span class="rs-val" id="scInfoGender"></span></div>
+          <div class="rs-row"><span class="rs-key">מקור גיוס</span><span class="rs-val" id="scInfoSource"></span></div>
+        </div>
+
+        <div class="card">
+          <div class="rs-title">תוצאה</div>
+          <select class="outcome-select" id="outcomeSelect" onchange="handleOutcome(this.value)">
+            <option value="">--- בחר תוצאה ---</option>
+            <option value="match">מתאים למשרה (ביצוע הפניה)</option>
+            <option value="nomatch">לא מתאים למשרה</option>
+            <option value="nointerest">לא מעוניין במשרה מסוג זה</option>
+            <option value="remove">הוצאה מסינון ראשוני</option>
+            <option value="matchonly">מתאים למשרה זו בלבד</option>
+          </select>
+          <textarea style="width:100%;padding:5px 8px;font-size:10px;border:0.5px solid var(--border);border-radius:5px;height:50px;resize:none;margin-bottom:6px;font-family:var(--font);" placeholder="חוות דעת..."></textarea>
+          <button class="next-btn" onclick="nextCand()">בצע ועבור למועמד הבא ›</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end main -->
+
+<!-- MATCH MODAL -->
+<div id="matchModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title">מתאים למשרה – בחר סטטוס</div>
+    <div class="status-pills">
+      <button class="status-pill-btn" onclick="selectStatus('תואם ראיון פרונטלי')">תואם ראיון פרונטלי</button>
+      <button class="status-pill-btn" onclick="selectStatus('נשלח ביטחון')">נשלח ביטחון</button>
+      <button class="status-pill-btn" onclick="selectStatus('הגיע – בהמתנה')">הגיע – בהמתנה</button>
+      <button class="status-pill-btn" onclick="selectStatus('עבר ביטחון – בהמתנה')">עבר ביטחון – בהמתנה</button>
+      <button class="status-pill-btn" onclick="selectStatus('עבר ביטחון – יתחיל לעבוד בקרוב')">עבר ביטחון – יתחיל לעבוד בקרוב</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="hideModal('matchModal')">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- INTERVIEW MODAL -->
+<div id="interviewModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title"><i class="fa-regular fa-calendar" style="margin-left:6px;color:var(--blue);"></i>תיאום ראיון פרונטלי</div>
+    <div class="modal-field"><div class="modal-label">שם מועמד</div><input class="modal-input" id="iCandName" readonly style="background:var(--bg);"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="modal-field"><div class="modal-label">תאריך ראיון</div><input class="modal-input" id="iDate" type="date" onchange="updateWAPreview()"></div>
+      <div class="modal-field"><div class="modal-label">שעה</div><input class="modal-input" id="iTime" type="time" value="10:00" onchange="updateWAPreview()"></div>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">כתובת ראיון</div>
+      <select class="modal-select" id="iAddress" onchange="updateWAPreview()">
+        <option>רח' הרצל 5, חיפה</option>
+        <option>רח' הנמל 12, חיפה</option>
+        <option>רח' הבנים 3, קרית אתא</option>
+      </select>
+    </div>
+    <div class="modal-label" style="margin-bottom:4px;">תצוגה מקדימה – WhatsApp</div>
+    <div class="wa-preview" id="waPreview"></div>
+    <div style="background:rgba(30,52,97,0.04);border:0.5px solid var(--border);border-radius:6px;padding:8px 10px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:10px;color:var(--text-light);"><i class="fa-regular fa-calendar" style="margin-left:4px;"></i>שליחת קישור לתיאום עצמי</span>
+      <button class="btn" style="font-size:9px;opacity:0.5;cursor:not-allowed;" title="יהיה זמין בקרוב"><i class="fa-solid fa-link"></i> שלח קישור <span style="font-size:8px;">(בקרוב)</span></button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="hideModal('interviewModal')">ביטול</button>
+      <button class="btn btn-wa" onclick="sendWA()"><i class="fa-brands fa-whatsapp"></i> שלח WhatsApp</button>
+      <button class="btn btn-primary" onclick="confirmInterview()">אשר ועבור הבא</button>
+    </div>
+  </div>
+</div>
+
+<!-- LATER MODAL -->
+<div id="laterModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title"><i class="fa-regular fa-clock" style="margin-left:6px;color:var(--blue);"></i>לחזור בהמשך</div>
+    <div style="background:rgba(30,52,97,0.06);border:0.5px solid rgba(30,52,97,0.15);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:var(--text);">
+      <i class="fa-regular fa-bell" style="margin-left:6px;color:var(--blue);"></i>
+      המערכת תשלח התראה אוטומטית בעוד <strong>שעתיים</strong> לחזור למועמד זה
+    </div>
+    <div id="laterTimeEdit" class="hidden">
+      <div class="modal-field"><div class="modal-label">ערוך זמן התראה</div><input class="modal-input" id="lCustomTime" type="time" value=""></div>
+      <div class="modal-field"><div class="modal-label">ערוך תאריך (אם לא היום)</div><input class="modal-input" id="lCustomDate" type="date"></div>
+    </div>
+    <div class="modal-field"><div class="modal-label">הערה (אופציונלי)</div><input class="modal-input" id="lNote" placeholder="למה חוזרים?"></div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn btn-danger" onclick="confirmLaterDismiss()" title="לא תקפוץ התראה למועמד זה">דחה התראה</button>
+      <div style="display:flex;gap:6px;">
+        <button class="btn" onclick="toggleLaterEdit()"><i class="fa-solid fa-pen" style="font-size:9px"></i> ערוך זמן</button>
+        <button class="btn btn-primary" onclick="confirmLater()"><i class="fa-solid fa-check"></i> אשר ועבור הבא</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REJECT MODAL -->
+<div id="rejectModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title"><i class="fa-solid fa-x" style="margin-left:6px;color:var(--red);"></i>דחייה</div>
+    <div class="modal-field">
+      <div class="modal-label">סיבת דחייה</div>
+      <select class="modal-select" id="rejectReason">
+        <option>לא מתאים גיאוגרפית</option>
+        <option>לא עומד בדרישות</option>
+        <option>גיל לא מתאים</option>
+        <option>אין רישיון נדרש</option>
+        <option>אין רכב</option>
+        <option>אחר</option>
+      </select>
+    </div>
+    <div class="modal-field"><div class="modal-label">הערה</div><input class="modal-input" id="rejectNote" placeholder="פרט אם רלוונטי..."></div>
+    <div style="background:rgba(232,153,46,0.08);border:0.5px solid rgba(232,153,46,0.3);border-radius:6px;padding:8px 10px;font-size:10px;color:#b5720a;margin-bottom:8px;">
+      <i class="fa-solid fa-circle-info" style="font-size:10px;margin-left:4px;"></i>
+      לפי הגדרות המשרה, מועמד זה יחזור אוטומטית אחרי <strong>90 ימים</strong>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="hideModal('rejectModal')">ביטול</button>
+      <button class="btn btn-danger" onclick="confirmReject()">אשר דחייה ועבור הבא</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──
+const PROCESS_JOBS = [
+  {num:25,title:'עובד מיון',client:'מוקד חיפה',screening:'טלפוני',recruiter:'המערכת',handler:'בתאל',delivery:'לא',waiting:828,process:0,total:15},
+  {num:47,title:'שליח עצמאי',client:'מוקד מגדל העמק',screening:'טלפוני',recruiter:'נטלי',handler:'בתאל',delivery:'לא',waiting:131,process:5,total:20},
+  {num:48,title:'שליח שכיר',client:'מוקד מגדל העמק',screening:'טלפוני',recruiter:'המערכת',handler:'בתאל',delivery:'לא',waiting:158,process:4,total:15},
+  {num:10,title:'שליח שכיר',client:'מוקד אשדוד',screening:'טלפוני',recruiter:'נטלי',handler:'בתאל',delivery:'לא',waiting:594,process:3,total:18},
+  {num:11,title:'שליח שכיר',client:'מוקד ירושלים',screening:'טלפוני',recruiter:'המערכת',handler:'בתאל',delivery:'לא',waiting:425,process:10,total:67},
+];
+
+const ALL_CANDIDATES = [
+  {name:'Mohemad Nuj',phone:'0502800721',city:'בועיינה-נוגידאת',age:19,gender:'זכר',source:'לידים',date:'15/05/2026 16:56'},
+  {name:'אביחי רחום',phone:'0543535913',city:'חיפה',age:21,gender:'זכר',source:'לידים',date:'15/05/2026 16:10'},
+  {name:'חוניראת פיאד',phone:'0559241250',city:'ביר אל-מכסור',age:45,gender:'נקבה',source:'לידים',date:'15/05/2026 12:58'},
+  {name:'Moyaal Khashan',phone:'0543440131',city:'חיפה',age:34,gender:'זכר',source:'לידים',date:'15/05/2026 12:58'},
+  {name:'דור חיים',phone:'0526685599',city:'קרית ים',age:22,gender:'זכר',source:'לידים',date:'15/05/2026 12:07'},
+  {name:'הנאו',phone:'0528465117',city:'כרמיאל',age:37,gender:'זכר',source:'לידים',date:'15/05/2026 11:21'},
+  {name:'מאור סלם',phone:'0534300370',city:'חיפה',age:26,gender:'זכר',source:'אחר',date:'15/05/2026 10:53'},
+  {name:'Anan Shaheen',phone:'0545696614',city:'חיפה',age:30,gender:'זכר',source:'לידים',date:'15/05/2026 10:39'},
+  {name:'Khaled Osman',phone:'0522375859',city:'חיפה',age:33,gender:'זכר',source:'לידים',date:'15/05/2026 09:48'},
+  {name:'גיא פורטה',phone:'0505756084',city:'חיפה',age:55,gender:'זכר',source:'לידים',date:'15/05/2026 08:08'},
+  {name:'דינה רובני',phone:'0528353528',city:'נשר',age:63,gender:'נקבה',source:'לידים',date:'15/05/2026 07:18'},
+  {name:'רועי לוי',phone:'0521234567',city:'קרית ביאליק',age:28,gender:'זכר',source:'דרושים',date:'14/05/2026 18:30'},
+  {name:'שירי כהן',phone:'0509876543',city:'נשר',age:32,gender:'נקבה',source:'דרושים',date:'14/05/2026 16:45'},
+  {name:'עמיר בן דוד',phone:'0541234567',city:'חיפה',age:24,gender:'זכר',source:'לידים',date:'14/05/2026 14:20'},
+  {name:'Avi Cohen',phone:'0533415647',city:'חיפה',age:37,gender:'זכר',source:'לידים',date:'14/05/2026 21:06'},
+];
+
+let filteredProcess = [...PROCESS_JOBS];
+let sortProcessCol = 'waiting', sortProcessDir = -1;
+let currentJob = null;
+let filteredCands = [...ALL_CANDIDATES];
+let screenIdx = 0;
+
+// ── PROCESS LIST ──
+function renderProcess(list) {
+  const tb = document.getElementById('processTbody');
+  tb.innerHTML = list.map(j => `
+    <tr>
+      <td><a class="link" onclick="window.location.href='jobs.html'">${j.title}</a></td>
+      <td><a class="link" onclick="window.location.href='clients.html'">${j.client}</a></td>
+      <td>${j.screening}</td>
+      <td>${j.recruiter}</td>
+      <td>${j.handler}</td>
+      <td>${j.delivery}</td>
+      <td><span class="pill badge-wait" style="cursor:pointer;" onclick="openCandList(${j.num})">${j.waiting}</span></td>
+      <td><a class="link" style="font-weight:500;" onclick="openCandList(${j.num})">${j.process}</a></td>
+      <td>${j.total}</td>
+    </tr>`).join('');
+  document.getElementById('processCount').textContent = list.length;
+}
+
+function filterProcess() {
+  const s = document.getElementById('srch').value.toLowerCase();
+  const jb = document.getElementById('fJob').value;
+  const sc = document.getElementById('fScreen').value;
+  const rc = document.getElementById('fRecruiter').value;
+  filteredProcess = PROCESS_JOBS.filter(j => {
+    if(s && j.client !== s) return false;
+    if(jb && !j.title.includes(jb)) return false;
+    if(sc && j.screening !== sc) return false;
+    if(rc && j.recruiter !== rc) return false;
+    return true;
+  });
+  sortProcessList();
+}
+
+function sortProcess(col) {
+  if(sortProcessCol===col) sortProcessDir*=-1; else {sortProcessCol=col;sortProcessDir=1;}
+  sortProcessList();
+}
+
+function sortProcessList() {
+  filteredProcess.sort((a,b) => {
+    let av=a[sortProcessCol]||'', bv=b[sortProcessCol]||'';
+    if(typeof av==='number') return (av-bv)*sortProcessDir;
+    return String(av).localeCompare(String(bv),'he')*sortProcessDir;
+  });
+  renderProcess(filteredProcess);
+}
+
+// ── CANDIDATES LIST ──
+function openCandList(num) {
+  currentJob = PROCESS_JOBS.find(j => j.num === num);
+  if(!currentJob) return;
+  document.getElementById('candListBread').textContent = currentJob.title + ' – ' + currentJob.client + ' (' + currentJob.waiting + ' ממתינים)';
+  filteredCands = [...ALL_CANDIDATES];
+  resetCandFilters();
+  renderCandList(filteredCands);
+  document.getElementById('view-list').classList.add('hidden');
+  document.getElementById('view-candidates').classList.remove('hidden');
+  document.getElementById('view-screening').classList.add('hidden');
+}
+
+function showList() {
+  document.getElementById('view-list').classList.remove('hidden');
+  document.getElementById('view-candidates').classList.add('hidden');
+  document.getElementById('view-screening').classList.add('hidden');
+}
+
+function showCandList() {
+  document.getElementById('view-list').classList.add('hidden');
+  document.getElementById('view-candidates').classList.remove('hidden');
+  document.getElementById('view-screening').classList.add('hidden');
+}
+
+function renderCandList(list) {
+  document.getElementById('candListCount').textContent = list.length;
+  document.getElementById('candListTbody').innerHTML = list.map((c,i) => `
+    <tr>
+      <td><input type="checkbox"></td>
+      <td style="color:var(--text-light);font-size:10px;">${i+1}</td>
+      <td><a class="link" onclick="startScreeningAt(${i})">${c.name}</a></td>
+      <td style="font-size:10px;">${c.phone}</td>
+      <td style="font-size:10px;">${c.city}</td>
+      <td style="font-size:10px;">${c.age}</td>
+      <td style="font-size:10px;">${c.gender}</td>
+      <td><span class="pill pill-gray" style="font-size:9px;">${c.source}</span></td>
+      <td style="font-size:10px;">${c.date}</td>
+      <td style="font-size:10px;color:var(--text-light);">—</td>
+      <td><button class="btn btn-primary" style="padding:2px 8px;font-size:9px;" onclick="startScreeningAt(${i})">התחל תהליך</button></td>
+    </tr>`).join('');
+}
+
+function filterCandidates() {
+  const city = document.getElementById('fcCity').value.toLowerCase();
+  const ageMin = parseInt(document.getElementById('fcAgeMin').value)||0;
+  const ageMax = parseInt(document.getElementById('fcAgeMax').value)||999;
+  const source = document.getElementById('fcSource').value;
+  const gender = document.getElementById('fcGender').value;
+  const sort = document.getElementById('fcSort').value;
+  filteredCands = ALL_CANDIDATES.filter(c => {
+    if(city && !c.city.toLowerCase().includes(city)) return false;
+    if(c.age < ageMin || c.age > ageMax) return false;
+    if(source && c.source !== source) return false;
+    if(gender && c.gender !== gender) return false;
+    return true;
+  });
+  filteredCands.sort((a,b) => {
+    if(sort==='age') return a.age-b.age;
+    if(sort==='city') return a.city.localeCompare(b.city,'he');
+    if(sort==='source') return a.source.localeCompare(b.source,'he');
+    return b.date.localeCompare(a.date);
+  });
+  renderCandList(filteredCands);
+}
+
+function resetCandFilters() {
+  ['fcCity','sfCity'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['fcAgeMin','fcAgeMax','sfAgeMin','sfAgeMax'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['fcSource','fcGender','sfSource','sfGender'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['fcSort','sfSort'].forEach(id => { const el=document.getElementById(id); if(el) el.value='date'; });
+  filteredCands = [...ALL_CANDIDATES];
+  renderCandList(filteredCands);
+}
+
+// ── SCREENING ──
+function startScreening() { if(filteredCands.length) startScreeningAt(0); }
+
+function startScreeningAt(idx) {
+  screenIdx = idx;
+  document.getElementById('view-list').classList.add('hidden');
+  document.getElementById('view-candidates').classList.add('hidden');
+  document.getElementById('view-screening').classList.remove('hidden');
+  if(currentJob) document.getElementById('screenJobBread').textContent = currentJob.title + ' – ' + currentJob.client;
+  loadScreenCand();
+}
+
+function loadScreenCand() {
+  if(!filteredCands.length) return;
+  const c = filteredCands[screenIdx];
+  const waPhone = 'https://wa.me/972' + c.phone.replace(/^0/,'').replace(/-/g,'');
+  document.getElementById('screenCandName').textContent = c.name;
+  document.getElementById('scName').textContent = c.name;
+  document.getElementById('scMeta').textContent = 'גיל ' + c.age + ' · ' + c.city + ' · ' + c.source + ' · ' + c.date;
+  document.getElementById('scPhone').textContent = c.phone;
+  document.getElementById('scWALink').href = waPhone;
+  document.getElementById('scInfoName').textContent = c.name;
+  document.getElementById('scInfoPhone').textContent = c.phone;
+  document.getElementById('scInfoAge').textContent = c.age;
+  document.getElementById('scInfoCity').textContent = c.city;
+  document.getElementById('scInfoGender').textContent = c.gender;
+  document.getElementById('scInfoSource').textContent = c.source;
+  document.getElementById('screenPos').textContent = screenIdx+1;
+  document.getElementById('screenTotal').textContent = filteredCands.length;
+  document.getElementById('screenProgress').textContent = 'מועמד ' + (screenIdx+1) + ' מתוך ' + filteredCands.length + (currentJob?' · '+currentJob.title+' – '+currentJob.client:'');
+  document.getElementById('iCandName').value = c.name;
+  document.getElementById('screenLog').innerHTML =
+    '<div class="log-item"><div class="log-dot" style="background:var(--gray);"></div><div><div class="log-text">נכנס למערכת – מקור: '+c.source+'</div><div class="log-time">'+c.date+' · אוטומטי</div></div></div>';
+  document.getElementById('outcomeSelect').value = '';
+  updateWAPreview();
+}
+
+function applyFilter() {
+  const city = document.getElementById('sfCity').value.toLowerCase();
+  const ageMin = parseInt(document.getElementById('sfAgeMin').value)||0;
+  const ageMax = parseInt(document.getElementById('sfAgeMax').value)||999;
+  const source = document.getElementById('sfSource').value;
+  const gender = document.getElementById('sfGender').value;
+  const sort = document.getElementById('sfSort').value;
+  filteredCands = ALL_CANDIDATES.filter(c => {
+    if(city && !c.city.toLowerCase().includes(city)) return false;
+    if(c.age < ageMin || c.age > ageMax) return false;
+    if(source && c.source !== source) return false;
+    if(gender && c.gender !== gender) return false;
+    return true;
+  });
+  filteredCands.sort((a,b) => {
+    if(sort==='age') return a.age-b.age;
+    if(sort==='city') return a.city.localeCompare(b.city,'he');
+    if(sort==='source') return a.source.localeCompare(b.source,'he');
+    return b.date.localeCompare(a.date);
+  });
+  screenIdx = 0;
+  loadScreenCand();
+}
+
+function prevCand() { if(screenIdx>0){screenIdx--;loadScreenCand();} }
+function nextCand() { if(screenIdx<filteredCands.length-1){screenIdx++;loadScreenCand();} else { showCandList(); } }
+
+function doAction(action) {
+  const c = filteredCands[screenIdx];
+  let text='', color='';
+  if(action==='noAnswer') { text='אין מענה – יחזור אוטומטית בעוד שעתיים'; color='#f0a500'; }
+  addScreenLog(text, color);
+  setTimeout(()=>nextCand(), 300);
+}
+
+function addScreenLog(text, color) {
+  const log = document.getElementById('screenLog');
+  const now = new Date().toLocaleString('he-IL');
+  const div = document.createElement('div');
+  div.className = 'log-item';
+  div.innerHTML = '<div class="log-dot" style="background:'+color+';"></div><div><div class="log-text">'+text+'</div><div class="log-time">'+now+' · נטלי</div></div>';
+  log.insertBefore(div, log.firstChild);
+}
+
+function addNote() {
+  const note = document.getElementById('scNote').value.trim();
+  if(!note) return;
+  addScreenLog(note, 'var(--blue)');
+  document.getElementById('scNote').value='';
+}
+
+function handleOutcome(val) {
+  if(val==='match'||val==='matchonly') showMatchModal();
+}
+
+function showMatchModal() { document.getElementById('matchModal').classList.remove('hidden'); }
+function showLaterModal() { document.getElementById('laterModal').classList.remove('hidden'); }
+function showRejectModal() { document.getElementById('rejectModal').classList.remove('hidden'); }
+function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+function selectStatus(status) {
+  hideModal('matchModal');
+  if(status==='תואם ראיון פרונטלי') { document.getElementById('interviewModal').classList.remove('hidden'); return; }
+  addScreenLog('סטטוס: '+status, 'var(--green)');
+  setTimeout(()=>nextCand(), 300);
+}
+
+function confirmLater() {
+  const n=document.getElementById('lNote').value;
+  const customDate=document.getElementById('lCustomDate').value;
+  const customTime=document.getElementById('lCustomTime').value;
+  let timeStr='בעוד שעתיים';
+  if(customDate || customTime) timeStr=(customDate?new Date(customDate).toLocaleDateString('he-IL'):'היום')+' '+(customTime||'');
+  addScreenLog('לחזור בהמשך – התראה אוטומטית '+timeStr+(n?' · '+n:''), 'var(--blue)');
+  hideModal('laterModal');
+  document.getElementById('laterTimeEdit').classList.add('hidden');
+  setTimeout(()=>nextCand(), 300);
+}
+
+function confirmLaterDismiss() {
+  const n=document.getElementById('lNote').value;
+  addScreenLog('לחזור בהמשך – ללא התראה אוטומטית'+(n?' · '+n:''), 'var(--gray)');
+  hideModal('laterModal');
+  document.getElementById('laterTimeEdit').classList.add('hidden');
+  setTimeout(()=>nextCand(), 300);
+}
+
+function toggleLaterEdit() {
+  const el=document.getElementById('laterTimeEdit');
+  el.classList.toggle('hidden');
+}
+
+function confirmReject() {
+  const r=document.getElementById('rejectReason').value;
+  const n=document.getElementById('rejectNote').value;
+  addScreenLog('דחייה – '+r+(n?' · '+n:''), 'var(--red)');
+  hideModal('rejectModal');
+  setTimeout(()=>nextCand(), 300);
+}
+
+function updateWAPreview() {
+  const name = document.getElementById('iCandName').value;
+  const date = document.getElementById('iDate').value;
+  const time = document.getElementById('iTime').value;
+  const addr = document.getElementById('iAddress').value;
+  const dateStr = date ? new Date(date).toLocaleDateString('he-IL') : '--/--/----';
+  document.getElementById('waPreview').textContent =
+    'שלום '+name+',\n'+
+    'רוצים לעדכן אותך שנקבע לך ראיון עבודה.\n\n'+
+    '\uD83D\uDCC5 תאריך: '+dateStr+'\n'+
+    '\uD83D\uDD50 שעה: '+(time||'--:--')+'\n'+
+    '\uD83D\uDCCD כתובת: '+addr+'\n\n'+
+    'אנא אשר/י הגעה.\n'+
+    'בהצלחה! \uD83D\uDE42\n'+
+    '– צוות HarimHire';
+}
+
+function sendWA() {
+  const c = filteredCands[screenIdx];
+  if(!c) return;
+  const phone = '972'+c.phone.replace(/^0/,'').replace(/-/g,'');
+  const text = encodeURIComponent(document.getElementById('waPreview').textContent);
+  window.open('https://wa.me/'+phone+'?text='+text,'_blank');
+}
+
+function confirmInterview() {
+  const d=document.getElementById('iDate').value;
+  const t=document.getElementById('iTime').value;
+  const addr=document.getElementById('iAddress').value;
+  const dateStr=d?new Date(d).toLocaleDateString('he-IL'):'-';
+  addScreenLog('תואם ראיון פרונטלי – '+dateStr+' '+t+' · '+addr,'var(--green)');
+  hideModal('interviewModal');
+  setTimeout(()=>nextCand(), 300);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', function(e) { if(e.target===this) this.classList.add('hidden'); }));
+
+window.onload = function() { renderProcess(PROCESS_JOBS); };
+</script>
+
+<script>
+(function() {
+  var closeTimer = null;
+  var currentOpen = null;
+  function openMenu(wrapper) {
+    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+    if (currentOpen && currentOpen !== wrapper) {
+      var other = currentOpen.querySelector('.dropdown-menu');
+      if (other) other.classList.remove('open');
+    }
+    currentOpen = wrapper;
+    var menu = wrapper.querySelector('.dropdown-menu');
+    if (menu) menu.classList.add('open');
+  }
+  function closeMenu(wrapper) {
+    closeTimer = setTimeout(function() {
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) menu.classList.remove('open');
+      if (currentOpen === wrapper) currentOpen = null;
+    }, 250);
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.nav-dropdown').forEach(function(wrapper) {
+      wrapper.addEventListener('mouseenter', function() { openMenu(wrapper); });
+      wrapper.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) {
+        menu.addEventListener('mouseenter', function() { openMenu(wrapper); });
+        menu.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      }
+    });
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-dropdown')) {
+        document.querySelectorAll('.dropdown-menu.open').forEach(function(m) { m.classList.remove('open'); });
+        currentOpen = null;
+      }
+    });
+  });
+})();
+</script>
+
+<script>
+// Firebase: load candidates waiting for screening
+db.collection('candidates')
+  .where('status', '==', 'ממתין לסינון')
+  .onSnapshot(function(snap) {
+    if(snap.empty) return;
+    // Update waiting count on process jobs
+    var waitingCount = snap.size;
+    console.log('Candidates waiting for screening:', waitingCount);
+    // Update ALL_CANDIDATES for screening screen
+    window.ALL_CANDIDATES = snap.docs.map(function(d) {
+      var c = d.data();
+      return {
+        id: d.id,
+        name: (c.first||'') + ' ' + (c.last||''),
+        phone: c.phone || '',
+        city: c.city || '',
+        age: c.age || '',
+        gender: c.gender || '',
+        source: c.source || '',
+        date: c.date || ''
+      };
+    });
+  }, function(err) {
+    console.log('Process Firebase error:', err);
+  });
+</script>
+</body>
+</html>

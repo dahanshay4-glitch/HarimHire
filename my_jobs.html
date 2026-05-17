@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HarimHire – המשרות שלי</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="harimhire.css">
+<style>
+.nav-dropdown { position: relative; display: inline-block; }
+.nav-dropdown > a { display: flex; align-items: center; gap: 5px; padding: 6px 4px; }
+.nav-dropdown > a::after { content: "\25BE"; font-size: 10px; opacity: 0.8; }
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border: 1px solid #dde2ea;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.14);
+  min-width: 200px;
+  z-index: 99999;
+  display: none;
+  overflow: hidden;
+  padding: 5px 0;
+}
+.dropdown-menu.open { display: block; }
+.dropdown-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 18px !important;
+  font-size: 13px !important;
+  color: #1a2332 !important;
+  text-decoration: none !important;
+  background: #ffffff !important;
+  border-bottom: 0.5px solid #f0f2f5 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  border-right: none !important;
+  border-left: none !important;
+  border-top: none !important;
+}
+.dropdown-item:last-child { border-bottom: none !important; }
+.dropdown-item:hover { background: #f4f6f9 !important; color: #1e3461 !important; }
+.dropdown-item i {
+  font-size: 14px !important;
+  color: #6b7a99 !important;
+  width: 18px !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+}
+.dropdown-item:hover i { color: #1e3461 !important; }
+</style>
+</head>
+<body>
+<nav class="navbar">
+          <div class="nav-links">
+    <div class="nav-dropdown">
+      <a href="candidates.html">מועמדים</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="candidates.html"><i class="fa-solid fa-users"></i> מועמדים</a>
+        <a class="dropdown-item" href="new_candidate.html"><i class="fa-solid fa-user-plus"></i> מועמד חדש</a>
+        <a class="dropdown-item" href="segments.html"><i class="fa-solid fa-filter"></i> חיתוכי מועמדים</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="clients.html">לקוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="clients.html"><i class="fa-solid fa-building"></i> לקוחות</a>
+        <a class="dropdown-item" href="new_client.html"><i class="fa-solid fa-building-circle-arrow-right"></i> לקוח חדש</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="jobs.html" class="active">משרות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="jobs.html"><i class="fa-solid fa-briefcase"></i> משרות</a>
+        <a class="dropdown-item" href="my_jobs.html"><i class="fa-solid fa-briefcase-arrow-right"></i> המשרות שלי</a>
+        <a class="dropdown-item" href="new_job.html"><i class="fa-solid fa-plus"></i> משרה חדשה</a>
+      </div>
+    </div>
+    <a href="process.html">תהליך ראשוני</a>
+    <a href="fixes.html">תיקונים</a>
+    <a href="tags.html">תגיות</a>
+    <div class="nav-dropdown">
+      <a href="#">דוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-bar"></i> דוחות</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-clock-rotate-left"></i> היסטוריית הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-phone-slash"></i> פסילות בסינון ראשוני</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-calendar-day"></i> דוח יומי לרכז</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-bullseye"></i> דוח מקורות גיוס</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-briefcase"></i> דוח סוגי משרה</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-users"></i> סטטיסטיקות מועמדים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-building"></i> סטטיסטיקות משרות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-user-tie"></i> סטטיסטיקות רכזים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-pie"></i> סטטיסטיקות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-right-to-bracket"></i> לוג כניסות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-envelope"></i> מיילים מסוננים</a>
+      </div>
+    </div>
+  </div>
+  <div class="navbar-right">
+    <div class="navbar-icons">
+      <i class="fa-regular fa-bell"></i>
+      <i class="fa-solid fa-gear"></i>
+      <i class="fa-regular fa-circle-question"></i>
+    </div>
+    <div class="navbar-logo" onclick="window.location.href='index.html'">
+      <svg width="30" height="22" viewBox="0 0 34 26">
+        <polygon points="2,24 13,4 24,24" fill="rgba(255,255,255,0.92)"/>
+        <polygon points="12,24 19,10 24,24" fill="#e8992e" opacity="0.85"/>
+      </svg>
+      <div>
+        <div class="logo-text">Harim<span>Hire</span></div>
+        <div class="logo-sub">HR SOLUTIONS</div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="main" style="padding:0.75rem 1rem;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <div>
+      <div style="font-size:15px;font-weight:500;">המשרות שלי</div>
+      <div style="font-size:11px;color:var(--text-light);margin-top:2px;">משרות המשויכות אליך כרכז מטפל או רכז גיוס</div>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <a href="new_job.html" class="btn btn-primary"><i class="fa-solid fa-plus"></i> משרה חדשה</a>
+      <button class="btn btn-export"><i class="fa-solid fa-download"></i> ייצוא</button>
+    </div>
+  </div>
+
+  <!-- Status filter tabs -->
+  <div style="display:flex;gap:4px;margin-bottom:10px;background:var(--white);border:0.5px solid var(--border);border-radius:8px;padding:4px;width:fit-content;">
+    <button class="status-tab active" onclick="filterStatus('all',this)">הכל <span class="status-badge">4</span></button>
+    <button class="status-tab" onclick="filterStatus('פתוחה',this)">פתוחות <span class="status-badge green">2</span></button>
+    <button class="status-tab" onclick="filterStatus('מוקפאת',this)">מוקפאות <span class="status-badge orange">1</span></button>
+    <button class="status-tab" onclick="filterStatus('סגורה',this)">סגורות <span class="status-badge gray">1</span></button>
+  </div>
+
+  <div class="filter-bar">
+    <div class="fg"><div class="fl">חיפוש</div><div class="fiw"><input type="text" id="srch" placeholder="שם משרה, לקוח..." oninput="filterJobs()"><i class="fa-solid fa-search ic"></i></div></div>
+    <div class="fg narrow"><div class="fl">לקוח</div><div class="fiw"><select id="fClient" onchange="filterJobs()"><option value="">הכל</option><option>מוקד חיפה</option><option>מוקד מגדל העמק</option><option>מוקד ירושלים</option><option>מוקד אשדוד</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
+    <div class="fg narrow"><div class="fl">סוג משרה</div><div class="fiw"><select id="fType" onchange="filterJobs()"><option value="">הכל</option><option>1001 – שליח עצמאי</option><option>1002 – שליח שכיר</option><option>1003 – מוקדנים</option><option>1004 – דואר נע</option><option>1000 – עובד מיון</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
+  </div>
+
+  <div class="count-bar">מציג <strong id="jobCount">0</strong> משרות</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th><input type="checkbox"></th>
+        <th onclick="sortJobs('num')">מס׳ <span>&#8597;</span></th>
+        <th onclick="sortJobs('title')">כותרת <span>&#8597;</span></th>
+        <th onclick="sortJobs('client')">לקוח <span>&#8597;</span></th>
+        <th onclick="sortJobs('type')">סוג משרה <span>&#8597;</span></th>
+        <th onclick="sortJobs('status')">סטטוס <span>&#8597;</span></th>
+        <th onclick="sortJobs('date')">תאריך יצירה <span>&#8597;</span></th>
+        <th onclick="sortJobs('waiting')">ממתינים <span>&#8597;</span></th>
+        <th onclick="sortJobs('process')">בתהליך <span>&#8597;</span></th>
+        <th onclick="sortJobs('started')">התחילו לעבוד <span>&#8597;</span></th>
+        <th>פעולות</th>
+      </tr></thead>
+      <tbody id="jobsTbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+.status-tab { padding:6px 14px;font-size:11px;border:none;background:transparent;color:var(--text-light);cursor:pointer;border-radius:6px;font-family:var(--font);display:flex;align-items:center;gap:5px; }
+.status-tab.active { background:var(--blue);color:#fff; }
+.status-badge { font-size:10px;padding:1px 6px;border-radius:10px;background:rgba(0,0,0,0.1); }
+.status-badge.green { background:rgba(28,169,122,0.15);color:#0e7a55; }
+.status-badge.orange { background:rgba(232,153,46,0.15);color:#b5720a; }
+.status-badge.gray { background:rgba(138,154,181,0.2);color:#6b7a99; }
+.status-tab.active .status-badge { background:rgba(255,255,255,0.25);color:#fff; }
+</style>
+
+<script>
+const JOBS = [
+  {num:48,title:'שליח שכיר',client:'מוקד מגדל העמק',type:'1002 – שליח שכיר',status:'פתוחה',date:'11/12/2025',waiting:158,process:4,started:10,urgent:false},
+  {num:47,title:'שליח עצמאי (קבלן)',client:'מוקד מגדל העמק',type:'1001 – שליח עצמאי',status:'פתוחה',date:'11/12/2025',waiting:131,process:5,started:15,urgent:false},
+  {num:46,title:'עובד מיון',client:'מוקד מגדל העמק',type:'1000 – עובד מיון',status:'מוקפאת',date:'11/12/2025',waiting:144,process:0,started:0,urgent:false},
+  {num:25,title:'עובד מיון',client:'מוקד חיפה',type:'1000 – עובד מיון',status:'סגורה',date:'10/12/2025',waiting:0,process:0,started:15,urgent:false},
+];
+let filtered=[...JOBS], currentStatus='all', sortCol='num', sortDir=-1;
+
+function statusClass(s){
+  if(s==='פתוחה') return 'pill-green';
+  if(s==='מוקפאת') return 'pill-orange';
+  return 'pill-gray';
+}
+
+function renderJobs(list){
+  document.getElementById('jobCount').textContent=list.length;
+  document.getElementById('jobsTbody').innerHTML=list.map(j=>
+    '<tr>'+
+    '<td><input type="checkbox"></td>'+
+    '<td style="font-weight:500;">'+j.num+'</td>'+
+    '<td><a class="link" href="jobs.html">'+j.title+'</a></td>'+
+    '<td><a class="link" href="clients.html">'+j.client+'</a></td>'+
+    '<td><span class="pill pill-blue" style="font-size:9px;">'+j.type+'</span></td>'+
+    '<td><span class="pill '+statusClass(j.status)+'">'+j.status+'</span></td>'+
+    '<td>'+j.date+'</td>'+
+    '<td><a class="link" style="font-weight:500;">'+j.waiting+'</a></td>'+
+    '<td><a class="link" style="font-weight:500;">'+j.process+'</a></td>'+
+    '<td style="color:var(--green);font-weight:500;">'+j.started+'</td>'+
+    '<td style="display:flex;gap:4px;">'+
+    '<button class="btn" style="padding:3px 7px;font-size:10px;" title="ערוך"><i class="fa-solid fa-pen"></i></button>'+
+    '<button class="btn '+(j.status==='מוקפאת'?'btn-primary':'btn-danger')+'" style="padding:3px 7px;font-size:10px;" title="'+(j.status==='מוקפאת'?'הפעל':'הקפא')+'"><i class="fa-solid '+(j.status==='מוקפאת'?'fa-play':'fa-pause')+'"></i></button>'+
+    '</td></tr>'
+  ).join('');
+}
+
+function filterStatus(status,el){
+  currentStatus=status;
+  document.querySelectorAll('.status-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
+}
+
+function filterJobs(){ applyFilters(); }
+
+function applyFilters(){
+  const s=document.getElementById('srch').value.toLowerCase();
+  const cl=document.getElementById('fClient').value;
+  const tp=document.getElementById('fType').value;
+  filtered=JOBS.filter(j=>{
+    if(currentStatus!=='all' && j.status!==currentStatus) return false;
+    if(s && !j.title.toLowerCase().includes(s) && !j.client.toLowerCase().includes(s)) return false;
+    if(cl && j.client!==cl) return false;
+    if(tp && j.type!==tp) return false;
+    return true;
+  });
+  doSort();
+}
+
+function sortJobs(col){
+  if(sortCol===col) sortDir*=-1; else{sortCol=col;sortDir=1;}
+  doSort();
+}
+
+function doSort(){
+  filtered.sort((a,b)=>{
+    let av=a[sortCol]||'', bv=b[sortCol]||'';
+    if(typeof av==='number') return (av-bv)*sortDir;
+    return String(av).localeCompare(String(bv),'he')*sortDir;
+  });
+  renderJobs(filtered);
+}
+
+window.onload=function(){ renderJobs(JOBS); };
+</script>
+<script>
+(function() {
+  var closeTimer = null;
+  var currentOpen = null;
+  function openMenu(wrapper) {
+    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+    if (currentOpen && currentOpen !== wrapper) {
+      var other = currentOpen.querySelector('.dropdown-menu');
+      if (other) other.classList.remove('open');
+    }
+    currentOpen = wrapper;
+    var menu = wrapper.querySelector('.dropdown-menu');
+    if (menu) menu.classList.add('open');
+  }
+  function closeMenu(wrapper) {
+    closeTimer = setTimeout(function() {
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) menu.classList.remove('open');
+      if (currentOpen === wrapper) currentOpen = null;
+    }, 250);
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.nav-dropdown').forEach(function(wrapper) {
+      wrapper.addEventListener('mouseenter', function() { openMenu(wrapper); });
+      wrapper.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) {
+        menu.addEventListener('mouseenter', function() { openMenu(wrapper); });
+        menu.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      }
+    });
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-dropdown')) {
+        document.querySelectorAll('.dropdown-menu.open').forEach(function(m) { m.classList.remove('open'); });
+        currentOpen = null;
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>
