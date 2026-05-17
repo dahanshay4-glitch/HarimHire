@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HarimHire – מערכת גיוס</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="harimhire.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDhvquMr_6zODjgFIiU2y1Uzpc2wNgmX0",
+      authDomain: "harimhire.firebaseapp.com",
+      projectId: "harimhire",
+      storageBucket: "harimhire.firebasestorage.app",
+      messagingSenderId: "723909250338",
+      appId: "1:723909250338:web:70f5ac52e307083379697b"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+<style>
+.nav-dropdown { position: relative; display: inline-block; }
+.nav-dropdown > a { display: flex; align-items: center; gap: 5px; padding: 6px 4px; }
+.nav-dropdown > a::after { content: "\25BE"; font-size: 10px; opacity: 0.8; }
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border: 1px solid #dde2ea;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.14);
+  min-width: 200px;
+  z-index: 99999;
+  display: none;
+  overflow: hidden;
+  padding: 5px 0;
+}
+.dropdown-menu.open { display: block; }
+.dropdown-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 18px !important;
+  font-size: 13px !important;
+  color: #1a2332 !important;
+  text-decoration: none !important;
+  background: #ffffff !important;
+  border-bottom: 0.5px solid #f0f2f5 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  border-right: none !important;
+  border-left: none !important;
+  border-top: none !important;
+}
+.dropdown-item:last-child { border-bottom: none !important; }
+.dropdown-item:hover { background: #f4f6f9 !important; color: #1e3461 !important; }
+.dropdown-item i {
+  font-size: 14px !important;
+  color: #6b7a99 !important;
+  width: 18px !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+}
+.dropdown-item:hover i { color: #1e3461 !important; }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+                    <div class="nav-links">
+    <div class="nav-dropdown">
+      <a href="candidates.html" class="active">מועמדים</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="candidates.html"><i class="fa-solid fa-users"></i> מועמדים</a>
+        <a class="dropdown-item" href="new_candidate.html"><i class="fa-solid fa-user-plus"></i> מועמד חדש</a>
+        <a class="dropdown-item" href="segments.html"><i class="fa-solid fa-filter"></i> חיתוכי מועמדים</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="clients.html">לקוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="clients.html"><i class="fa-solid fa-building"></i> לקוחות</a>
+        <a class="dropdown-item" href="new_client.html"><i class="fa-solid fa-building-circle-arrow-right"></i> לקוח חדש</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a href="jobs.html">משרות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="jobs.html"><i class="fa-solid fa-briefcase"></i> משרות</a>
+        <a class="dropdown-item" href="my_jobs.html"><i class="fa-solid fa-briefcase-arrow-right"></i> המשרות שלי</a>
+        <a class="dropdown-item" href="new_job.html"><i class="fa-solid fa-plus"></i> משרה חדשה</a>
+      </div>
+    </div>
+    <a href="process.html">תהליך ראשוני</a>
+    <a href="fixes.html">תיקונים</a>
+    <a href="tags.html">תגיות</a>
+    <div class="nav-dropdown">
+      <a href="#">דוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-bar"></i> דוחות</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-clock-rotate-left"></i> היסטוריית הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-phone-slash"></i> פסילות בסינון ראשוני</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-calendar-day"></i> דוח יומי לרכז</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-bullseye"></i> דוח מקורות גיוס</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-briefcase"></i> דוח סוגי משרה</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-users"></i> סטטיסטיקות מועמדים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-building"></i> סטטיסטיקות משרות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-user-tie"></i> סטטיסטיקות רכזים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-pie"></i> סטטיסטיקות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-right-to-bracket"></i> לוג כניסות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-envelope"></i> מיילים מסוננים</a>
+      </div>
+    </div>
+  </div>
+  <div class="navbar-right">
+    <div class="navbar-icons">
+      <i class="fa-regular fa-bell"></i>
+      <i class="fa-solid fa-gear"></i>
+      <i class="fa-regular fa-circle-question"></i>
+    </div>
+    <div class="navbar-logo" onclick="showPage('dashboard',null)">
+      <svg width="30" height="22" viewBox="0 0 34 26">
+        <polygon points="2,24 13,4 24,24" fill="rgba(255,255,255,0.92)"/>
+        <polygon points="12,24 19,10 24,24" fill="#e8992e" opacity="0.85"/>
+      </svg>
+      <div>
+        <div class="logo-text">Harim<span>Hire</span></div>
+        <div class="logo-sub">HR SOLUTIONS</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+
+<!-- ===== DASHBOARD ===== -->
+<div class="page" id="page-dashboard">
+  <div class="metrics-row">
+    <div class="metric-card"><div class="metric-val">12</div><div class="metric-label">תיקונים</div><div class="metric-bar"></div><div class="metric-accent" style="width:60%;background:var(--blue);opacity:0.5;"></div></div>
+    <div class="metric-card"><div class="metric-val">8</div><div class="metric-label">התחילו לעבוד החודש</div><div class="metric-bar"></div><div class="metric-accent" style="width:40%;background:var(--green);opacity:0.7;"></div></div>
+    <div class="metric-card"><div class="metric-val">7</div><div class="metric-label">התקבלו לעבודה החודש</div><div class="metric-bar"></div><div class="metric-accent" style="width:35%;background:var(--orange);opacity:0.7;"></div></div>
+    <div class="metric-card"><div class="metric-val">44</div><div class="metric-label">הפניות החודש</div><div class="metric-bar"></div><div class="metric-accent" style="width:80%;background:var(--blue);opacity:0.5;"></div></div>
+    <div class="metric-card"><div class="metric-val">27</div><div class="metric-label">מועמדים בתהליך</div><div class="metric-bar"></div><div class="metric-accent" style="width:55%;background:var(--orange);opacity:0.7;"></div></div>
+  </div>
+  <div class="charts-grid">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+        <div class="chart-sub">חודשים אחרונים</div>
+        <div><div class="chart-title">מועמדים שנכנסו</div><div class="chart-num">11,704</div></div>
+      </div>
+      <div class="chart-wrap"><canvas id="c1"></canvas></div>
+      <a class="link-more">כל המועמדים &lt;</a>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+        <div class="chart-sub">חודש אחרון</div>
+        <div><div class="chart-title">מועמדים בתהליך</div><div class="chart-num">27</div></div>
+      </div>
+      <div class="stage-row"><div class="stage-lbl">תואם ראיון</div><div class="stage-track"><div class="bar-fill" style="width:37%;background:var(--blue);"></div></div><div class="stage-n">10</div></div>
+      <div class="stage-row"><div class="stage-lbl">נשלח ביטחון</div><div class="stage-track"><div class="bar-fill" style="width:8%;background:var(--orange);"></div></div><div class="stage-n">2</div></div>
+      <div class="stage-row"><div class="stage-lbl">הגיע – המתנה</div><div class="stage-track"><div class="bar-fill" style="width:8%;background:var(--orange);"></div></div><div class="stage-n">2</div></div>
+      <div class="stage-row"><div class="stage-lbl">עבר ביטחון</div><div class="stage-track"><div class="bar-fill" style="width:33%;background:var(--blue);"></div></div><div class="stage-n">9</div></div>
+      <div class="stage-row"><div class="stage-lbl">התחיל לעבוד</div><div class="stage-track"><div class="bar-fill" style="width:15%;background:var(--green);"></div></div><div class="stage-n">4</div></div>
+      <a class="link-more">כל המועמדים בתהליך &lt;</a>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+        <div class="chart-sub">שנה אחרונה</div>
+        <div><div class="chart-title">מקורות גיוס</div><div class="chart-num">7</div></div>
+      </div>
+      <div class="chart-wrap"><canvas id="c2"></canvas></div>
+      <a class="link-more">דוח מקורות &lt;</a>
+    </div>
+  </div>
+  <div class="charts-bottom">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+        <div class="chart-sub">מתחילת השנה</div>
+        <div><div class="chart-title">עלויות גיוס</div><div class="chart-num">&#8362;9,000</div></div>
+      </div>
+      <div class="chart-wrap-sm"><canvas id="c3"></canvas></div>
+      <a class="link-more">דוח עלויות &lt;</a>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+        <div class="chart-sub">חודש אחרון</div>
+        <div><div class="chart-title">מקורות גיוס</div><div class="chart-num">2,004</div></div>
+      </div>
+      <div class="bar-row"><div class="bar-label">לידים</div><div class="bar-track"><div class="bar-fill" style="width:65%;background:var(--blue);"></div></div><div class="bar-count">1,297</div></div>
+      <div class="bar-row"><div class="bar-label">דרושים</div><div class="bar-track"><div class="bar-fill" style="width:29%;background:var(--orange);"></div></div><div class="bar-count">590</div></div>
+      <div class="bar-row"><div class="bar-label">אחר</div><div class="bar-track"><div class="bar-fill" style="width:5%;background:var(--gray);"></div></div><div class="bar-count">109</div></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+        <div class="chart-sub">מתחילת השנה</div>
+        <div><div class="chart-title">התחילו לעבוד</div><div class="chart-num">64</div></div>
+      </div>
+      <div class="stage-row"><div class="stage-lbl">היום</div><div class="stage-track"><div class="bar-fill" style="width:1%;background:var(--green);"></div></div><div class="stage-n">0</div></div>
+      <div class="stage-row"><div class="stage-lbl">השבוע</div><div class="stage-track"><div class="bar-fill" style="width:6%;background:var(--green);"></div></div><div class="stage-n">4</div></div>
+      <div class="stage-row"><div class="stage-lbl">החודש</div><div class="stage-track"><div class="bar-fill" style="width:12%;background:var(--orange);"></div></div><div class="stage-n">8</div></div>
+      <div class="stage-row"><div class="stage-lbl">השנה</div><div class="stage-track"><div class="bar-fill" style="width:100%;background:var(--blue);"></div></div><div class="stage-n">64</div></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+        <div class="chart-sub">שנה אחרונה</div>
+        <div><div class="chart-title">מועמדים שהתקבלו</div><div class="chart-num">62</div></div>
+      </div>
+      <div class="chart-wrap-sm"><canvas id="c4"></canvas></div>
+      <a class="link-more">התקבל לעבודה &lt;</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CANDIDATES LIST ===== -->
+<div class="page active" id="page-candidates">
+  <div class="filter-bar">
+    <div class="fg"><div class="fl">חיפוש חופשי</div><div class="fiw"><input type="text" id="srch" placeholder="שם, טלפון, ישוב..." oninput="filterCands()"><i class="fa-solid fa-search ic"></i></div></div>
+    <div class="fg narrow"><div class="fl">סטטוס</div><div class="fiw"><select id="fStatus" onchange="filterCands()"><option value="">הכל</option><option>תואם ראיון</option><option>נשלח ביטחון</option><option>עבר ביטחון</option><option>התחיל לעבוד</option><option>לא התקבל</option><option>עזב</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
+    <div class="fg narrow"><div class="fl">משרה</div><div class="fiw"><select id="fJob" onchange="filterCands()"><option value="">הכל</option><option>1001 – שליח עצמאי</option><option>1002 – שליח שכיר</option><option>1003 – מוקדנים</option><option>1004 – דואר נע</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
+    <div class="fg narrow"><div class="fl">מקור גיוס</div><div class="fiw"><select id="fSrc" onchange="filterCands()"><option value="">הכל</option><option>לידים פייסבוק</option><option>דרושים</option><option>אתר אינטרנט</option><option>המלצה</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
+    <div class="fg narrow"><div class="fl">ישוב</div><div class="fiw"><input type="text" id="fCity" placeholder="חפש..." oninput="filterCands()"><i class="fa-solid fa-location-dot ic"></i></div></div>
+    <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> מועמד חדש</button>
+    <button class="btn btn-export"><i class="fa-solid fa-download"></i> ייצוא</button>
+    <button class="btn" style="color:var(--red);border-color:rgba(220,53,69,0.35);" onclick="deleteSelectedCandidates()"><i class="fa-solid fa-trash"></i> מחק מסומנים</button>
+  </div>
+  <div class="count-bar">מציג <strong id="candCount">0</strong> מועמדים</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:28px;"><input type="checkbox" id="chkAll" onchange="toggleAll(this)"></th>
+          <th onclick="sortCands('name')">שם מלא <span>&#8597;</span></th>
+          <th onclick="sortCands('phone')">טלפון <span>&#8597;</span></th>
+          <th onclick="sortCands('job')">משרה <span>&#8597;</span></th>
+          <th onclick="sortCands('status')">סטטוס <span>&#8597;</span></th>
+          <th onclick="sortCands('source')">מקור גיוס <span>&#8597;</span></th>
+          <th onclick="sortCands('city')">ישוב <span>&#8597;</span></th>
+          <th onclick="sortCands('date')">תאריך כניסה <span>&#8597;</span></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="candsTbody"></tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- end main -->
+
+<script>
+// ── DATA ──
+window.CANDS = [
+  {id:'#18080',first:'שלמה',last:'בנלולו',phone:'0525371524',city:'בית שמש',age:34,gender:'זכר',source:'לידים פייסבוק',job:'1001 – שליח עצמאי',status:'תואם ראיון',date:'15/05/2026',vehicle:'פרטי',license:'כן',av:'שב',avBg:'rgba(30,52,97,0.12)',avColor:'#1e3461'},
+  {id:'#18081',first:'אברהם',last:'בסול',phone:'0529409451',city:'כפר כנא',age:28,gender:'זכר',source:'דרושים',job:'1002 – שליח שכיר',status:'נשלח ביטחון',date:'15/05/2026',vehicle:'אין',license:'כן',av:'אב',avBg:'rgba(232,153,46,0.12)',avColor:'#b5720a'},
+  {id:'#18082',first:'רועי',last:'עזרי',phone:'0525483086',city:'גן יבנה',age:31,gender:'זכר',source:'לידים פייסבוק',job:'1001 – שליח עצמאי',status:'עבר ביטחון',date:'14/05/2026',vehicle:'מסחרי',license:'כן',av:'רע',avBg:'rgba(28,169,122,0.12)',avColor:'#0e7a55'},
+  {id:'#18083',first:'רועי',last:'כהן',phone:'0725093639',city:'עפולה עלית',age:26,gender:'זכר',source:'אתר אינטרנט',job:'1002 – שליח שכיר',status:'נשלח ביטחון',date:'14/05/2026',vehicle:'פרטי',license:'כן',av:'רכ',avBg:'rgba(30,52,97,0.12)',avColor:'#1e3461'},
+  {id:'#18084',first:'דנה',last:'לוי',phone:'0521234567',city:'ירושלים',age:29,gender:'נקבה',source:'המלצה',job:'1004 – דואר נע',status:'התחיל לעבוד',date:'07/05/2026',vehicle:'אין',license:'לא',av:'דל',avBg:'rgba(28,169,122,0.12)',avColor:'#0e7a55'},
+  {id:'#18085',first:'משה',last:'כץ',phone:'0509876543',city:'תל אביב',age:42,gender:'זכר',source:'דרושים',job:'1002 – שליח שכיר',status:'לא התקבל',date:'05/05/2026',vehicle:'פרטי',license:'כן',av:'מכ',avBg:'rgba(220,53,69,0.1)',avColor:'#a02030'},
+];
+
+window.filtered = [...window.CANDS];
+let sortCol = 'date', sortDir = -1;
+
+function statusClass(s) {
+  if(s.includes('ראיון')) return 'pill-orange';
+  if(s.includes('ביטחון')) return 'pill-blue';
+  if(s.includes('התחיל')) return 'pill-green';
+  if(s.includes('לא התקבל') || s.includes('עזב')) return 'pill-red';
+  return 'pill-gray';
+}
+
+window.renderCands = function(list) {
+  const tb = document.getElementById('candsTbody');
+  tb.innerHTML = list.map(c => `
+    <tr>
+      <td><input type="checkbox" class="cand-check" data-id="${c.id}" onclick="event.stopPropagation()"></td>
+      <td><div style="display:flex;align-items:center;gap:7px;">
+        <div class="avatar" style="background:${c.avBg};color:${c.avColor};">${c.av}</div>
+        <a class="link" onclick="openCandidate('${c.id}')">${c.first} ${c.last}</a>
+      </div></td>
+      <td>${c.phone}</td>
+      <td><span class="pill pill-blue" style="font-size:9px;">${c.job}</span></td>
+      <td><span class="pill ${statusClass(c.status)}">${c.status}</span></td>
+      <td><span class="pill pill-gray">${c.source}</span></td>
+      <td>${c.city}</td>
+      <td>${c.date}</td>
+      <td><button class="btn" style="padding:2px 6px;"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+    </tr>`).join('');
+  document.getElementById('candCount').textContent = list.length;
+}
+
+function filterCands() {
+  const s = document.getElementById('srch').value.toLowerCase();
+  const st = document.getElementById('fStatus').value;
+  const jb = document.getElementById('fJob').value;
+  const src = document.getElementById('fSrc').value;
+  const ct = document.getElementById('fCity').value.toLowerCase();
+  filtered = CANDS.filter(c => {
+    const nm = (c.first+' '+c.last).toLowerCase();
+    if(s && !nm.includes(s) && !c.phone.includes(s) && !c.city.toLowerCase().includes(s)) return false;
+    if(st && !c.status.includes(st.split(' ')[0])) return false;
+    if(jb && c.job !== jb) return false;
+    if(src && c.source !== src) return false;
+    if(ct && !c.city.toLowerCase().includes(ct)) return false;
+    return true;
+  });
+  doSort();
+}
+
+function sortCands(col) {
+  if(sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
+  doSort();
+}
+
+function doSort() {
+  filtered.sort((a,b) => {
+    let av = a[sortCol] || '', bv = b[sortCol] || '';
+    if(typeof av === 'number') return (av - bv) * sortDir;
+    return String(av).localeCompare(String(bv),'he') * sortDir;
+  });
+  renderCands(filtered);
+}
+
+function toggleAll(cb) {
+  document.querySelectorAll('#candsTbody input[type=checkbox]').forEach(c => c.checked = cb.checked);
+}
+
+
+async function deleteSelectedCandidates() {
+  const ids = Array.from(document.querySelectorAll('#candsTbody .cand-check:checked')).map(cb => cb.dataset.id).filter(Boolean);
+  if (!ids.length) {
+    alert('לא סומנו מועמדים למחיקה');
+    return;
+  }
+  if (!confirm('למחוק ' + ids.length + ' מועמדים מסומנים?')) return;
+  try {
+    const batch = db.batch();
+    ids.forEach(id => {
+      batch.delete(db.collection('candidates').doc(id));
+    });
+    await batch.commit();
+    alert('המועמדים נמחקו בהצלחה');
+  } catch (err) {
+    console.error('Delete candidates error:', err);
+    alert('אירעה שגיאה במחיקת המועמדים');
+  }
+}
+
+function openCandidate(id) {
+  // שומר את המועמד ב-sessionStorage ופותח את כרטיס המועמד
+  const cand = (window.CANDS || CANDS || []).find(c => c.id === id);
+  sessionStorage.setItem('currentCand', JSON.stringify(cand));
+  sessionStorage.setItem('candList', JSON.stringify(filtered));
+  window.location.href = 'candidate.html';
+}
+
+// ── NAVIGATION ──
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  const pg = document.getElementById('page-' + id);
+  if(pg) pg.classList.add('active');
+  if(el) el.classList.add('active');
+}
+
+// ── CHARTS ──
+window.onload = function() {
+  renderCands(CANDS);
+  const blue='#1e3461', orange='#e8992e', green='#1ca97a', gray='#8a9ab5';
+  new Chart(document.getElementById('c1'),{type:'bar',data:{labels:['נוב','דצ','ינו','פבר','מרץ','אפר','מאי'],datasets:[{data:[1200,1450,1600,1350,1700,1900,2004],backgroundColor:orange,borderRadius:3,barPercentage:0.6}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},color:gray},grid:{display:false}},y:{display:false}},maintainAspectRatio:false}});
+  new Chart(document.getElementById('c2'),{type:'doughnut',data:{labels:['לידים','דרושים','פייסבוק','אחר'],datasets:[{data:[8602,2331,1623,1298],backgroundColor:[blue,orange,green,gray],borderWidth:0}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:9},color:gray,boxWidth:8,padding:6}}},maintainAspectRatio:false,cutout:'68%'}});
+  new Chart(document.getElementById('c3'),{type:'bar',data:{labels:['דרושים','לידים'],datasets:[{data:[5000,4000],backgroundColor:[blue,orange],borderRadius:4,barPercentage:0.5}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},color:gray},grid:{display:false}},y:{display:false}},maintainAspectRatio:false,indexAxis:'y'}});
+  new Chart(document.getElementById('c4'),{type:'line',data:{labels:['נוב','דצ','ינו','פבר','מרץ','אפר','מאי'],datasets:[{data:[6,8,9,7,11,12,9],borderColor:blue,backgroundColor:'rgba(30,52,97,0.08)',fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:blue}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},color:gray},grid:{display:false}},y:{display:false}},maintainAspectRatio:false}});
+};
+</script>
+
+<script>
+(function() {
+  var closeTimer = null;
+  var currentOpen = null;
+  function openMenu(wrapper) {
+    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+    if (currentOpen && currentOpen !== wrapper) {
+      var other = currentOpen.querySelector('.dropdown-menu');
+      if (other) other.classList.remove('open');
+    }
+    currentOpen = wrapper;
+    var menu = wrapper.querySelector('.dropdown-menu');
+    if (menu) menu.classList.add('open');
+  }
+  function closeMenu(wrapper) {
+    closeTimer = setTimeout(function() {
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) menu.classList.remove('open');
+      if (currentOpen === wrapper) currentOpen = null;
+    }, 250);
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.nav-dropdown').forEach(function(wrapper) {
+      wrapper.addEventListener('mouseenter', function() { openMenu(wrapper); });
+      wrapper.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      var menu = wrapper.querySelector('.dropdown-menu');
+      if (menu) {
+        menu.addEventListener('mouseenter', function() { openMenu(wrapper); });
+        menu.addEventListener('mouseleave', function() { closeMenu(wrapper); });
+      }
+    });
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-dropdown')) {
+        document.querySelectorAll('.dropdown-menu.open').forEach(function(m) { m.classList.remove('open'); });
+        currentOpen = null;
+      }
+    });
+  });
+})();
+</script>
+
+
+<script>
+// Firebase live data - updates in real time
+db.collection('candidates').orderBy('createdAt', 'desc').onSnapshot(function(snap) {
+  var liveCands = snap.docs.map(function(d) {
+    var c = d.data();
+    var first = c.first || '';
+    var last = c.last || '';
+    return {
+      id: d.id,
+      num: c.num || 0,
+      av: c.av || (first[0]||'?')+(last[0]||'?'),
+      avBg: c.avBg || 'rgba(30,52,97,0.12)',
+      avColor: c.avColor || '#1e3461',
+      first: first, last: last,
+      phone: c.phone || '',
+      city: c.city || '',
+      age: c.age || '',
+      gender: c.gender || '',
+      source: c.source || '',
+      job: c.job || '',
+      status: c.status || 'ממתין לסינון',
+      date: c.date || '',
+      vehicle: c.vehicle || 'אין',
+      license: c.license || 'לא',
+    };
+  });
+  // Update global arrays and re-render
+  window.CANDS = liveCands;
+  window.filtered = [...liveCands];
+  if(window.renderCands) window.renderCands(window.filtered);
+}, function(err) {
+  console.log('Firestore error:', err);
+});
+</script>
+</body>
+</html>

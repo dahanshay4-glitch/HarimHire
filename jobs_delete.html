@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>משרות - HarimHire</title>
+    <link rel="stylesheet" href="harimhire.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-right">
+            <span class="logo-text">Harim<span class="logo-hire">Hire</span></span>
+            <div class="icons-group">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                </svg>
+            </div>
+        </div>
+        <div class="navbar-left">
+            <div class="dropdown-wrapper">
+                <button class="nav-link" onclick="window.location.href='index.html'">מועמדים <span class="dropdown-arrow">▼</span></button>
+                <div class="dropdown-menu" style="display:none; min-width: 200px;">
+                    <a href="candidates.html" onclick="event.stopPropagation()">מועמדים</a>
+                    <a href="new_candidate.html" onclick="event.stopPropagation()">מועמד חדש</a>
+                    <a href="segments.html" onclick="event.stopPropagation()">חיתוכי מועמדים</a>
+                    <a href="referrals.html" onclick="event.stopPropagation()">הפניות</a>
+                </div>
+            </div>
+            <div class="dropdown-wrapper">
+                <button class="nav-link" onclick="showSection('jobs')" style="color: #fff; border-bottom: 3px solid #e8992e;">משרות <span class="dropdown-arrow">▼</span></button>
+                <div class="dropdown-menu" style="display:none; min-width: 200px;">
+                    <a href="jobs.html" onclick="event.stopPropagation()">משרות</a>
+                    <a href="my_jobs.html" onclick="event.stopPropagation()">המשרות שלי</a>
+                    <a href="new_job.html" onclick="event.stopPropagation()">משרה חדשה</a>
+                </div>
+            </div>
+            <div class="dropdown-wrapper">
+                <button class="nav-link" onclick="window.location.href='clients.html'">לקוחות <span class="dropdown-arrow">▼</span></button>
+                <div class="dropdown-menu" style="display:none; min-width: 200px;">
+                    <a href="clients.html" onclick="event.stopPropagation()">לקוחות</a>
+                    <a href="new_client.html" onclick="event.stopPropagation()">לקוח חדש</a>
+                </div>
+            </div>
+            <button class="nav-link" onclick="window.location.href='process.html'">תהליך ראשוני</button>
+            <button class="nav-link" onclick="window.location.href='fixes.html'">תיקונים</button>
+            <button class="nav-link" onclick="window.location.href='tags.html'">תגיות</button>
+            <div class="dropdown-wrapper">
+                <button class="nav-link" onclick="showSection('reports')">דוחות <span class="dropdown-arrow">▼</span></button>
+                <div class="dropdown-menu" style="display:none; min-width: 200px;">
+                    <a href="#" onclick="event.stopPropagation()">דוח מועמדים</a>
+                    <a href="#" onclick="event.stopPropagation()">דוח משרות</a>
+                    <a href="#" onclick="event.stopPropagation()">דוח הפניות</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-content">
+        <div class="page-header">
+            <h1>משרות</h1>
+        </div>
+
+        <div class="filter-bar">
+            <input type="text" id="searchInput" placeholder="חיפוש משרה..." class="filter-input">
+            <select id="statusFilter" class="filter-input">
+                <option value="">כל הסטטוסים</option>
+                <option value="open">פתוחה</option>
+                <option value="paused">מוקפאת</option>
+                <option value="closed">סגורה</option>
+            </select>
+            <button class="btn-secondary" onclick="toggleColumns()">עמודות</button>
+            <button class="btn-secondary" style="color:#dc3545;border-color:rgba(220,53,69,0.35);" onclick="deleteSelectedJobs()">מחק מסומנים</button>
+        </div>
+
+        <div class="table-container">
+            <table id="jobsTable" class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:32px;"><input type="checkbox" id="chkAllJobs" onchange="toggleAllJobs(this)"></th>
+                        <th onclick="sortTable(1)">מס׳</th>
+                        <th onclick="sortTable(2)">כותרת</th>
+                        <th onclick="sortTable(3)">לקוח</th>
+                        <th onclick="sortTable(4)">סטטוס</th>
+                        <th onclick="sortTable(5)">תאריך יצירה</th>
+                        <th onclick="sortTable(6)">מתעניינים</th>
+                        <th onclick="sortTable(7)">בתהליך</th>
+                        <th onclick="sortTable(8)">התחילו</th>
+                    </tr>
+                </thead>
+                <tbody id="jobsTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="firebase.js"></script>
+    <script>
+        window.sortOrder = {};
+        
+        function renderJobs() {
+            const searchTerm = (document.getElementById('searchInput').value || '').toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            firestore.collection('jobs')
+                .onSnapshot(snapshot => {
+                    const tbody = document.getElementById('jobsTableBody');
+                    tbody.innerHTML = '';
+                    const rows = [];
+                    snapshot.forEach((doc, index) => {
+                        const j = doc.data() || {};
+                        j.id = doc.id;
+                        j.num = j.num || (index + 1);
+                        if (j.status === 'deleted') return;
+                        const haystack = [j.num, j.title, j.clientName, j.typeName, j.jobTypeName, j.status].join(' ').toLowerCase();
+                        if (searchTerm && !haystack.includes(searchTerm)) return;
+                        if (statusFilter && j.status !== statusFilter) return;
+                        rows.push(j);
+                    });
+                    rows.sort((a,b) => String(b.createdDate || '').localeCompare(String(a.createdDate || '')));
+                    rows.forEach(j => {
+                        const row = document.createElement('tr');
+                        row.onclick = () => {
+                            sessionStorage.setItem('jobData', JSON.stringify(j));
+                            window.location.href = 'job.html';
+                        };
+                        const created = j.createdDate ? new Date(j.createdDate).toLocaleDateString('he-IL') : '';
+                        const statusLabel = j.status === 'open' ? 'פתוחה' : j.status === 'paused' ? 'מוקפאת' : j.status === 'closed' ? 'סגורה' : (j.status || 'לא ידוע');
+                        row.innerHTML = `
+                            <td><input type="checkbox" class="job-check" data-id="${j.id}" onclick="event.stopPropagation()"></td>
+                            <td>${j.num}</td>
+                            <td>${j.title || ''}</td>
+                            <td>${j.clientName || 'לא ידוע'}</td>
+                            <td><span class="status-badge status-${j.status}">${statusLabel}</span></td>
+                            <td>${created}</td>
+                            <td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList('interested', '${j.id}')">${j.interestedCount || j.waitingCount || 0}</span></td>
+                            <td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList('inProcess', '${j.id}')">${j.inProcessCount || 0}</span></td>
+                            <td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList('hired', '${j.id}')">${j.hiredCount || 0}</span></td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                });
+        }
+        
+        function toggleAllJobs(cb) {
+            document.querySelectorAll('#jobsTableBody .job-check').forEach(c => c.checked = cb.checked);
+        }
+
+        async function deleteSelectedJobs() {
+            const ids = Array.from(document.querySelectorAll('#jobsTableBody .job-check:checked')).map(cb => cb.dataset.id).filter(Boolean);
+            if (!ids.length) {
+                alert('לא סומנו משרות למחיקה');
+                return;
+            }
+            if (!confirm('למחוק ' + ids.length + ' משרות מסומנות?')) return;
+            try {
+                const batch = firestore.batch();
+                ids.forEach(id => {
+                    batch.update(firestore.collection('jobs').doc(id), {
+                        status: 'deleted',
+                        deletedAt: new Date().toISOString()
+                    });
+                });
+                await batch.commit();
+                alert('המשרות נמחקו בהצלחה');
+            } catch (err) {
+                console.error('Delete jobs error:', err);
+                alert('אירעה שגיאה במחיקת המשרות');
+            }
+        }
+        
+        function openCandidatesList(type, jobId) {
+            sessionStorage.setItem('filterType', type);
+            sessionStorage.setItem('filterJobId', jobId);
+            window.location.href = 'candidates.html';
+        }
+        
+        function sortTable(colIndex) {
+            const tbody = document.getElementById('jobsTableBody');
+            const rows = Array.from(tbody.getElementsByTagName('tr'));
+            
+            window.sortOrder[colIndex] = !window.sortOrder[colIndex];
+            
+            rows.sort((a, b) => {
+                const aVal = a.cells[colIndex].textContent;
+                const bVal = b.cells[colIndex].textContent;
+                return window.sortOrder[colIndex] ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+            });
+            
+            rows.forEach(row => tbody.appendChild(row));
+        }
+        
+        document.getElementById('searchInput').addEventListener('keyup', renderJobs);
+        document.getElementById('statusFilter').addEventListener('change', renderJobs);
+        
+        document.querySelectorAll('.dropdown-wrapper').forEach(wrapper => {
+            wrapper.addEventListener('mouseenter', () => {
+                const menu = wrapper.querySelector('.dropdown-menu');
+                menu.style.display = 'block';
+            });
+            wrapper.addEventListener('mouseleave', () => {
+                const menu = wrapper.querySelector('.dropdown-menu');
+                menu.style.display = 'none';
+            });
+        });
+        
+        renderJobs();
+    </script>
+</body>
+</html>
