@@ -67,6 +67,52 @@
             color: #666;
             margin-top: 8px;
         }
+
+        .client-select-box {
+            max-width: 520px;
+            margin: 0 auto 20px;
+        }
+
+        .client-select-label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .client-search-input,
+        .client-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d9dce2;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            background: #fff;
+            margin-bottom: 10px;
+        }
+
+        .client-search-input:focus,
+        .client-select:focus {
+            outline: none;
+            border-color: #1e3461;
+            box-shadow: 0 0 0 2px rgba(30,52,97,0.08);
+        }
+
+        .client-selected-preview {
+            background: #f7f9fc;
+            border: 1px solid #e2e6ea;
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 13px;
+            color: #1a2332;
+            min-height: 46px;
+        }
+
+        .client-selected-preview strong {
+            color: #1e3461;
+        }
         
         .selected-info {
             background: #e3f2fd;
@@ -189,7 +235,15 @@
         <div class="wizard-content">
             <div id="step1" class="wizard-step">
                 <div class="step-title">בחר לקוח</div>
-                <div id="clientsList" class="client-grid"></div>
+                <div class="client-select-box">
+                    <label class="client-select-label" for="clientSearch">חיפוש לקוח</label>
+                    <input class="client-search-input" id="clientSearch" type="text" placeholder="הקלד שם לקוח / מוקד / עיר..." oninput="renderClientOptions()">
+                    <label class="client-select-label" for="clientSelect">רשימת לקוחות</label>
+                    <select class="client-select" id="clientSelect" onchange="selectClientFromDropdown(this.value)">
+                        <option value="">טוען לקוחות...</option>
+                    </select>
+                    <div class="client-selected-preview" id="selectedClientPreview">לא נבחר לקוח</div>
+                </div>
                 <div class="button-group">
                     <button class="btn-primary" id="nextStep1" onclick="goToStep(2)" disabled>המשך</button>
                 </div>
@@ -251,30 +305,58 @@
         function loadClients() {
             firestore.collection('clients').onSnapshot(snapshot => {
                 allClients = [];
-                document.getElementById('clientsList').innerHTML = '';
-                
                 let counter = 1;
                 snapshot.forEach(doc => {
                     const c = doc.data();
                     c.id = doc.id;
                     c.num = c.num || counter++;
                     allClients.push(c);
-                    
-                    const card = document.createElement('div');
-                    card.className = 'client-card';
-                    card.innerHTML = `
-                        <strong>${c.name}</strong>
-                        <div class="client-info">${c.city || 'לא ידוע'}</div>
-                    `;
-                    card.onclick = () => selectClient(c, card);
-                    document.getElementById('clientsList').appendChild(card);
                 });
+                renderClientOptions();
+            }, error => {
+                console.error('Error loading clients:', error);
+                const select = document.getElementById('clientSelect');
+                select.innerHTML = '<option value="">שגיאה בטעינת לקוחות</option>';
             });
         }
-        
-        function selectClient(client, cardElement) {
-            document.querySelectorAll('.client-card').forEach(c => c.classList.remove('selected'));
-            cardElement.classList.add('selected');
+
+        function renderClientOptions() {
+            const select = document.getElementById('clientSelect');
+            const searchInput = document.getElementById('clientSearch');
+            const searchTerm = (searchInput ? searchInput.value : '').trim().toLowerCase();
+            const currentId = selectedClient ? selectedClient.id : '';
+
+            const filteredClients = allClients.filter(c => {
+                const name = (c.name || '').toLowerCase();
+                const city = (c.city || '').toLowerCase();
+                const type = (c.type || '').toLowerCase();
+                return !searchTerm || name.includes(searchTerm) || city.includes(searchTerm) || type.includes(searchTerm);
+            });
+
+            if (!filteredClients.length) {
+                select.innerHTML = '<option value="">לא נמצאו לקוחות</option>';
+                return;
+            }
+
+            select.innerHTML = '<option value="">-- בחר לקוח --</option>' + filteredClients.map(c => {
+                const city = c.city ? ` - ${c.city}` : '';
+                const selected = c.id === currentId ? ' selected' : '';
+                return `<option value="${c.id}"${selected}>${c.name || 'ללא שם'}${city}</option>`;
+            }).join('');
+        }
+
+        function selectClientFromDropdown(clientId) {
+            selectedClient = allClients.find(c => c.id === clientId) || null;
+            document.getElementById('nextStep1').disabled = !selectedClient;
+            const preview = document.getElementById('selectedClientPreview');
+            if (!selectedClient) {
+                preview.innerHTML = 'לא נבחר לקוח';
+                return;
+            }
+            preview.innerHTML = `<strong>${selectedClient.name || 'ללא שם'}</strong><br><span style="color:#666;">${selectedClient.city || 'לא ידוע'}${selectedClient.type ? ' · ' + selectedClient.type : ''}</span>`;
+        }
+
+        function selectClient(client) {
             selectedClient = client;
             document.getElementById('nextStep1').disabled = false;
         }
