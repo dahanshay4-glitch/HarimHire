@@ -260,8 +260,10 @@
         <div class="tabs">
             <button class="tab active" onclick="switchTab('details')">פרטי משרה</button>
             <button class="tab" onclick="switchTab('cities')">ערים ואזורים</button>
+            <button class="tab" onclick="switchTab('tags')">תגיות</button>
             <button class="tab" onclick="switchTab('candidates')">מועמדים</button>
-            <button class="tab" onclick="switchTab('events')">אירועים</button>
+            <button class="tab" onclick="switchTab('events')">אירועי משרה</button>
+            <button class="tab" onclick="switchTab('publish')">פרסום</button>
         </div>
 
         <div id="details" class="tab-content">
@@ -293,12 +295,20 @@
             <p style="color: #999;">הקמת טאב ערים - בשלב בנייה</p>
         </div>
 
+        <div id="tags" class="tab-content hidden">
+            <p style="color: #999;">תגיות המשרה - בשלב בנייה</p>
+        </div>
+
         <div id="candidates" class="tab-content hidden">
             <div id="candidatesContent"></div>
         </div>
 
         <div id="events" class="tab-content hidden">
-            <p style="color: #999;">היסטוריית אירועים - בשלב בנייה</p>
+            <p style="color: #999;">אירועי משרה - בשלב בנייה</p>
+        </div>
+
+        <div id="publish" class="tab-content hidden">
+            <p style="color: #999;">פרסום וקוד לפרסום - בשלב בנייה</p>
         </div>
     </div>
 
