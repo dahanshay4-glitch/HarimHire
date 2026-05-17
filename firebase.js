@@ -1,20 +1,29 @@
-// Firebase Configuration
+// Firebase Configuration – HarimHire
+// Centralized Firebase bootstrap. Keep all Firebase config in this file.
 const firebaseConfig = {
-    apiKey: "AIzaSyDDhvquMr_6zODjgFIiU2y1Uzpc2wNgmX0",
-    authDomain: "harimhire.firebaseapp.com",
-    projectId: "harimhire",
-    storageBucket: "harimhire.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDDhvquMr_6zODjgFIiU2y1Uzpc2wNgmX0",
+  authDomain: "harimhire.firebaseapp.com",
+  projectId: "harimhire",
+  storageBucket: "harimhire.firebasestorage.app",
+  messagingSenderId: "723909250338",
+  appId: "1:723909250338:web:70f5ac52e307083379697b"
 };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+if (typeof firebase === 'undefined') {
+  console.error('Firebase SDK was not loaded before firebase.js');
+} else {
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
 
-// Get Firestore instance
-const firestore = firebase.firestore();
+  // Backward-compatible globals used across existing pages.
+  window.firestore = firebase.firestore();
+  window.db = window.firestore;
 
-// Collections:
+  console.log('Firebase initialized successfully');
+}
+
+// Collections currently used/planned:
 // - candidates (מועמדים)
 // - clients (לקוחות)
 // - jobs (משרות)
@@ -24,5 +33,3 @@ const firestore = firebase.firestore();
 // - templates (תבניות הודעות)
 // - alerts (התראות חכמות)
 // - interviewAddresses (כתובות ראיון)
-
-console.log('Firebase initialized successfully');
