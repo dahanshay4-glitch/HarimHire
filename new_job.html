@@ -180,6 +180,52 @@
             color: #666;
             margin-top: 8px;
         }
+
+        .job-type-select-box {
+            max-width: 520px;
+            margin: 0 auto 20px;
+        }
+
+        .job-type-select-label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .job-type-search-input,
+        .job-type-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d9dce2;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            background: #fff;
+            margin-bottom: 10px;
+        }
+
+        .job-type-search-input:focus,
+        .job-type-select:focus {
+            outline: none;
+            border-color: #1e3461;
+            box-shadow: 0 0 0 2px rgba(30,52,97,0.08);
+        }
+
+        .job-type-selected-preview {
+            background: #f7f9fc;
+            border: 1px solid #e2e6ea;
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 13px;
+            color: #1a2332;
+            min-height: 46px;
+        }
+
+        .job-type-selected-preview strong {
+            color: #1e3461;
+        }
         
         .form-group {
             margin-bottom: 16px;
@@ -253,7 +299,15 @@
                 <button class="btn-primary" onclick="goToStep(1)" style="margin-bottom: 20px;">← חזור</button>
                 <div class="selected-info" id="selectedClientInfo"></div>
                 <div class="step-title">בחר סוג משרה</div>
-                <div class="job-type-grid" id="jobTypesGrid"></div>
+                <div class="job-type-select-box">
+                    <label class="job-type-select-label" for="jobTypeSearch">חיפוש סוג משרה</label>
+                    <input class="job-type-search-input" id="jobTypeSearch" type="text" placeholder="הקלד מספר משרה / שם משרה..." oninput="renderJobTypeOptions()">
+                    <label class="job-type-select-label" for="jobTypeSelect">רשימת סוגי משרה</label>
+                    <select class="job-type-select" id="jobTypeSelect" onchange="selectJobTypeFromDropdown(this.value)">
+                        <option value="">-- בחר סוג משרה --</option>
+                    </select>
+                    <div class="job-type-selected-preview" id="selectedJobTypePreview">לא נבחר סוג משרה</div>
+                </div>
                 <div class="button-group">
                     <button class="btn-primary" id="nextStep2" onclick="goToStep(3)" disabled>המשך</button>
                 </div>
@@ -379,27 +433,42 @@
         }
         
         function loadJobTypes() {
-            const grid = document.getElementById('jobTypesGrid');
-            grid.innerHTML = '';
-            
-            Object.entries(jobTypes).forEach(([code, details]) => {
-                const card = document.createElement('div');
-                card.className = 'job-type-card';
-                card.innerHTML = `
-                    <div style="font-size: 28px;">${details.icon}</div>
-                    <div class="job-type-number">${code}</div>
-                    <div class="job-type-name">${details.name}</div>
-                `;
-                card.onclick = () => selectJobType(code, details, card);
-                grid.appendChild(card);
-            });
+            renderJobTypeOptions();
         }
-        
-        function selectJobType(code, details, cardElement) {
-            document.querySelectorAll('.job-type-card').forEach(c => c.classList.remove('selected'));
-            cardElement.classList.add('selected');
-            selectedJobType = { code, name: details.name };
-            document.getElementById('nextStep2').disabled = false;
+
+        function renderJobTypeOptions() {
+            const select = document.getElementById('jobTypeSelect');
+            const searchInput = document.getElementById('jobTypeSearch');
+            if (!select) return;
+            const searchTerm = (searchInput ? searchInput.value : '').trim().toLowerCase();
+            const currentCode = selectedJobType ? selectedJobType.code : '';
+
+            const filteredTypes = Object.entries(jobTypes).filter(([code, details]) => {
+                const name = (details.name || '').toLowerCase();
+                return !searchTerm || code.includes(searchTerm) || name.includes(searchTerm);
+            });
+
+            if (!filteredTypes.length) {
+                select.innerHTML = '<option value="">לא נמצאו סוגי משרה</option>';
+                return;
+            }
+
+            select.innerHTML = '<option value="">-- בחר סוג משרה --</option>' + filteredTypes.map(([code, details]) => {
+                const selected = code === currentCode ? ' selected' : '';
+                return `<option value="${code}"${selected}>${code} – ${details.name}</option>`;
+            }).join('');
+        }
+
+        function selectJobTypeFromDropdown(code) {
+            const details = jobTypes[code];
+            selectedJobType = details ? { code, name: details.name } : null;
+            document.getElementById('nextStep2').disabled = !selectedJobType;
+            const preview = document.getElementById('selectedJobTypePreview');
+            if (!selectedJobType) {
+                preview.innerHTML = 'לא נבחר סוג משרה';
+                return;
+            }
+            preview.innerHTML = `<strong>${selectedJobType.code} – ${selectedJobType.name}</strong>`;
         }
         
         async function saveJob() {
