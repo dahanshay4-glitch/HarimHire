@@ -101,85 +101,223 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="firebase.js"></script>
     <script>
-        window.sortOrder = {};
-        
-        function renderJobs() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const statusFilter = document.getElementById('statusFilter').value;
-            
-            firestore.collection('jobs')
-                .where('status', '!=', 'deleted')
-                .orderBy('status')
-                .orderBy('createdDate', 'desc')
-                .onSnapshot(snapshot => {
-                    const tbody = document.getElementById('jobsTableBody');
-                    tbody.innerHTML = '';
-                    
-                    snapshot.forEach((doc, index) => {
-                        const j = doc.data();
-                        j.id = doc.id;
-                        j.num = j.num || (index + 1);
-                        
-                        if (searchTerm && !j.title.toLowerCase().includes(searchTerm)) return;
-                        if (statusFilter && j.status !== statusFilter) return;
-                        
-                        const row = document.createElement('tr');
-                        row.onclick = () => {
-                            sessionStorage.setItem('jobData', JSON.stringify(j));
-                            window.location.href = 'job.html';
-                        };
-                        
-                        row.innerHTML = `
-                            <td>${j.num}</td>
-                            <td>${j.title}</td>
-                            <td>${j.clientName || 'לא ידוע'}</td>
-                            <td><span class="status-badge status-${j.status}">${j.status === 'open' ? 'פתוחה' : j.status === 'paused' ? 'מוקפאת' : 'סגורה'}</span></td>
-                            <td>${new Date(j.createdDate).toLocaleDateString('he-IL')}</td>
-                            <td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList('interested', j.id)">${j.interestedCount || 0}</span></td>
-                            <td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList('inProcess', j.id)">${j.inProcessCount || 0}</span></td>
-                            <td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList('hired', j.id)">${j.hiredCount || 0}</span></td>
-                        `;
-                        tbody.appendChild(row);
-                    });
-                });
+        let allJobs = [];
+        let renderedJobs = [];
+        let sortState = { field: 'createdDate', dir: -1 };
+
+        function safeText(value, fallback = '') {
+            return value === undefined || value === null || value === '' ? fallback : String(value);
         }
-        
+
+        function getJobNumber(job, index) {
+            return job.number || job.num || job.jobNumber || (index + 1);
+        }
+
+        function getJobTitle(job) {
+            return safeText(job.title || job.jobTitle || job.jobTypeName, 'ללא כותרת');
+        }
+
+        function getClientName(job) {
+            return safeText(job.clientName || job.client || job.customerName, 'לא ידוע');
+        }
+
+        function getJobTypeName(job) {
+            const code = job.jobType || job.jobTypeCode || '';
+            const name = job.jobTypeName || job.typeName || '';
+            if (code && name) return `${code} – ${name}`;
+            return safeText(name || code || job.type, '');
+        }
+
+        function normalizeStatus(status) {
+            const s = safeText(status, 'open');
+            if (['open', 'פתוחה', 'פעילה'].includes(s)) return 'open';
+            if (['paused', 'מוקפאת', 'הוקפאה'].includes(s)) return 'paused';
+            if (['closed', 'סגורה'].includes(s)) return 'closed';
+            if (['deleted', 'מחוקה'].includes(s)) return 'deleted';
+            return s;
+        }
+
+        function statusLabel(status) {
+            const s = normalizeStatus(status);
+            if (s === 'open') return 'פתוחה';
+            if (s === 'paused') return 'מוקפאת';
+            if (s === 'closed') return 'סגורה';
+            if (s === 'deleted') return 'מחוקה';
+            return safeText(status, 'לא ידוע');
+        }
+
+        function statusClass(status) {
+            const s = normalizeStatus(status);
+            if (s === 'open') return 'status-open';
+            if (s === 'paused') return 'status-paused';
+            if (s === 'closed') return 'status-closed';
+            return 'status-closed';
+        }
+
+        function toDateValue(value) {
+            if (!value) return null;
+            if (value.toDate && typeof value.toDate === 'function') return value.toDate();
+            if (value instanceof Date) return value;
+            const d = new Date(value);
+            return isNaN(d.getTime()) ? null : d;
+        }
+
+        function formatDate(value) {
+            const d = toDateValue(value);
+            return d ? d.toLocaleDateString('he-IL') : '';
+        }
+
+        function countField(job, ...names) {
+            for (const name of names) {
+                const val = job[name];
+                if (typeof val === 'number') return val;
+                if (typeof val === 'string' && val.trim() !== '' && !isNaN(Number(val))) return Number(val);
+            }
+            return 0;
+        }
+
+        function renderJobs() {
+            const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const tbody = document.getElementById('jobsTableBody');
+
+            renderedJobs = allJobs.filter(job => {
+                const status = normalizeStatus(job.status);
+                if (status === 'deleted') return false;
+                if (statusFilter && status !== statusFilter) return false;
+                if (!searchTerm) return true;
+                const haystack = [
+                    getJobNumber(job, 0),
+                    getJobTitle(job),
+                    getClientName(job),
+                    getJobTypeName(job),
+                    statusLabel(job.status)
+                ].join(' ').toLowerCase();
+                return haystack.includes(searchTerm);
+            });
+
+            sortJobsInMemory();
+
+            if (!renderedJobs.length) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:#777;">לא נמצאו משרות להצגה</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = renderedJobs.map((j, index) => {
+                const jobNumber = getJobNumber(j, index);
+                const waiting = countField(j, 'waitingCount', 'interestedCount', 'matchesCount', 'pendingScreeningCount');
+                const inProcess = countField(j, 'processCount', 'inProcessCount', 'activeProcessCount');
+                const hired = countField(j, 'hiredCount', 'startedCount');
+                const created = j.createdDate || j.createdAt || j.created;
+
+                return `
+                    <tr onclick="openJob('${j.id}')">
+                        <td>${jobNumber}</td>
+                        <td>${getJobTitle(j)}</td>
+                        <td>${getClientName(j)}</td>
+                        <td><span class="status-badge ${statusClass(j.status)}">${statusLabel(j.status)}</span></td>
+                        <td>${formatDate(created)}</td>
+                        <td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList('waiting', '${j.id}')">${waiting}</span></td>
+                        <td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList('inProcess', '${j.id}')">${inProcess}</span></td>
+                        <td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList('hired', '${j.id}')">${hired}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function sortJobsInMemory() {
+            const field = sortState.field;
+            const dir = sortState.dir;
+            renderedJobs.sort((a, b) => {
+                let av, bv;
+                if (field === 'number') {
+                    av = Number(getJobNumber(a, 0)) || 0;
+                    bv = Number(getJobNumber(b, 0)) || 0;
+                } else if (field === 'title') {
+                    av = getJobTitle(a);
+                    bv = getJobTitle(b);
+                } else if (field === 'client') {
+                    av = getClientName(a);
+                    bv = getClientName(b);
+                } else if (field === 'status') {
+                    av = statusLabel(a.status);
+                    bv = statusLabel(b.status);
+                } else if (field === 'createdDate') {
+                    av = (toDateValue(a.createdDate || a.createdAt || a.created) || new Date(0)).getTime();
+                    bv = (toDateValue(b.createdDate || b.createdAt || b.created) || new Date(0)).getTime();
+                } else if (field === 'waiting') {
+                    av = countField(a, 'waitingCount', 'interestedCount', 'matchesCount', 'pendingScreeningCount');
+                    bv = countField(b, 'waitingCount', 'interestedCount', 'matchesCount', 'pendingScreeningCount');
+                } else if (field === 'process') {
+                    av = countField(a, 'processCount', 'inProcessCount', 'activeProcessCount');
+                    bv = countField(b, 'processCount', 'inProcessCount', 'activeProcessCount');
+                } else if (field === 'hired') {
+                    av = countField(a, 'hiredCount', 'startedCount');
+                    bv = countField(b, 'hiredCount', 'startedCount');
+                }
+
+                if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir;
+                return String(av || '').localeCompare(String(bv || ''), 'he') * dir;
+            });
+        }
+
+        function sortTable(colIndex) {
+            const fields = ['number', 'title', 'client', 'status', 'createdDate', 'waiting', 'process', 'hired'];
+            const field = fields[colIndex] || 'createdDate';
+            if (sortState.field === field) {
+                sortState.dir *= -1;
+            } else {
+                sortState.field = field;
+                sortState.dir = field === 'createdDate' ? -1 : 1;
+            }
+            renderJobs();
+        }
+
+        function openJob(jobId) {
+            const job = allJobs.find(j => j.id === jobId);
+            if (!job) return;
+            sessionStorage.setItem('jobData', JSON.stringify(job));
+            sessionStorage.setItem('jobId', jobId);
+            window.location.href = 'job.html';
+        }
+
         function openCandidatesList(type, jobId) {
             sessionStorage.setItem('filterType', type);
             sessionStorage.setItem('filterJobId', jobId);
             window.location.href = 'candidates.html';
         }
-        
-        function sortTable(colIndex) {
-            const tbody = document.getElementById('jobsTableBody');
-            const rows = Array.from(tbody.getElementsByTagName('tr'));
-            
-            window.sortOrder[colIndex] = !window.sortOrder[colIndex];
-            
-            rows.sort((a, b) => {
-                const aVal = a.cells[colIndex].textContent;
-                const bVal = b.cells[colIndex].textContent;
-                return window.sortOrder[colIndex] ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+
+        function loadJobsFromFirestore() {
+            if (!window.firestore) {
+                document.getElementById('jobsTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:#dc3545;">שגיאה: Firebase לא נטען</td></tr>';
+                return;
+            }
+
+            // Important: no Firestore where/orderBy combination here, to avoid index errors.
+            firestore.collection('jobs').onSnapshot(snapshot => {
+                allJobs = snapshot.docs.map((doc, index) => ({ id: doc.id, _index: index, ...doc.data() }));
+                renderJobs();
+            }, error => {
+                console.error('Error loading jobs:', error);
+                document.getElementById('jobsTableBody').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:#dc3545;">שגיאה בטעינת משרות: ${error.message}</td></tr>`;
             });
-            
-            rows.forEach(row => tbody.appendChild(row));
         }
-        
-        document.getElementById('searchInput').addEventListener('keyup', renderJobs);
+
+        document.getElementById('searchInput').addEventListener('input', renderJobs);
         document.getElementById('statusFilter').addEventListener('change', renderJobs);
-        
+
         document.querySelectorAll('.dropdown-wrapper').forEach(wrapper => {
             wrapper.addEventListener('mouseenter', () => {
                 const menu = wrapper.querySelector('.dropdown-menu');
-                menu.style.display = 'block';
+                if (menu) menu.style.display = 'block';
             });
             wrapper.addEventListener('mouseleave', () => {
                 const menu = wrapper.querySelector('.dropdown-menu');
-                menu.style.display = 'none';
+                if (menu) menu.style.display = 'none';
             });
         });
-        
-        renderJobs();
+
+        loadJobsFromFirestore();
     </script>
 </body>
 </html>
