@@ -201,7 +201,7 @@
       </div>
       <div style="display:flex;gap:6px;">
         <button class="btn btn-export"><i class="fa-solid fa-download"></i> ייצוא</button>
-        <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> משרה חדשה</button>
+        <button class="btn btn-primary" onclick="openNewJobForCurrentClient()"><i class="fa-solid fa-plus"></i> משרה חדשה</button>
         <button class="btn btn-primary"><i class="fa-solid fa-pen"></i> עריכה</button>
       </div>
     </div>
@@ -275,7 +275,7 @@
       <div class="tab-pane" id="tab-jobs">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
           <div style="font-size:10px;color:var(--text-light);" id="clJobsCount"></div>
-          <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> משרה חדשה</button>
+          <button class="btn btn-primary" onclick="openNewJobForCurrentClient()"><i class="fa-solid fa-plus"></i> משרה חדשה</button>
         </div>
         <div style="overflow-x:auto;">
           <table class="job-table">
@@ -331,6 +331,14 @@ let colVisible = {handler:false,recruiter:false,city:false,industry:false};
 let filtered = [...CLIENTS];
 let sortCol = 'id', sortDir = -1;
 let currentClient = null;
+
+function openNewJobForCurrentClient() {
+  if(!currentClient) { window.location.href = 'new_job.html'; return; }
+  const params = new URLSearchParams();
+  params.set('clientId', String(currentClient.id));
+  params.set('clientName', currentClient.name || '');
+  window.location.href = 'new_job.html?' + params.toString();
+}
 
 window.renderClients = function renderClients(list) {
   const tb = document.getElementById('clientsTbody');
@@ -508,7 +516,7 @@ function renderClientJobs(jobs) {
   if(document.getElementById('clStatWorking')) document.getElementById('clStatWorking').textContent = hiredCount;
   tbody.innerHTML = jobs.map(j =>
     '<tr><td>' + (j.num || '') + '</td>' +
-    '<td><a class="link" href="job.html" onclick="sessionStorage.setItem(\'jobData\', JSON.stringify(' + escapeAttr(JSON.stringify(j)) + '))">' + (j.title || j.name || '') + '</a></td>' +
+    '<td><a class="link" href="job.html" onclick="sessionStorage.setItem(\'jobId\', \'' + (j.id || '') + '\'); sessionStorage.setItem(\'jobData\', JSON.stringify(' + escapeAttr(JSON.stringify(j)) + '))">' + (j.title || j.name || '') + '</a></td>' +
     '<td><span class="pill ' + statusPillClass(j.status) + '">' + normalizeStatusLabel(j.status) + '</span></td>' +
     '<td>' + formatJobDate(j) + '</td>' +
     '<td>' + (j.send || 'לא') + '</td>' +
@@ -521,8 +529,7 @@ function renderClientJobs(jobs) {
 
 function loadClientJobs(client) {
   if(clientJobsUnsub) { clientJobsUnsub(); clientJobsUnsub = null; }
-  const fallbackJobs = client.jobs || [];
-  if(typeof db === 'undefined') { renderClientJobs(fallbackJobs); return; }
+  if(typeof db === 'undefined') { renderClientJobs([]); return; }
   clientJobsUnsub = db.collection('jobs').onSnapshot(function(snap) {
     const jobs = [];
     snap.forEach(function(d) {
@@ -531,10 +538,10 @@ function loadClientJobs(client) {
       const byName = j.clientName && String(j.clientName).trim() === String(client.name).trim();
       if(byId || byName) jobs.push(Object.assign({id:d.id}, j));
     });
-    renderClientJobs(jobs.length ? jobs : fallbackJobs);
+    renderClientJobs(jobs);
   }, function(err) {
     console.log('Client jobs Firebase error:', err);
-    renderClientJobs(fallbackJobs);
+    renderClientJobs([]);
   });
 }
 

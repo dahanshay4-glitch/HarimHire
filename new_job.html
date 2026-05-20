@@ -1,594 +1,677 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HarimHire – משרה חדשה</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="harimhire.css">
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDDhvquMr_6zODjgFIiU2y1Uzpc2wNgmX0",
-      authDomain: "harimhire.firebaseapp.com",
-      projectId: "harimhire",
-      storageBucket: "harimhire.firebasestorage.app",
-      messagingSenderId: "723909250338",
-      appId: "1:723909250338:web:70f5ac52e307083379697b"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-  </script>
-<style>
-.nav-dropdown { position: relative; display: inline-block; }
-.nav-dropdown > a { display: flex; align-items: center; gap: 5px; padding: 6px 4px; }
-.nav-dropdown > a::after { content: "\25BE"; font-size: 10px; opacity: 0.8; }
-.dropdown-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: #ffffff;
-  border: 1px solid #dde2ea;
-  border-radius: 8px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.14);
-  min-width: 200px;
-  z-index: 99999;
-  display: none;
-  overflow: hidden;
-  padding: 5px 0;
-}
-.dropdown-menu.open { display: block; }
-.dropdown-item {
-  display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
-  padding: 12px 18px !important;
-  font-size: 13px !important;
-  color: #1a2332 !important;
-  text-decoration: none !important;
-  background: #ffffff !important;
-  border-bottom: 0.5px solid #f0f2f5 !important;
-  white-space: nowrap !important;
-  cursor: pointer !important;
-  border-right: none !important;
-  border-left: none !important;
-  border-top: none !important;
-}
-.dropdown-item:last-child { border-bottom: none !important; }
-.dropdown-item:hover { background: #f4f6f9 !important; color: #1e3461 !important; }
-.dropdown-item i {
-  font-size: 14px !important;
-  color: #6b7a99 !important;
-  width: 18px !important;
-  text-align: center !important;
-  flex-shrink: 0 !important;
-}
-.dropdown-item:hover i { color: #1e3461 !important; }
-</style>
-<style>
-.step-bar { display:flex; align-items:center; gap:0; margin-bottom:32px; padding-bottom:20px; border-bottom:0.5px solid var(--border); }
-.step { display:flex; align-items:center; gap:10px; font-size:13px; }
-.step-num { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; flex-shrink:0; }
-.step.done .step-num { background:var(--green); color:#fff; }
-.step.active .step-num { background:var(--blue); color:#fff; }
-.step.pending .step-num { background:var(--bg); color:var(--text-light); border:1px solid var(--border); }
-.step.done .step-label, .step.active .step-label { color:var(--text); font-weight:500; }
-.step.pending .step-label { color:var(--text-light); }
-.step-line { flex:1; height:1px; background:var(--border); margin:0 10px; min-width:30px; }
-.step-line.done { background:var(--green); }
-.client-card { border:1px solid var(--border); border-radius:8px; padding:14px 16px; cursor:pointer; transition:all 0.15s; background:var(--white); }
-.client-card:hover { border-color:var(--blue); background:rgba(30,52,97,0.02); }
-.client-card.selected { border-color:var(--blue); background:rgba(30,52,97,0.05); box-shadow:0 0 0 2px rgba(30,52,97,0.15); }
-.job-type-card { border:1px solid var(--border); border-radius:10px; padding:24px 16px; cursor:pointer; transition:all 0.15s; background:var(--white); text-align:center; }
-.job-type-card:hover { border-color:var(--blue); background:rgba(30,52,97,0.02); }
-.job-type-card.selected { border-color:var(--blue); background:rgba(30,52,97,0.05); box-shadow:0 0 0 2px rgba(30,52,97,0.15); }
-.job-type-num { font-size:26px; font-weight:700; color:var(--blue); margin-bottom:6px; }
-.job-type-name { font-size:13px; font-weight:500; color:var(--text); margin-bottom:4px; }
-.job-type-desc { font-size:11px; color:var(--text-light); }
-.form-row { display:flex; align-items:flex-start; gap:16px; margin-bottom:14px; }
-.form-label { font-size:12px; color:var(--text); min-width:140px; padding-top:8px; text-align:right; flex-shrink:0; }
-.form-label .req { color:var(--red); margin-right:2px; }
-.form-control { flex:1; padding:7px 10px; font-size:12px; border:0.5px solid var(--border); border-radius:6px; background:var(--white); color:var(--text); font-family:var(--font); }
-.form-control:focus { outline:none; border-color:var(--blue); }
-select.form-control { appearance:none; cursor:pointer; }
-textarea.form-control { height:80px; resize:vertical; }
-.section-title-form { font-size:12px; font-weight:600; color:var(--text-light); letter-spacing:0.5px; text-transform:uppercase; margin:18px 0 10px; padding-bottom:6px; border-bottom:0.5px solid var(--border); }
-.toggle-row { display:flex; align-items:center; gap:10px; font-size:12px; margin-bottom:10px; }
-.toggle-label { color:var(--text); }
-.toggle-desc { font-size:10px; color:var(--text-light); }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>משרה חדשה - HarimHire</title>
+    <link rel="stylesheet" href="harimhire.css">
+    <style>
+        .wizard-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .wizard-header {
+            background: linear-gradient(135deg, #1e3461 0%, #e8992e 100%);
+            color: white;
+            padding: 24px;
+            margin-top: 60px;
+            font-size: 13px;
+        }
+        
+        .wizard-content {
+            padding: 40px;
+            min-height: 400px;
+        }
+        
+        .step-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 24px;
+            color: #1e3461;
+        }
+        
+        .client-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .client-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        
+        .client-card:hover {
+            border-color: #e8992e;
+            background: #f9f9f9;
+        }
+        
+        .client-card.selected {
+            border-color: #e8992e;
+            background: #fff8f0;
+            font-weight: bold;
+        }
+        
+        .client-info {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .client-select-box {
+            max-width: 520px;
+            margin: 0 auto 20px;
+        }
+
+        .client-select-label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .client-search-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d9dce2;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            background: #fff;
+        }
+
+        .client-search-input:focus {
+            outline: none;
+            border-color: #1e3461;
+            box-shadow: 0 0 0 2px rgba(30,52,97,0.08);
+        }
+
+        .autocomplete-wrap {
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .autocomplete-list {
+            position: absolute;
+            top: calc(100% + 4px);
+            right: 0;
+            left: 0;
+            background: #fff;
+            border: 1px solid #d9dce2;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            max-height: 260px;
+            overflow-y: auto;
+            z-index: 9999;
+            display: none;
+        }
+
+        .autocomplete-list.open {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f2f5;
+            font-size: 13px;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item:hover,
+        .autocomplete-item.active {
+            background: #f7f9fc;
+            color: #1e3461;
+        }
+
+        .autocomplete-item-title {
+            font-weight: bold;
+            color: #1a2332;
+        }
+
+        .autocomplete-item-meta {
+            color: #666;
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .autocomplete-empty {
+            padding: 10px 12px;
+            color: #777;
+            font-size: 13px;
+        }
+
+        .client-selected-preview {
+            background: #f7f9fc;
+            border: 1px solid #e2e6ea;
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 13px;
+            color: #1a2332;
+            min-height: 46px;
+        }
+
+        .client-selected-preview strong {
+            color: #1e3461;
+        }
+        
+        .selected-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+            justify-content: flex-end;
+        }
+        
+        .btn-primary {
+            background: #1e3461;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .job-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+        }
+        
+        .job-type-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        
+        .job-type-card:hover {
+            border-color: #e8992e;
+        }
+        
+        .job-type-card.selected {
+            border-color: #e8992e;
+            background: #fff8f0;
+        }
+        
+        .job-type-number {
+            font-weight: bold;
+            font-size: 16px;
+            color: #1e3461;
+        }
+        
+        .job-type-name {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .job-type-select-box {
+            max-width: 520px;
+            margin: 0 auto 20px;
+        }
+
+        .job-type-select-label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .job-type-search-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d9dce2;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            background: #fff;
+        }
+
+        .job-type-search-input:focus {
+            outline: none;
+            border-color: #1e3461;
+            box-shadow: 0 0 0 2px rgba(30,52,97,0.08);
+        }
+
+        .job-type-selected-preview {
+            background: #f7f9fc;
+            border: 1px solid #e2e6ea;
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 13px;
+            color: #1a2332;
+            min-height: 46px;
+        }
+
+        .job-type-selected-preview strong {
+            color: #1e3461;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 13px;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 13px;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .navigation {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+            justify-content: space-between;
+        }
+    </style>
 </head>
 <body>
-<nav class="navbar">
-          <div class="nav-links">
-    <div class="nav-dropdown">
-      <a href="candidates.html">מועמדים</a>
-      <div class="dropdown-menu">
-        <a class="dropdown-item" href="candidates.html"><i class="fa-solid fa-users"></i> מועמדים</a>
-        <a class="dropdown-item" href="new_candidate.html"><i class="fa-solid fa-user-plus"></i> מועמד חדש</a>
-        <a class="dropdown-item" href="segments.html"><i class="fa-solid fa-filter"></i> חיתוכי מועמדים</a>
-        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
-      </div>
-    </div>
-    <div class="nav-dropdown">
-      <a href="clients.html">לקוחות</a>
-      <div class="dropdown-menu">
-        <a class="dropdown-item" href="clients.html"><i class="fa-solid fa-building"></i> לקוחות</a>
-        <a class="dropdown-item" href="new_client.html"><i class="fa-solid fa-building-circle-arrow-right"></i> לקוח חדש</a>
-      </div>
-    </div>
-    <div class="nav-dropdown">
-      <a href="jobs.html" class="active">משרות</a>
-      <div class="dropdown-menu">
-        <a class="dropdown-item" href="jobs.html"><i class="fa-solid fa-briefcase"></i> משרות</a>
-        <a class="dropdown-item" href="my_jobs.html"><i class="fa-solid fa-briefcase-arrow-right"></i> המשרות שלי</a>
-        <a class="dropdown-item" href="new_job.html"><i class="fa-solid fa-plus"></i> משרה חדשה</a>
-      </div>
-    </div>
-    <a href="process.html">תהליך ראשוני</a>
-    <a href="fixes.html">תיקונים</a>
-    <a href="tags.html">תגיות</a>
-    <div class="nav-dropdown">
-      <a href="#">דוחות</a>
-      <div class="dropdown-menu">
-        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-bar"></i> דוחות</a>
-        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
-        <a class="dropdown-item" href="#"><i class="fa-solid fa-clock-rotate-left"></i> היסטוריית הפניות</a>
-        <a class="dropdown-item" href="#"><i class="fa-solid fa-phone-slash"></i> פסילות בסינון ראשוני</a>
-        <a class="dropdown-item" href="#"><i class="fa-solid fa-calendar-day"></i> דוח יומי לרכז</a>
-        <a class="dropdown-item" href="#"><i class="fa-solid fa-bullseye"></i> דוח מקורות גיוס</a>
-        <a class="dropdown-item" href="#"><i class="fa-solid fa-briefcase"></i> דוח סוגי משרה</a>
-        <a class="dropdown-item" href="#"><i class="fa-solid fa-users"></i> סטטיסטיקות מועמדים</a>
-        <a class="dropdown-item" href="#"><i class="fa-solid fa-building"></i> סטטיסטיקות משרות</a>
-        <a class="dropdown-item" href="#"><i class="fa-solid fa-user-tie"></i> סטטיסטיקות רכזים</a>
-        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-pie"></i> סטטיסטיקות</a>
-        <a class="dropdown-item" href="#"><i class="fa-solid fa-right-to-bracket"></i> לוג כניסות</a>
-        <a class="dropdown-item" href="#"><i class="fa-solid fa-envelope"></i> מיילים מסוננים</a>
-      </div>
-    </div>
-  </div>
-  <div class="navbar-right">
-    <div class="navbar-icons">
-      <i class="fa-regular fa-bell"></i>
-      <i class="fa-solid fa-gear"></i>
-      <i class="fa-regular fa-circle-question"></i>
-    </div>
-    <div class="navbar-logo" onclick="window.location.href='index.html'">
-      <svg width="30" height="22" viewBox="0 0 34 26">
-        <polygon points="2,24 13,4 24,24" fill="rgba(255,255,255,0.92)"/>
-        <polygon points="12,24 19,10 24,24" fill="#e8992e" opacity="0.85"/>
-      </svg>
-      <div>
-        <div class="logo-text">Harim<span>Hire</span></div>
-        <div class="logo-sub">HR SOLUTIONS</div>
-      </div>
-    </div>
-  </div>
-</nav>
-<div class="main" style="padding:2rem 2rem 1rem 2rem;">
-
-  <div class="breadcrumb" style="margin-bottom:16px;">
-    <a href="jobs.html">משרות</a>
-    <i class="fa-solid fa-chevron-left" style="font-size:9px"></i>
-    <span>משרה חדשה</span>
-  </div>
-
-  <!-- STEP BAR -->
-  <div class="step-bar">
-    <div class="step active" id="step1-indicator">
-      <div class="step-num">1</div>
-      <div class="step-label">בחירת לקוח</div>
-    </div>
-    <div class="step-line" id="line1"></div>
-    <div class="step pending" id="step2-indicator">
-      <div class="step-num">2</div>
-      <div class="step-label">סוג משרה</div>
-    </div>
-    <div class="step-line" id="line2"></div>
-    <div class="step pending" id="step3-indicator">
-      <div class="step-num">3</div>
-      <div class="step-label">פרטי משרה</div>
-    </div>
-  </div>
-
-  <!-- STEP 1: Choose Client -->
-  <div id="step1" style="max-width:500px;">
-    <div style="font-size:14px;font-weight:500;margin-bottom:4px;">בחירת לקוח</div>
-    <div style="font-size:11px;color:var(--text-light);margin-bottom:16px;">המשרה תשויך ללקוח שתבחר</div>
-    <div style="margin-bottom:8px;">
-      <label style="font-size:12px;color:var(--text);font-weight:500;display:block;margin-bottom:6px;">לקוח <span style="color:var(--red);">*</span></label>
-      <select id="clientSelect" onchange="onClientSelect(this)" ondblclick="if(selectedClient)goStep2()" style="width:100%;padding:9px 12px;font-size:13px;border:1px solid var(--border);border-radius:7px;background:var(--white);color:var(--text);font-family:var(--font);cursor:pointer;appearance:none;">
-        <option value="">--- בחר לקוח ---</option>
-        <option value="1">מוקד חיפה</option>
-        <option value="2">מוקד מגדל העמק</option>
-        <option value="3">מוקד ירושלים</option>
-        <option value="4">מוקד אשדוד</option>
-        <option value="5">מוקד באר שבע</option>
-        <option value="6">מוקד הצפון</option>
-      </select>
-    </div>
-    <div id="clientInfo" class="hidden" style="background:rgba(30,52,97,0.05);border:0.5px solid rgba(30,52,97,0.2);border-radius:7px;padding:10px 14px;font-size:12px;color:var(--blue);margin-bottom:16px;">
-      <i class="fa-solid fa-building" style="margin-left:6px;"></i>
-      <span id="clientInfoText"></span>
-    </div>
-    <div style="padding-top:14px;border-top:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-      <a href="new_client.html" style="font-size:12px;color:var(--blue);cursor:pointer;"><i class="fa-solid fa-plus" style="font-size:10px;margin-left:4px;"></i>צור לקוח חדש</a>
-      <button class="btn btn-primary" id="step1Next" onclick="goStep2()" disabled style="opacity:0.5;cursor:not-allowed;">המשך <i class="fa-solid fa-arrow-left" style="font-size:10px"></i></button>
-    </div>
-  </div>
-
-  <!-- STEP 2: Choose Job Type -->
-  <div id="step2" class="hidden">
-    <div style="font-size:14px;font-weight:500;margin-bottom:4px;">בחר סוג משרה ראשי</div>
-    <div style="font-size:11px;color:var(--text-light);margin-bottom:6px;">מועמדים שמתעניינים בסוג משרה זה יכנסו לתהליכי המשרה</div>
-    <div style="background:rgba(30,52,97,0.05);border:0.5px solid rgba(30,52,97,0.2);border-radius:6px;padding:8px 12px;font-size:11px;color:var(--blue);margin-bottom:14px;">
-      <i class="fa-solid fa-building" style="font-size:10px;margin-left:6px;"></i>
-      לקוח נבחר: <strong id="selectedClientName"></strong>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px;" id="jobTypeGrid"></div>
-    <div style="padding-top:14px;border-top:0.5px solid var(--border);display:flex;justify-content:space-between;">
-      <button class="btn" onclick="goStep1()"><i class="fa-solid fa-arrow-right" style="font-size:10px"></i> חזרה</button>
-      <button class="btn btn-primary" id="step2Next" onclick="goStep3()" disabled style="opacity:0.5;">המשך <i class="fa-solid fa-arrow-left" style="font-size:10px"></i></button>
-    </div>
-  </div>
-
-  <!-- STEP 3: Job Details -->
-  <div id="step3" class="hidden">
-    <div style="display:flex;gap:10px;margin-bottom:12px;">
-      <div style="background:rgba(30,52,97,0.05);border:0.5px solid rgba(30,52,97,0.2);border-radius:6px;padding:7px 12px;font-size:11px;color:var(--blue);">
-        <i class="fa-solid fa-building" style="font-size:10px;margin-left:4px;"></i><strong id="s3Client"></strong>
-      </div>
-      <div style="background:rgba(232,153,46,0.08);border:0.5px solid rgba(232,153,46,0.3);border-radius:6px;padding:7px 12px;font-size:11px;color:#b5720a;">
-        <i class="fa-solid fa-briefcase" style="font-size:10px;margin-left:4px;"></i><strong id="s3Type"></strong>
-      </div>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;">
-      <div class="card">
-        <div class="section-title-form">פרטי משרה בסיסיים</div>
-        <div class="form-row"><div class="form-label">כותרת משרה <span class="req">*</span></div><input class="form-control" id="jTitle" type="text" placeholder="שם המשרה כפי שיוצג..."></div>
-        <div class="form-row"><div class="form-label">קוד לפרסום</div><input class="form-control" id="jCode" type="text" placeholder="קוד ייחודי לפרסומים..." readonly style="background:var(--bg);"></div>
-        <div class="form-row"><div class="form-label">תיאור פנימי</div><textarea class="form-control" id="jDesc" placeholder="תיאור המשרה לשימוש פנימי..."></textarea></div>
-        <div class="form-row"><div class="form-label">הערה פנימית</div><textarea class="form-control" id="jNote" placeholder="הערות פנימיות..."></textarea></div>
-
-        <div class="section-title-form">איש קשר בלקוח</div>
-        <div class="form-row">
-          <div class="form-label">איש קשר <span class="req">*</span></div>
-          <select class="form-control" id="jContact" onchange="onContactSelect(this)">
-            <option value="">--- בחר איש קשר ---</option>
-            <option>שי דהן – 0523283400</option>
-            <option>אייל מוצניק – 0524203350</option>
-          </select>
+    <div class="navbar">
+        <div class="navbar-right">
+            <span class="logo-text" onclick="window.location.href='index.html'" style="cursor: pointer;">Harim<span class="logo-hire">Hire</span></span>
         </div>
-        <div class="form-row">
-          <div class="form-label">טלפון איש קשר</div>
-          <input class="form-control" id="jContactPhone" type="text" placeholder="יתמלא אוטומטית..." readonly style="background:var(--bg);">
+        <div class="navbar-left">
+            <button class="nav-link" onclick="window.location.href='jobs.html'">משרות</button>
         </div>
-        <div class="form-row">
-          <div class="form-label">דוא"ל איש קשר</div>
-          <input class="form-control" id="jContactEmail" type="text" placeholder="יתמלא אוטומטית..." readonly style="background:var(--bg);">
-        </div>
-        <div class="section-title-form">שדות אדמיניסטרטיביים</div>
-        <div class="form-row">
-          <div class="form-label">רמת סינון ראשוני</div>
-          <select class="form-control">
-            <option>טלפוני</option>
-            <option>ידני</option>
-            <option>שאלונים</option>
-            <option>שאלונים + טלפוני</option>
-            <option>אוטומטי</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <div class="form-label">שיטת שליחה</div>
-          <select class="form-control">
-            <option>ללא</option>
-            <option>דוא"ל</option>
-            <option>סמס</option>
-            <option>דוא"ל + סמס</option>
-            <option>וואטסאפ</option>
-            <option>דוא"ל + וואטסאפ</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <div class="form-label">רכז מטפל <span class="req">*</span></div>
-          <select class="form-control">
-            <option value="">---</option>
-            <option>שי דהן</option>
-            <option>נטלי</option>
-            <option>בתאל</option>
-            <option>אייל מוצניק</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <div class="form-label">רכז גיוס</div>
-          <select class="form-control">
-            <option value="">---</option>
-            <option>שי דהן</option>
-            <option>נטלי</option>
-            <option>בתאל</option>
-            <option>אייל מוצניק</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <div class="form-label">חזרה (חודשים)</div>
-          <input class="form-control" type="number" value="2" min="0" max="9999" style="max-width:100px;">
-        </div>
-        <div class="form-row">
-          <div class="form-label">תקנים פתוחים</div>
-          <input class="form-control" type="number" placeholder="ללא הגבלה" min="0" style="max-width:100px;">
-        </div>
-        <div class="form-row">
-          <div class="form-label">שליחה מתיקון</div>
-          <select class="form-control" style="max-width:120px;">
-            <option>לא</option>
-            <option>כן</option>
-          </select>
-        </div>
-
-        <div class="section-title-form">אפשרויות נוספות</div>
-
-        <div class="toggle-row">
-          <input type="checkbox" id="jHideDetails" style="width:15px;height:15px;accent-color:var(--blue);">
-          <div><div class="toggle-label">הסתר פרטי מועמד</div><div class="toggle-desc">בשליחה ראשונית יוסתרו טלפון, מייל ות.ז</div></div>
-        </div>
-      </div>
-
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <div class="card" style="position:sticky;top:60px;">
-          <div class="rs-title">סיכום</div>
-          <div class="rs-row"><span class="rs-key">לקוח</span><span class="rs-val" id="s3ClientSmall"></span></div>
-          <div class="rs-row"><span class="rs-key">סוג משרה</span><span class="rs-val" id="s3TypeSmall"></span></div>
-          <div class="rs-row"><span class="rs-key">קוד פרסום</span><span class="rs-val" id="s3Code" style="color:var(--blue);font-family:monospace;font-size:11px;"></span></div>
-          <div class="rs-divider"></div>
-          <div class="rs-title">מועמדים רלוונטיים</div>
-          <div style="font-size:22px;font-weight:500;color:var(--blue);" id="s3CandCount">0</div>
-          <div style="font-size:10px;color:var(--text-light);">ממתינים לסינון ראשוני</div>
-          <div class="rs-divider"></div>
-          <button class="btn btn-primary" style="width:100%;justify-content:center;padding:9px;" onclick="saveJob()">
-            <i class="fa-solid fa-check"></i> צור משרה
-          </button>
-          <button class="btn" style="width:100%;justify-content:center;padding:8px;margin-top:6px;" onclick="goStep2()">
-            <i class="fa-solid fa-arrow-right" style="font-size:10px"></i> חזרה
-          </button>
-        </div>
-      </div>
     </div>
-  </div>
-</div>
 
-<script>
-const CLIENTS = [
-  {id:1,name:'מוקד חיפה',city:'חיפה',jobs:3},
-  {id:2,name:'מוקד מגדל העמק',city:'מגדל העמק',jobs:3},
-  {id:3,name:'מוקד ירושלים',city:'ירושלים',jobs:1},
-  {id:4,name:'מוקד אשדוד',city:'אשדוד',jobs:1},
-  {id:5,name:'מוקד באר שבע',city:'באר שבע',jobs:0},
-  {id:6,name:'מוקד הצפון',city:'חיפה',jobs:2},
-];
+    <div class="wizard-container">
+        <div class="wizard-header">
+            <span id="stepCounter">משרה חדשה - שלב 1 מתוך 3</span>
+        </div>
+        
+        <div class="wizard-content">
+            <div id="step1" class="wizard-step">
+                <div class="step-title">בחר לקוח</div>
+                <div class="client-select-box">
+                    <label class="client-select-label" for="clientSearch">בחר לקוח</label>
+                    <div class="autocomplete-wrap">
+                        <input class="client-search-input" id="clientSearch" type="text" placeholder="הקלד שם לקוח / מוקד / עיר..." autocomplete="off" oninput="renderClientOptions()" onfocus="renderClientOptions()" onkeydown="handleClientKey(event)">
+                        <div class="autocomplete-list" id="clientSuggestions"></div>
+                    </div>
+                    <div class="client-selected-preview" id="selectedClientPreview">לא נבחר לקוח</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" id="nextStep1" onclick="goToStep(2)" disabled>המשך</button>
+                </div>
+            </div>
+            
+            <div id="step2" class="wizard-step" style="display: none;">
+                <button class="btn-primary" onclick="goToStep(1)" style="margin-bottom: 20px;">← חזור</button>
+                <div class="selected-info" id="selectedClientInfo"></div>
+                <div class="step-title">בחר סוג משרה</div>
+                <div class="job-type-select-box">
+                    <label class="job-type-select-label" for="jobTypeSearch">בחר סוג משרה</label>
+                    <div class="autocomplete-wrap">
+                        <input class="job-type-search-input" id="jobTypeSearch" type="text" placeholder="הקלד מספר משרה / שם משרה..." autocomplete="off" oninput="renderJobTypeOptions()" onfocus="renderJobTypeOptions()" onkeydown="handleJobTypeKey(event)">
+                        <div class="autocomplete-list" id="jobTypeSuggestions"></div>
+                    </div>
+                    <div class="job-type-selected-preview" id="selectedJobTypePreview">לא נבחר סוג משרה</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" id="nextStep2" onclick="goToStep(3)" disabled>המשך</button>
+                </div>
+            </div>
+            
+            <div id="step3" class="wizard-step" style="display: none;">
+                <button class="btn-primary" onclick="goToStep(2)" style="margin-bottom: 20px;">← חזור</button>
+                <div class="selected-info" id="selectedJobTypeInfo"></div>
+                <div class="step-title">פרטי משרה</div>
+                
+                <div class="form-group">
+                    <label>כותרת משרה *</label>
+                    <input type="text" id="jobTitle" placeholder="לדוגמה: שליח שכיר - ירושלים">
+                </div>
+                
+                <div class="form-group">
+                    <label>תיאור משרה</label>
+                    <textarea id="jobDescription" placeholder="פרטי המשרה..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>מספר משרות פתוחות</label>
+                    <input type="number" id="openPositions" value="1" min="1">
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn-primary" onclick="saveJob()" style="background: #4caf50;">שמור ויצא</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-const JOB_TYPES = [
-  {num:'1000',name:'עובד מיון',desc:'מיון חבילות במרכז לוגיסטי'},
-  {num:'1001',name:'שליח עצמאי',desc:'קבלן עצמאי עם רכב פרטי'},
-  {num:'1002',name:'שליח שכיר',desc:'שליח במשרה מלאה עם רכב צמוד'},
-  {num:'1003',name:'מוקדנים',desc:'עבודה במוקד שירות לקוחות'},
-  {num:'1004',name:'דואר נע',desc:'חלוקת דואר בנתיב קבוע'},
-];
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="firebase.js"></script>
+    <script>
+        let selectedClient = null;
+        let selectedJobType = null;
+        let allClients = [];
+        const urlParams = new URLSearchParams(window.location.search);
+        const preselectedClientId = urlParams.get('clientId');
+        const preselectedClientName = urlParams.get('clientName');
+        
+        const jobTypes = {
+            '1001': { name: 'שליח עצמאי', icon: '🚗' },
+            '1002': { name: 'שליח שכיר', icon: '👔' },
+            '1003': { name: 'עובד מיון', icon: '📦' },
+            '1004': { name: 'מוקדן', icon: '☎️' },
+            '1005': { name: 'דואר נע', icon: '🚚' }
+        };
+        
+        function loadClients() {
+            firestore.collection('clients').onSnapshot(snapshot => {
+                allClients = [];
+                let counter = 1;
+                snapshot.forEach(doc => {
+                    const c = doc.data();
+                    c.id = doc.id;
+                    c.num = c.num || counter++;
+                    allClients.push(c);
+                });
+                if (preselectedClientId && !selectedClient) {
+                    const match = allClients.find(c => String(c.id) === String(preselectedClientId));
+                    if (match) {
+                        setSelectedClient(match);
+                        const list = document.getElementById('clientSuggestions');
+                        if (list) list.classList.remove('open');
+                    }
+                } else if (preselectedClientName && !selectedClient) {
+                    const match = allClients.find(c => String(c.name || '').trim() === String(preselectedClientName).trim());
+                    if (match) setSelectedClient(match);
+                }
+                renderClientOptions();
+            }, error => {
+                console.error('Error loading clients:', error);
+                const list = document.getElementById('clientSuggestions');
+                if (list) {
+                    list.innerHTML = '<div class="autocomplete-empty">שגיאה בטעינת לקוחות</div>';
+                    list.classList.add('open');
+                }
+            });
+        }
 
-const CAND_COUNTS = {'1000':828,'1001':153,'1002':172,'1003':44,'1004':31};
+        let clientActiveIndex = -1;
+        let clientFiltered = [];
 
-let selectedClient = null;
-let selectedJobType = null;
+        function renderClientOptions() {
+            const list = document.getElementById('clientSuggestions');
+            const searchInput = document.getElementById('clientSearch');
+            const searchTerm = (searchInput ? searchInput.value : '').trim().toLowerCase();
+            clientActiveIndex = -1;
 
-function onClientSelect(sel) {
-  var id = parseInt(sel.value);
-  if (!id) {
-    selectedClient = null;
-    document.getElementById('clientInfo').classList.add('hidden');
-    var btn = document.getElementById('step1Next');
-    btn.disabled = true;
-    btn.style.opacity = '0.5';
-    btn.style.cursor = 'not-allowed';
-    return;
-  }
-  selectedClient = CLIENTS.find(function(c){ return c.id===id; });
-  if (selectedClient) {
-    document.getElementById('clientInfoText').textContent = selectedClient.name + ' · ' + selectedClient.city + ' · ' + selectedClient.jobs + ' משרות פעילות';
-    document.getElementById('clientInfo').classList.remove('hidden');
-    var btn = document.getElementById('step1Next');
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    btn.style.cursor = 'pointer';
-  }
-}
+            clientFiltered = allClients.filter(c => {
+                const name = (c.name || '').toLowerCase();
+                const city = (c.city || '').toLowerCase();
+                const type = (c.type || '').toLowerCase();
+                return !searchTerm || name.startsWith(searchTerm) || city.startsWith(searchTerm) || type.startsWith(searchTerm) || name.includes(searchTerm) || city.includes(searchTerm) || type.includes(searchTerm);
+            }).slice(0, 25);
 
+            if (!clientFiltered.length) {
+                list.innerHTML = '<div class="autocomplete-empty">לא נמצאו לקוחות</div>';
+                list.classList.add('open');
+                return;
+            }
 
+            list.innerHTML = clientFiltered.map((c, i) => {
+                const city = c.city || 'לא ידוע';
+                const type = c.type ? ` · ${c.type}` : '';
+                return `<div class="autocomplete-item" data-index="${i}" onclick="selectClientFromSuggestion(${i})">
+                    <div class="autocomplete-item-title">${c.name || 'ללא שם'}</div>
+                    <div class="autocomplete-item-meta">${city}${type}</div>
+                </div>`;
+            }).join('');
+            list.classList.add('open');
+        }
 
+        function setSelectedClient(client) {
+            selectedClient = client;
+            const search = document.getElementById('clientSearch');
+            const suggestions = document.getElementById('clientSuggestions');
+            const next = document.getElementById('nextStep1');
+            if (search) search.value = selectedClient.name || '';
+            if (suggestions) suggestions.classList.remove('open');
+            if (next) next.disabled = false;
+            const preview = document.getElementById('selectedClientPreview');
+            if (preview) {
+                preview.innerHTML = `<strong>${selectedClient.name || 'ללא שם'}</strong><br><span style="color:#666;">${selectedClient.city || 'לא ידוע'}${selectedClient.type ? ' · ' + selectedClient.type : ''}</span>`;
+            }
+        }
 
+        function selectClientFromSuggestion(index) {
+            const client = clientFiltered[index];
+            if (!client) return;
+            setSelectedClient(client);
+        }
 
-function renderJobTypes() {
-  var grid = document.getElementById('jobTypeGrid');
-  grid.innerHTML = '';
-  JOB_TYPES.forEach(function(t) {
-    var div = document.createElement('div');
-    div.className = 'job-type-card' + (selectedJobType && selectedJobType.num===t.num ? ' selected' : '');
-    div.innerHTML = '<div class="job-type-num">'+t.num+'</div><div class="job-type-name">'+t.name+'</div><div class="job-type-desc">'+t.desc+'</div>';
-    div.addEventListener('click', function() { selectJobType(t.num); });
-    div.addEventListener('dblclick', function() { selectJobType(t.num); setTimeout(goStep3, 50); });
-    grid.appendChild(div);
-  });
-}
+        function handleClientKey(event) {
+            const list = document.getElementById('clientSuggestions');
+            const items = list.querySelectorAll('.autocomplete-item');
+            if (!items.length) return;
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                clientActiveIndex = Math.min(clientActiveIndex + 1, items.length - 1);
+                updateActiveItem(items, clientActiveIndex);
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                clientActiveIndex = Math.max(clientActiveIndex - 1, 0);
+                updateActiveItem(items, clientActiveIndex);
+            } else if (event.key === 'Enter') {
+                event.preventDefault();
+                selectClientFromSuggestion(clientActiveIndex >= 0 ? clientActiveIndex : 0);
+            } else if (event.key === 'Escape') {
+                list.classList.remove('open');
+            }
+        }
 
-function selectJobType(num) {
-  selectedJobType = JOB_TYPES.find(function(t){ return t.num===num; });
-  renderJobTypes();
-  var btn = document.getElementById('step2Next');
-  btn.disabled = false;
-  btn.style.opacity = '1';
-}
+        function selectClient(client) {
+            setSelectedClient(client);
+        }
+        
+        function goToStep(step) {
+            document.querySelectorAll('.wizard-step').forEach(s => s.style.display = 'none');
+            document.getElementById('step' + step).style.display = 'block';
+            document.getElementById('stepCounter').textContent = `משרה חדשה - שלב ${step} מתוך 3`;
+            
+            if (step === 2) {
+                if (!selectedClient) { alert('יש לבחור לקוח לפני המשך'); return; }
+                document.getElementById('selectedClientInfo').innerHTML = `<strong>לקוח:</strong> ${selectedClient.name}`;
+                loadJobTypes();
+                history.pushState({step: 2}, '', '#step2');
+            } else if (step === 3) {
+                if (!selectedJobType) { alert('יש לבחור סוג משרה לפני המשך'); return; }
+                document.getElementById('selectedJobTypeInfo').innerHTML = `<strong>סוג משרה:</strong> ${selectedJobType.name}`;
+                history.pushState({step: 3}, '', '#step3');
+            } else if (step === 1) {
+                history.pushState({step: 1}, '', '#step1');
+            }
+        }
+        
+        function loadJobTypes() {
+            renderJobTypeOptions();
+        }
 
-function goStep1() {
-  showStep(1);
-  history.pushState({step:1}, '', '#step1');
-}
+        let jobTypeActiveIndex = -1;
+        let jobTypeFiltered = [];
 
-function goStep2() {
-  if(!selectedClient) return;
-  showStep(2);
-  history.pushState({step:2}, '', '#step2');
-}
+        function renderJobTypeOptions() {
+            const list = document.getElementById('jobTypeSuggestions');
+            const searchInput = document.getElementById('jobTypeSearch');
+            if (!list) return;
+            const searchTerm = (searchInput ? searchInput.value : '').trim().toLowerCase();
+            jobTypeActiveIndex = -1;
 
-function goStep3() {
-  if(!selectedJobType) return;
-  const code = selectedJobType.num + Math.random().toString(36).substr(2,6).toUpperCase();
-  document.getElementById('s3Client').textContent = selectedClient.name;
-  document.getElementById('s3Type').textContent = selectedJobType.num + ' – ' + selectedJobType.name;
-  document.getElementById('s3ClientSmall').textContent = selectedClient.name;
-  document.getElementById('s3TypeSmall').textContent = selectedJobType.num + ' – ' + selectedJobType.name;
-  document.getElementById('s3Code').textContent = code;
-  document.getElementById('jCode').value = code;
-  document.getElementById('jTitle').value = selectedJobType.name;
-  document.getElementById('s3CandCount').textContent = (CAND_COUNTS[selectedJobType.num]||0).toLocaleString();
-  document.getElementById('step2').classList.add('hidden');
-  document.getElementById('step3').classList.remove('hidden');
-  setStepState(3);
-}
+            jobTypeFiltered = Object.entries(jobTypes).filter(([code, details]) => {
+                const name = (details.name || '').toLowerCase();
+                return !searchTerm || code.startsWith(searchTerm) || name.startsWith(searchTerm) || code.includes(searchTerm) || name.includes(searchTerm);
+            }).map(([code, details]) => ({ code, ...details }));
 
-function showStep(num) {
-  document.getElementById('step1').classList.toggle('hidden', num !== 1);
-  document.getElementById('step2').classList.toggle('hidden', num !== 2);
-  document.getElementById('step3').classList.toggle('hidden', num !== 3);
-  setStepState(num);
-  if(num === 2) {
-    document.getElementById('selectedClientName').textContent = selectedClient ? selectedClient.name : '';
-    renderJobTypes();
-  }
-  if(num === 3) {
-    var code = selectedJobType.num + Math.random().toString(36).substr(2,6).toUpperCase();
-    document.getElementById('s3Client').textContent = selectedClient.name;
-    document.getElementById('s3Type').textContent = selectedJobType.num + ' – ' + selectedJobType.name;
-    document.getElementById('s3ClientSmall').textContent = selectedClient.name;
-    document.getElementById('s3TypeSmall').textContent = selectedJobType.num + ' – ' + selectedJobType.name;
-    document.getElementById('s3Code').textContent = code;
-    document.getElementById('jCode').value = code;
-    document.getElementById('jTitle').value = selectedJobType.name;
-    document.getElementById('s3CandCount').textContent = (CAND_COUNTS[selectedJobType.num]||0).toLocaleString();
-  }
-}
+            if (!jobTypeFiltered.length) {
+                list.innerHTML = '<div class="autocomplete-empty">לא נמצאו סוגי משרה</div>';
+                list.classList.add('open');
+                return;
+            }
 
-// Handle browser back/forward
-window.addEventListener('popstate', function(e) {
-  var step = (e.state && e.state.step) ? e.state.step : 1;
-  showStep(step);
-});
+            list.innerHTML = jobTypeFiltered.map((jt, i) => `
+                <div class="autocomplete-item" data-index="${i}" onclick="selectJobTypeFromSuggestion(${i})">
+                    <div class="autocomplete-item-title">${jt.code} – ${jt.name}</div>
+                </div>
+            `).join('');
+            list.classList.add('open');
+        }
 
-function setStepState(current) {
-  [1,2,3].forEach(i => {
-    const ind = document.getElementById('step'+i+'-indicator');
-    const cls = i < current ? 'done' : i === current ? 'active' : 'pending';
-    ind.className = 'step ' + cls;
-    if(i < current) ind.querySelector('.step-num').innerHTML = '<i class="fa-solid fa-check" style="font-size:11px;"></i>';
-    else ind.querySelector('.step-num').textContent = i;
-  });
-  [1,2].forEach(i => {
-    const line = document.getElementById('line'+i);
-    line.className = 'step-line' + (i < current ? ' done' : '');
-  });
-}
+        function selectJobTypeFromSuggestion(index) {
+            const jt = jobTypeFiltered[index];
+            if (!jt) return;
+            selectedJobType = { code: jt.code, name: jt.name };
+            document.getElementById('jobTypeSearch').value = `${jt.code} – ${jt.name}`;
+            document.getElementById('jobTypeSuggestions').classList.remove('open');
+            document.getElementById('nextStep2').disabled = false;
+            document.getElementById('selectedJobTypePreview').innerHTML = `<strong>${selectedJobType.code} – ${selectedJobType.name}</strong>`;
+        }
 
-function onContactSelect(sel) {
-  var val = sel.value;
-  if(val.includes('שי דהן')) {
-    document.getElementById('jContactPhone').value = '0523283400';
-    document.getElementById('jContactEmail').value = 'shay@noam-harim.com';
-  } else if(val.includes('אייל מוצניק')) {
-    document.getElementById('jContactPhone').value = '0524203350';
-    document.getElementById('jContactEmail').value = 'eyal@edycom-solutions.com';
-  } else {
-    document.getElementById('jContactPhone').value = '';
-    document.getElementById('jContactEmail').value = '';
-  }
-}
+        function handleJobTypeKey(event) {
+            const list = document.getElementById('jobTypeSuggestions');
+            const items = list.querySelectorAll('.autocomplete-item');
+            if (!items.length) return;
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                jobTypeActiveIndex = Math.min(jobTypeActiveIndex + 1, items.length - 1);
+                updateActiveItem(items, jobTypeActiveIndex);
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                jobTypeActiveIndex = Math.max(jobTypeActiveIndex - 1, 0);
+                updateActiveItem(items, jobTypeActiveIndex);
+            } else if (event.key === 'Enter') {
+                event.preventDefault();
+                selectJobTypeFromSuggestion(jobTypeActiveIndex >= 0 ? jobTypeActiveIndex : 0);
+            } else if (event.key === 'Escape') {
+                list.classList.remove('open');
+            }
+        }
 
-function saveJob() {
-  const title = document.getElementById('jTitle').value.trim();
-  if(!title) { document.getElementById('jTitle').style.borderColor='var(--red)'; return; }
-  if(!selectedClient || !selectedJobType) return;
+        function updateActiveItem(items, activeIndex) {
+            items.forEach((item, i) => item.classList.toggle('active', i === activeIndex));
+            if (items[activeIndex]) items[activeIndex].scrollIntoView({ block: 'nearest' });
+        }
 
-  var data = {
-    title: title,
-    clientId: selectedClient.id || '',
-    clientName: selectedClient.name,
-    clientCity: selectedClient.city || '',
-    jobTypeNum: selectedJobType.num,
-    jobTypeName: selectedJobType.name,
-    type: selectedJobType.num + ' – ' + selectedJobType.name,
-    code: document.getElementById('jCode').value,
-    status: 'פתוחה',
-    screening: document.querySelector('.form-control[class*="form-control"]') ? 'טלפוני' : 'טלפוני',
-    desc: document.getElementById('jDesc') ? document.getElementById('jDesc').value : '',
-    note: document.getElementById('jNote') ? document.getElementById('jNote').value : '',
-    contact: document.getElementById('jContact') ? document.getElementById('jContact').value : '',
-    contactPhone: document.getElementById('jContactPhone') ? document.getElementById('jContactPhone').value : '',
-    contactEmail: document.getElementById('jContactEmail') ? document.getElementById('jContactEmail').value : '',
-    waiting: 0, process: 0, started: 0, rejected: 0,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
-  // Auto job number
-  db.collection('jobs').get().then(function(snap) {
-    data.num = 1000 + snap.size + 1;
-    return db.collection('jobs').add(data);
-  }).then(function() {
-    window.location.href = 'jobs.html';
-  }).catch(function(e) {
-    alert('שגיאה בשמירה: ' + e.message);
-  });
-}
-
-window.onload = function() { history.replaceState({step:1}, '', '#step1'); };
-</script>
-<script>
-(function() {
-  var closeTimer = null;
-  var currentOpen = null;
-  function openMenu(wrapper) {
-    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
-    if (currentOpen && currentOpen !== wrapper) {
-      var other = currentOpen.querySelector('.dropdown-menu');
-      if (other) other.classList.remove('open');
-    }
-    currentOpen = wrapper;
-    var menu = wrapper.querySelector('.dropdown-menu');
-    if (menu) menu.classList.add('open');
-  }
-  function closeMenu(wrapper) {
-    closeTimer = setTimeout(function() {
-      var menu = wrapper.querySelector('.dropdown-menu');
-      if (menu) menu.classList.remove('open');
-      if (currentOpen === wrapper) currentOpen = null;
-    }, 250);
-  }
-  document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.nav-dropdown').forEach(function(wrapper) {
-      wrapper.addEventListener('mouseenter', function() { openMenu(wrapper); });
-      wrapper.addEventListener('mouseleave', function() { closeMenu(wrapper); });
-      var menu = wrapper.querySelector('.dropdown-menu');
-      if (menu) {
-        menu.addEventListener('mouseenter', function() { openMenu(wrapper); });
-        menu.addEventListener('mouseleave', function() { closeMenu(wrapper); });
-      }
-    });
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('.nav-dropdown')) {
-        document.querySelectorAll('.dropdown-menu.open').forEach(function(m) { m.classList.remove('open'); });
-        currentOpen = null;
-      }
-    });
-  });
-})();
-</script>
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('.autocomplete-wrap')) {
+                const clientList = document.getElementById('clientSuggestions');
+                const jobTypeList = document.getElementById('jobTypeSuggestions');
+                if (clientList) clientList.classList.remove('open');
+                if (jobTypeList) jobTypeList.classList.remove('open');
+            }
+        });
+        
+        async function saveJob() {
+            const title = document.getElementById('jobTitle').value.trim();
+            
+            if (!selectedClient) {
+                alert('יש לבחור לקוח');
+                return;
+            }
+            if (!selectedJobType) {
+                alert('יש לבחור סוג משרה');
+                return;
+            }
+            if (!title) {
+                alert('כותרת משרה חובה');
+                return;
+            }
+            
+            try {
+                const jobsSnapshot = await firestore.collection('jobs').get();
+                const jobNumber = 1000 + jobsSnapshot.size + 1;
+                
+                await firestore.collection('jobs').add({
+                    clientId: String(selectedClient.id),
+                    clientName: selectedClient.name || '',
+                    clientCity: selectedClient.city || '',
+                    clientType: selectedClient.type || '',
+                    jobType: selectedJobType.code,
+                    jobTypeCode: selectedJobType.code,
+                    jobTypeName: selectedJobType.name,
+                    typeName: selectedJobType.code + ' – ' + selectedJobType.name,
+                    number: jobNumber,
+                    num: jobNumber,
+                    title: title,
+                    description: document.getElementById('jobDescription').value,
+                    openPositions: parseInt(document.getElementById('openPositions').value) || 1,
+                    status: 'open',
+                    createdDate: new Date().toISOString(),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    interestedCount: 0,
+                    inProcessCount: 0,
+                    hiredCount: 0
+                });
+                
+                alert(`משרה ${jobNumber} נוצרה בהצלחה!`);
+                window.location.href = 'jobs.html';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('שגיאה בשמירה: ' + error.message);
+            }
+        }
+        
+        window.addEventListener('popstate', (e) => {
+            if (e.state && e.state.step) {
+                goToStep(e.state.step);
+            }
+        });
+        
+        loadClients();
+        history.pushState({step: 1}, '', '#step1');
+    </script>
 </body>
 </html>
