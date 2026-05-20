@@ -943,7 +943,8 @@ db.collection('clients').orderBy('createdAt', 'desc').onSnapshot(function(snap) 
   var liveClients = snap.docs.map(function(d) {
     var c = d.data();
     return {
-      id: d.id,
+      id: c.id || d.id,  // תחילה נסה את ה-ID מהDATA, אם לא קיים - השתמש ב-docId
+      num: c.num || 0,
       name: c.name || '',
       type: c.type || 'לקוח פעיל',
       date: c.date || (c.createdAt ? new Date(c.createdAt.toDate()).toLocaleDateString('he-IL') : ''),
