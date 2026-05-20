@@ -341,9 +341,9 @@ window.renderClients = function renderClients(list) {
       <td><a class="link" onclick="openClient('${c.id}')">${c.name}</a></td>
       <td><span class="pill pill-green">${c.type}</span></td>
       <td>${c.date}</td>
-      <td><a class="link">${c.contact}</a></td>
-      <td>${c.phone}</td>
-      <td>${c.email}</td>
+      <td><a class="link">${getPrimaryContact(c).name || ''}</a></td>
+      <td>${getPrimaryContact(c).phone || ''}</td>
+      <td>${getPrimaryContact(c).email || ''}</td>
       <td class="${colVisible.handler?'':'hidden'}">${c.handler}</td>
       <td class="${colVisible.recruiter?'':'hidden'}">${c.recruiter}</td>
       <td class="${colVisible.city?'':'hidden'}">${c.city}</td>
@@ -360,7 +360,9 @@ function filterClients() {
   const ind = document.getElementById('fIndustry').value;
   const hnd = document.getElementById('fHandler').value;
   filtered = CLIENTS.filter(c => {
-    if(s && !c.name.toLowerCase().includes(s) && !c.phone.includes(s) && !c.email.toLowerCase().includes(s)) return false;
+    const pc = getPrimaryContact(c);
+    const contactText = [pc.name, pc.phone, pc.email].join(' ').toLowerCase();
+    if(s && !String(c.name || '').toLowerCase().includes(s) && !String(c.phone || '').includes(s) && !String(c.email || '').toLowerCase().includes(s) && !contactText.includes(s)) return false;
     if(t && c.type !== t) return false;
     if(ct && !c.city.toLowerCase().includes(ct)) return false;
     if(ind && c.industry !== ind) return false;
@@ -448,15 +450,9 @@ function loadDetail(c) {
   // Contacts
   renderContacts(c.contacts || []);
 
-  // Jobs
-  const jobs = c.jobs || [];
-  document.getElementById('clJobsCount').textContent = jobs.length + ' משרות';
-  document.getElementById('clJobsTbody').innerHTML = jobs.map(j =>
-    '<tr><td>' + j.num + '</td>' +
-    '<td><a class="link" href="jobs.html">' + j.title + '</a></td>' +
-    '<td><span class="pill ' + (j.status==='פתוחה'?'pill-green':'pill-orange') + '">' + j.status + '</span></td>' +
-    '<td>' + j.date + '</td><td>' + j.send + '</td><td>' + j.h24 + '</td><td>' + j.week + '</td><td>' + j.month + '</td><td>' + j.total + '</td></tr>'
-  ).join('') || '<tr><td colspan="9" style="text-align:center;color:var(--text-light);font-size:11px;padding:1rem;">אין משרות</td></tr>';
+  // Jobs are loaded from Firebase by clientId/clientName, so the client card always reflects real jobs.
+  renderClientJobs([]);
+  loadClientJobs(c);
 
   // Events
   const events = c.events || [];
@@ -472,6 +468,75 @@ function loadDetail(c) {
   document.querySelectorAll('.tab-pane').forEach((p,i) => p.classList.toggle('active',i===0));
 }
 
+
+let clientJobsUnsub = null;
+
+function normalizeStatusLabel(status) {
+  if(status === 'open') return 'פתוחה';
+  if(status === 'paused') return 'מוקפאת';
+  if(status === 'closed') return 'סגורה';
+  return status || 'לא ידוע';
+}
+
+function statusPillClass(status) {
+  const label = normalizeStatusLabel(status);
+  if(label === 'פתוחה') return 'pill-green';
+  if(label === 'מוקפאת') return 'pill-orange';
+  if(label === 'סגורה') return 'pill-gray';
+  return 'pill-gray';
+}
+
+function formatJobDate(j) {
+  try {
+    if(j.createdAt && j.createdAt.toDate) return j.createdAt.toDate().toLocaleDateString('he-IL');
+    if(j.createdDate) return new Date(j.createdDate).toLocaleDateString('he-IL');
+  } catch(e) {}
+  return j.date || '';
+}
+
+function renderClientJobs(jobs) {
+  const countEl = document.getElementById('clJobsCount');
+  const tbody = document.getElementById('clJobsTbody');
+  if(!countEl || !tbody) return;
+  countEl.textContent = jobs.length + ' משרות';
+  const openCount = jobs.filter(j => normalizeStatusLabel(j.status) === 'פתוחה').length;
+  const processCount = jobs.reduce((sum,j) => sum + Number(j.inProcessCount || j.process || 0), 0);
+  const hiredCount = jobs.reduce((sum,j) => sum + Number(j.hiredCount || j.started || 0), 0);
+  if(document.getElementById('clStatJobs')) document.getElementById('clStatJobs').textContent = jobs.length;
+  if(document.getElementById('clStatOpen')) document.getElementById('clStatOpen').textContent = openCount;
+  if(document.getElementById('clStatProcess')) document.getElementById('clStatProcess').textContent = processCount;
+  if(document.getElementById('clStatWorking')) document.getElementById('clStatWorking').textContent = hiredCount;
+  tbody.innerHTML = jobs.map(j =>
+    '<tr><td>' + (j.num || '') + '</td>' +
+    '<td><a class="link" href="job.html" onclick="sessionStorage.setItem(\'jobData\', JSON.stringify(' + escapeAttr(JSON.stringify(j)) + '))">' + (j.title || j.name || '') + '</a></td>' +
+    '<td><span class="pill ' + statusPillClass(j.status) + '">' + normalizeStatusLabel(j.status) + '</span></td>' +
+    '<td>' + formatJobDate(j) + '</td>' +
+    '<td>' + (j.send || 'לא') + '</td>' +
+    '<td>' + Number(j.h24 || j.last24Count || 0) + '</td>' +
+    '<td>' + Number(j.week || j.weekCount || 0) + '</td>' +
+    '<td>' + Number(j.month || j.monthCount || 0) + '</td>' +
+    '<td>' + Number(j.total || j.interestedCount || 0) + '</td></tr>'
+  ).join('') || '<tr><td colspan="9" style="text-align:center;color:var(--text-light);font-size:11px;padding:1rem;">אין משרות</td></tr>';
+}
+
+function loadClientJobs(client) {
+  if(clientJobsUnsub) { clientJobsUnsub(); clientJobsUnsub = null; }
+  const fallbackJobs = client.jobs || [];
+  if(typeof db === 'undefined') { renderClientJobs(fallbackJobs); return; }
+  clientJobsUnsub = db.collection('jobs').onSnapshot(function(snap) {
+    const jobs = [];
+    snap.forEach(function(d) {
+      const j = d.data();
+      const byId = j.clientId && String(j.clientId) === String(client.id);
+      const byName = j.clientName && String(j.clientName).trim() === String(client.name).trim();
+      if(byId || byName) jobs.push(Object.assign({id:d.id}, j));
+    });
+    renderClientJobs(jobs.length ? jobs : fallbackJobs);
+  }, function(err) {
+    console.log('Client jobs Firebase error:', err);
+    renderClientJobs(fallbackJobs);
+  });
+}
 
 function renderContacts(contacts) {
   const list = document.getElementById('contactsList');
@@ -500,6 +565,16 @@ function initials(name) {
 
 function escapeAttr(v) {
   return String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function getPrimaryContact(c) {
+  const contacts = c && Array.isArray(c.contacts) ? c.contacts : [];
+  const first = contacts.find(ct => ct && (ct.name || ct.phone || ct.email));
+  return first || {
+    name: c && c.contact ? c.contact : '',
+    phone: c && c.phone ? c.phone : '',
+    email: c && c.email ? c.email : ''
+  };
 }
 
 function collectContactsFromUI() {
@@ -531,8 +606,24 @@ function saveContacts() {
   const idx = CLIENTS.findIndex(c => String(c.id) === String(currentClient.id));
   if(idx > -1) CLIENTS[idx].contacts = contacts;
 
+  const primary = contacts[0] || {};
+  currentClient.contact = primary.name || '';
+  currentClient.phone = primary.phone || currentClient.phone || '';
+  currentClient.email = primary.email || currentClient.email || '';
+  if(idx > -1) {
+    CLIENTS[idx].contact = currentClient.contact;
+    CLIENTS[idx].phone = currentClient.phone;
+    CLIENTS[idx].email = currentClient.email;
+  }
+  renderClients(filtered.length ? filtered : CLIENTS);
+
   if(typeof db !== 'undefined' && String(currentClient.id).length > 10) {
-    db.collection('clients').doc(String(currentClient.id)).update({contacts: contacts})
+    db.collection('clients').doc(String(currentClient.id)).update({
+      contacts: contacts,
+      contact: primary.name || '',
+      phone: primary.phone || currentClient.phone || '',
+      email: primary.email || currentClient.email || ''
+    })
       .then(() => alert('אנשי הקשר נשמרו'))
       .catch(err => alert('שגיאה בשמירת אנשי קשר: ' + err.message));
   } else {
@@ -601,14 +692,16 @@ db.collection('clients').orderBy('createdAt', 'desc').onSnapshot(function(snap) 
   if(snap.empty) return;
   var liveClients = snap.docs.map(function(d) {
     var c = d.data();
+    var contacts = Array.isArray(c.contacts) ? c.contacts : [];
+    var primary = contacts.find(function(ct){ return ct && (ct.name || ct.phone || ct.email); }) || {};
     return {
       id: d.id,
       name: c.name || '',
       type: c.type || 'לקוח פעיל',
       date: c.date || (c.createdAt ? new Date(c.createdAt.toDate()).toLocaleDateString('he-IL') : ''),
-      contact: c.contact || c.name || '',
-      phone: c.phone || '',
-      email: c.email || '',
+      contact: primary.name || c.contact || '',
+      phone: primary.phone || c.phone || '',
+      email: primary.email || c.email || '',
       handler: c.handler || '',
       recruiter: c.recruiter || '',
       city: c.city || '',
@@ -616,7 +709,7 @@ db.collection('clients').orderBy('createdAt', 'desc').onSnapshot(function(snap) 
       rejDays: c.rejDays || 90,
       notes: c.notes || '',
       jobs: c.jobs || [],
-      contacts: c.contacts || [],
+      contacts: contacts,
       events: c.events || []
     };
   });
