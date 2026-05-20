@@ -176,6 +176,29 @@
             background: #f44336;
             color: white;
         }
+
+        /* Cities & areas selector */
+        .cities-layout { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; align-items: start; }
+        .city-panel { border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px; background: #fff; }
+        .city-panel-title { font-size: 14px; font-weight: 700; color: #1e3461; margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center; }
+        .city-search { width: 100%; padding: 10px 12px; border: 1px solid #d8dde6; border-radius: 6px; font-size: 13px; margin-bottom: 12px; font-family: inherit; }
+        .area-box { border: 1px solid #edf0f4; border-radius: 7px; margin-bottom: 8px; overflow: hidden; }
+        .area-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; background: #f7f8fa; cursor: pointer; }
+        .area-head strong { color: #1a2332; font-size: 13px; }
+        .area-count { color: #6b7a99; font-size: 11px; }
+        .area-cities { display: none; padding: 10px 12px; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 8px; }
+        .area-box.open .area-cities { display: grid; }
+        .city-check { display:flex; align-items:center; gap:6px; font-size:12px; color:#1a2332; }
+        .selected-cities { display:flex; flex-wrap:wrap; gap:6px; min-height: 36px; }
+        .city-pill { display:inline-flex; align-items:center; gap:6px; padding:5px 9px; background:#f4f5f7; border:1px solid #e2e6ea; border-radius: 999px; font-size: 12px; }
+        .city-pill button { border:none; background:transparent; cursor:pointer; color:#dc3545; font-size:12px; }
+        .city-actions { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+        .city-btn { padding:7px 12px; border-radius:6px; border:1px solid #d8dde6; background:#fff; cursor:pointer; font-size:12px; font-family:inherit; }
+        .city-btn.primary { background:#1e3461; color:white; border-color:#1e3461; }
+        .city-note { font-size:11px; color:#6b7a99; margin-top:8px; line-height:1.5; }
+        .city-hidden { display:none !important; }
+        @media (max-width: 800px) { .cities-layout { grid-template-columns: 1fr; } }
+
     </style>
 </head>
 <body>
@@ -292,7 +315,31 @@
         </div>
 
         <div id="cities" class="tab-content hidden">
-            <p style="color: #999;">הקמת טאב ערים - בשלב בנייה</p>
+            <div class="cities-layout">
+                <div class="city-panel">
+                    <div class="city-panel-title">
+                        <span>בחירת ערים ואזורים</span>
+                        <button class="city-btn" onclick="clearCitySearch()">איפוס חיפוש</button>
+                    </div>
+                    <input class="city-search" id="citySearch" placeholder="חפש עיר או אזור, למשל חיפה / קריות / אילת" oninput="filterCityAreas()">
+                    <div id="areasContainer"></div>
+                    <div class="city-note">ניתן לבחור אזור שלם או ערים בודדות. החיפוש קופץ לאזור הרלוונטי ומציג רק התאמות.</div>
+                </div>
+
+                <div class="city-panel">
+                    <div class="city-panel-title">
+                        <span>ערים שמורות למשרה</span>
+                        <span class="area-count"><span id="selectedCitiesCount">0</span> ערים</span>
+                    </div>
+                    <div id="selectedCitiesBox" class="selected-cities"></div>
+                    <div class="city-actions">
+                        <button class="city-btn primary" onclick="saveJobCities()">שמור ערים</button>
+                        <button class="city-btn" onclick="loadJobCities()">בטל שינויים</button>
+                        <button class="city-btn" onclick="showSelectedCitiesList()">תצוגה מלאה</button>
+                    </div>
+                    <div class="city-note">בשלב זה הרדיוס לא מופעל. נבנה אותו בהמשך אחרי שהאזורים הבסיסיים יהיו יציבים.</div>
+                </div>
+            </div>
         </div>
 
         <div id="tags" class="tab-content hidden">
@@ -351,6 +398,10 @@
             document.getElementById('jobType').textContent = job.jobTypeName;
             document.getElementById('createdDate').textContent = new Date(job.createdDate).toLocaleDateString('he-IL');
             document.getElementById('jobDescription').textContent = job.description || 'אין תיאור';
+            savedCities = uniqueCities(job.cities || job.areas || []);
+            selectedCities = new Set(savedCities);
+            renderCityAreas();
+            renderSelectedCities();
             
             const statusBadge = document.createElement('div');
             statusBadge.className = `status-badge status-${job.status}`;
@@ -387,6 +438,134 @@
             alert('ניווט בין משרות - בשלב בנייה');
         }
         
+
+
+        // ── CITIES & AREAS TAB ──
+        const CITY_AREAS = [
+          { name: 'חיפה והקריות', cities: ['חיפה','נשר','טירת כרמל','קרית אתא','קרית ביאליק','קרית מוצקין','קרית ים','קרית חיים','קרית שמואל','עכו','נהריה','שפרעם','רכסים','אעבלין','כפר ביאליק'] },
+          { name: 'מגדל העמק והעמקים', cities: ['מגדל העמק','עפולה','נוף הגליל','נצרת','יקנעם עילית','רמת ישי','בית שאן','כפר תבור','זרזיר','יפיע','דבוריה','איכסאל'] },
+          { name: 'ירושלים והסביבה', cities: ['ירושלים','מבשרת ציון','מעלה אדומים','בית שמש','אבו גוש','גבעת זאב','צור הדסה','ביתר עילית','מודיעין עילית'] },
+          { name: 'תל אביב והמרכז', cities: ['תל אביב','רמת גן','גבעתיים','בני ברק','חולון','בת ים','אזור','אור יהודה','קרית אונו','גבעת שמואל','יהוד','סביון'] },
+          { name: 'ראשון לציון והשפלה', cities: ['ראשון לציון','רחובות','נס ציונה','יבנה','באר יעקב','לוד','רמלה','מודיעין','שוהם','גדרה','מזכרת בתיה'] },
+          { name: 'אשדוד והדרום הקרוב', cities: ['אשדוד','אשקלון','קרית מלאכי','גן יבנה','בני עי״ש','שדרות','נתיבות','אופקים'] },
+          { name: 'באר שבע והנגב', cities: ['באר שבע','עומר','להבים','מיתר','דימונה','ערד','ירוחם','רהט','חורה','לקיה','תל שבע'] },
+          { name: 'אילת וחבל אילות', cities: ['אילת','אילות','אליפז','באר אורה','גרופית','יהל','יטבתה','לוטן','נאות סמדר','נווה חריף','סמר','קטורה','שחרות'] },
+          { name: 'השרון ונתניה', cities: ['נתניה','הרצליה','רעננה','כפר סבא','הוד השרון','רמת השרון','כפר יונה','קדימה צורן','אבן יהודה','פרדסיה','טירה','קלנסווה'] },
+          { name: 'חדרה והסביבה', cities: ['חדרה','פרדס חנה כרכור','בנימינה','זכרון יעקב','אור עקיבא','קיסריה','גבעת עדה','חריש','באקה אל גרביה','ג׳ת'] },
+          { name: 'אריאל והשומרון', cities: ['אריאל','איתמר','אלון מורה','אלפי מנשה','אלקנה','בית אריה','ברוכין','ברכה','ברקן','יצהר','יקיר'] }
+        ];
+
+        let selectedCities = new Set();
+        let savedCities = [];
+
+        function uniqueCities(cities) {
+          return [...new Set((cities || []).map(c => String(c).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'he'));
+        }
+
+        function renderCityAreas(filterText='') {
+          const container = document.getElementById('areasContainer');
+          if (!container) return;
+          const q = (filterText || '').trim().toLowerCase();
+          container.innerHTML = CITY_AREAS.map((area, areaIdx) => {
+            const areaMatch = area.name.toLowerCase().includes(q);
+            const cities = area.cities.filter(c => !q || areaMatch || c.toLowerCase().includes(q));
+            if (q && !areaMatch && !cities.length) return '';
+            const allSelected = area.cities.every(c => selectedCities.has(c));
+            const openClass = q ? ' open' : '';
+            return `
+              <div class="area-box${openClass}" data-area-name="${area.name}">
+                <div class="area-head" onclick="toggleArea(${areaIdx})">
+                  <label class="city-check" onclick="event.stopPropagation()">
+                    <input type="checkbox" ${allSelected ? 'checked' : ''} onchange="toggleWholeArea(${areaIdx}, this.checked)">
+                    <strong>${area.name}</strong>
+                  </label>
+                  <span class="area-count">${area.cities.length} ישובים</span>
+                </div>
+                <div class="area-cities">
+                  ${cities.map(city => `
+                    <label class="city-check">
+                      <input type="checkbox" ${selectedCities.has(city) ? 'checked' : ''} onchange="toggleCity('${city.replace(/'/g,"\\'")}', this.checked)">
+                      ${city}
+                    </label>
+                  `).join('')}
+                </div>
+              </div>`;
+          }).join('') || '<div class="city-note">לא נמצאו ערים או אזורים מתאימים לחיפוש.</div>';
+        }
+
+        function renderSelectedCities() {
+          const box = document.getElementById('selectedCitiesBox');
+          const count = document.getElementById('selectedCitiesCount');
+          if (!box || !count) return;
+          const list = uniqueCities([...selectedCities]);
+          count.textContent = list.length;
+          box.innerHTML = list.length ? list.slice(0, 60).map(city => `<span class="city-pill">${city}<button onclick="removeCity('${city.replace(/'/g,"\\'")}')">×</button></span>`).join('') : '<span class="city-note">לא נבחרו ערים.</span>';
+          if (list.length > 60) box.innerHTML += `<span class="city-pill">+ ${list.length - 60} נוספות</span>`;
+        }
+
+        function toggleArea(idx) {
+          const boxes = document.querySelectorAll('.area-box');
+          if (boxes[idx]) boxes[idx].classList.toggle('open');
+        }
+
+        function toggleWholeArea(idx, checked) {
+          CITY_AREAS[idx].cities.forEach(city => checked ? selectedCities.add(city) : selectedCities.delete(city));
+          renderCityAreas(document.getElementById('citySearch')?.value || '');
+          renderSelectedCities();
+        }
+
+        function toggleCity(city, checked) {
+          checked ? selectedCities.add(city) : selectedCities.delete(city);
+          renderCityAreas(document.getElementById('citySearch')?.value || '');
+          renderSelectedCities();
+        }
+
+        function removeCity(city) {
+          selectedCities.delete(city);
+          renderCityAreas(document.getElementById('citySearch')?.value || '');
+          renderSelectedCities();
+        }
+
+        function filterCityAreas() {
+          renderCityAreas(document.getElementById('citySearch').value || '');
+        }
+
+        function clearCitySearch() {
+          const el = document.getElementById('citySearch');
+          if (el) el.value = '';
+          renderCityAreas('');
+        }
+
+        function loadJobCities() {
+          selectedCities = new Set(savedCities || []);
+          renderCityAreas(document.getElementById('citySearch')?.value || '');
+          renderSelectedCities();
+        }
+
+        async function saveJobCities() {
+          const list = uniqueCities([...selectedCities]);
+          savedCities = list;
+          if (currentJobId && window.firestore) {
+            try {
+              await firestore.collection('jobs').doc(currentJobId).update({ cities: list, updatedAt: new Date().toISOString() });
+              alert('הערים נשמרו למשרה');
+            } catch (e) {
+              console.error(e);
+              alert('לא הצלחתי לשמור ל-Firebase. הערים נשמרו זמנית במסך בלבד.');
+            }
+          } else {
+            alert('הערים נשמרו זמנית במסך.');
+          }
+          renderSelectedCities();
+        }
+
+        function showSelectedCitiesList() {
+          const list = uniqueCities([...selectedCities]);
+          alert(list.length ? list.join('\n') : 'לא נבחרו ערים');
+        }
+
+        renderCityAreas();
+        renderSelectedCities();
         loadJob();
     </script>
 
