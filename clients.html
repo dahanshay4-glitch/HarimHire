@@ -711,7 +711,8 @@ function toggleCol(key, val) {
 }
 
 function openClientPanel(id) {
-  console.log('openClientPanel called with id:', id);
+  console.log('🔵 openClientPanel called with id:', id);
+  alert('Panel should open now for client: ' + id);
   const c = CLIENTS.find(x => x.id === id);
   console.log('Found client:', c);
   if(!c) return;
