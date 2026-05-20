@@ -619,9 +619,11 @@ let filtered = [...CLIENTS];
 let sortCol = 'id', sortDir = -1;
 
 window.renderClients = function renderClients(list) {
+  console.log('renderClients called with:', list);
   const tb = document.getElementById('clientsTbody');
-  tb.innerHTML = list.map((c,i) => `
-    <tr data-client-id="${c.id}" style="cursor:pointer;">
+  tb.innerHTML = list.map((c,i) => {
+    console.log('Client object:', c, 'ID:', c.id);
+    return `<tr data-client-id="${c.id}" style="cursor:pointer;">
       <td><input type="checkbox"></td>
       <td style="color:var(--text-light);font-size:11px;">${c.num || (i+1)}</td>
       <td><a class="link">${c.name}</a></td>
@@ -634,14 +636,18 @@ window.renderClients = function renderClients(list) {
       <td class="${colVisible.recruiter?'':'hidden'}">${c.recruiter}</td>
       <td class="${colVisible.city?'':'hidden'}">${c.city}</td>
       <td class="${colVisible.industry?'':'hidden'}">${c.industry}</td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
   document.getElementById('clientCount').textContent = list.length;
   
   // הוסף event listeners לשורות
   document.querySelectorAll('#clientsTbody tr').forEach(row => {
     row.addEventListener('click', function() {
-      const clientId = parseInt(this.dataset.clientId);
-      openClientPanel(clientId);
+      const clientId = this.dataset.clientId;
+      console.log('Row clicked, data-client-id:', clientId);
+      const parsedId = parseInt(clientId);
+      console.log('Parsed ID:', parsedId);
+      openClientPanel(parsedId);
     });
   });
 }
