@@ -758,51 +758,33 @@ function openClientPanel(id) {
   }
   document.getElementById('jobsCount').textContent = `(${c.jobs ? c.jobs.length : 0})`;
   
-  // עדכון אנשי קשר
+  // עדכון אנשי קשר - FIXED VERSION
   const contactsList = document.getElementById('contactsList');
+  if(!contactsList) {
+    console.error('contactsList element not found!');
+    return;
+  }
+  
   contactsList.innerHTML = '';
   
   console.log('Rendering contacts. Client contacts:', c.contacts);
   
   if(c.contacts && c.contacts.length > 0) {
     console.log('Client has', c.contacts.length, 'contacts');
+    let html = '';
     c.contacts.forEach((ct, idx) => {
-      const contactId = 'contact_' + idx;
-      const html = `
-        <div id="${contactId}" style="padding:12px;background:var(--bg);border-radius:6px;border:0.5px solid var(--border);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-            <div style="font-weight:500;font-size:11px;">${ct.name}</div>
-            <button class="btn" onclick="removeContact('${contactId}')" style="padding:2px 6px;font-size:9px;color:var(--red);"><i class="fa-solid fa-trash"></i></button>
-          </div>
-          
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-            <div>
-              <label style="font-size:10px;color:var(--text-light);">שם</label>
-              <input type="text" value="${ct.name}" class="contact-name" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;width:100%;box-sizing:border-box;">
-            </div>
-            <div>
-              <label style="font-size:10px;color:var(--text-light);">תפקיד</label>
-              <input type="text" value="${ct.role || ''}" class="contact-role" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;width:100%;box-sizing:border-box;">
-            </div>
-          </div>
-          
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;">
-            <div>
-              <label style="font-size:10px;color:var(--text-light);">טלפון</label>
-              <input type="tel" value="${ct.phone || ''}" class="contact-phone" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;width:100%;box-sizing:border-box;">
-            </div>
-            <div>
-              <label style="font-size:10px;color:var(--text-light);">דוא"ל</label>
-              <input type="email" value="${ct.email || ''}" class="contact-email" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;width:100%;box-sizing:border-box;">
-            </div>
-          </div>
-        </div>
-      `;
-      contactsList.insertAdjacentHTML('beforeend', html);
+      html += `<div style="padding:12px;background:var(--bg);border-radius:6px;border:0.5px solid var(--border);margin-bottom:10px;">
+        <div style="font-weight:500;font-size:11px;margin-bottom:10px;">${ct.name} - ${ct.role}</div>
+        <div><label style="font-size:9px;color:var(--text-light);">שם:</label><input type="text" value="${ct.name}" style="width:100%;padding:4px;font-size:10px;border:0.5px solid var(--border);border-radius:3px;"></div>
+        <div style="margin-top:6px;"><label style="font-size:9px;color:var(--text-light);">טלפון:</label><input type="text" value="${ct.phone || ''}" style="width:100%;padding:4px;font-size:10px;border:0.5px solid var(--border);border-radius:3px;"></div>
+        <div style="margin-top:6px;"><label style="font-size:9px;color:var(--text-light);">דוא"ל:</label><input type="text" value="${ct.email || ''}" style="width:100%;padding:4px;font-size:10px;border:0.5px solid var(--border);border-radius:3px;"></div>
+      </div>`;
     });
+    contactsList.innerHTML = html;
+    console.log('Contacts rendered successfully');
   } else {
     console.log('Client has no contacts');
-    contactsList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-light);font-size:12px;"><i class="fa-solid fa-users" style="font-size:24px;opacity:0.3;display:block;margin-bottom:10px;"></i>אין אנשי קשר עדיין</div>';
+    contactsList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-light);">אין אנשי קשר</div>';
   }
   
   // שמירת ה-ID
