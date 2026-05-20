@@ -70,6 +70,11 @@
 </style>
 
 <style>.subbar{margin:0 0 0.75rem 0 !important;padding:8px 1.2rem;}</style>
+
+<style>
+.contact-input { width:100%; padding:6px 8px; font-size:11px; border:0.5px solid var(--border); border-radius:5px; font-family:var(--font); }
+.contact-input:focus { outline:none; border-color:var(--blue); }
+</style>
 </head>
 <body>
 
@@ -260,7 +265,10 @@
       <div class="tab-pane" id="tab-contacts">
         <div class="section-title">אנשי קשר</div>
         <div id="contactsList"></div>
-        <button class="btn btn-primary" style="margin-top:8px;"><i class="fa-solid fa-plus"></i> הוסף איש קשר</button>
+        <div style="display:flex;gap:6px;margin-top:8px;">
+          <button class="btn btn-primary" onclick="addContactRow()"><i class="fa-solid fa-plus"></i> הוסף איש קשר</button>
+          <button class="btn" onclick="saveContacts()"><i class="fa-solid fa-floppy-disk"></i> שמור אנשי קשר</button>
+        </div>
       </div>
 
       <!-- משרות -->
@@ -322,6 +330,7 @@ const extraCols = ['handler','recruiter','city','industry'];
 let colVisible = {handler:false,recruiter:false,city:false,industry:false};
 let filtered = [...CLIENTS];
 let sortCol = 'id', sortDir = -1;
+let currentClient = null;
 
 window.renderClients = function renderClients(list) {
   const tb = document.getElementById('clientsTbody');
@@ -329,7 +338,7 @@ window.renderClients = function renderClients(list) {
     <tr>
       <td><input type="checkbox"></td>
       <td style="color:var(--text-light);font-size:11px;">${c.num || (i+1)}</td>
-      <td><a class="link" onclick="openClientDetailPanel('${c.id}')">${c.name}</a></td>
+      <td><a class="link" onclick="openClient('${c.id}')">${c.name}</a></td>
       <td><span class="pill pill-green">${c.type}</span></td>
       <td>${c.date}</td>
       <td><a class="link">${c.contact}</a></td>
@@ -401,7 +410,7 @@ function toggleCol(key, val) {
 }
 
 function openClient(id) {
-  const c = CLIENTS.find(x => x.id === id);
+  const c = CLIENTS.find(x => String(x.id) === String(id));
   if(!c) return;
   loadDetail(c);
   document.getElementById('view-list').classList.add('hidden');
@@ -414,6 +423,7 @@ function showList() {
 }
 
 function loadDetail(c) {
+  currentClient = c;
   document.getElementById('clBread').textContent = c.name;
   document.getElementById('clName').textContent = c.name;
   document.getElementById('clMeta').textContent = 'מס׳ ' + c.id + ' · נוצר ' + c.date;
@@ -436,12 +446,7 @@ function loadDetail(c) {
   if(!c.notes) notesEl.classList.add('empty'); else notesEl.classList.remove('empty');
 
   // Contacts
-  document.getElementById('contactsList').innerHTML = (c.contacts||[]).map(ct =>
-    '<div class="contact-card">' +
-    '<div class="avatar" style="background:rgba(30,52,97,0.12);color:' + ct.avColor + ';">' + ct.av + '</div>' +
-    '<div><div style="font-size:12px;font-weight:500;">' + ct.name + '</div><div style="font-size:10px;color:var(--text-light);">' + ct.role + '</div></div>' +
-    '<div style="margin-right:auto;font-size:10px;color:var(--text-light);text-align:left;"><div>' + ct.phone + '</div><div>' + ct.email + '</div></div>' +
-    '</div>').join('');
+  renderContacts(c.contacts || []);
 
   // Jobs
   const jobs = c.jobs || [];
@@ -465,6 +470,74 @@ function loadDetail(c) {
   // Reset tabs
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active',i===0));
   document.querySelectorAll('.tab-pane').forEach((p,i) => p.classList.toggle('active',i===0));
+}
+
+
+function renderContacts(contacts) {
+  const list = document.getElementById('contactsList');
+  if(!contacts.length) {
+    list.innerHTML = '<div style="font-size:11px;color:var(--text-light);padding:1rem 0;">אין אנשי קשר</div>';
+    return;
+  }
+  list.innerHTML = contacts.map((ct, idx) => `
+    <div class="contact-card" data-contact-row="${idx}" style="align-items:flex-start;gap:8px;">
+      <div class="avatar" style="background:rgba(30,52,97,0.12);color:${ct.avColor || '#1e3461'};">${ct.av || initials(ct.name)}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;flex:1;">
+        <input class="contact-input" data-field="name" value="${escapeAttr(ct.name || '')}" placeholder="שם איש קשר">
+        <input class="contact-input" data-field="role" value="${escapeAttr(ct.role || '')}" placeholder="תפקיד">
+        <input class="contact-input" data-field="phone" value="${escapeAttr(ct.phone || '')}" placeholder="טלפון">
+        <input class="contact-input" data-field="email" value="${escapeAttr(ct.email || '')}" placeholder="דוא״ל">
+      </div>
+      <button class="btn" onclick="removeContactRow(${idx})" title="מחיקה"><i class="fa-solid fa-trash"></i></button>
+    </div>`).join('');
+}
+
+function initials(name) {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if(!parts.length) return 'א';
+  return parts.slice(0,2).map(p => p[0]).join('');
+}
+
+function escapeAttr(v) {
+  return String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function collectContactsFromUI() {
+  return Array.from(document.querySelectorAll('[data-contact-row]')).map(row => {
+    const obj = {};
+    row.querySelectorAll('.contact-input').forEach(inp => obj[inp.dataset.field] = inp.value.trim());
+    obj.av = initials(obj.name);
+    obj.avColor = '#1e3461';
+    return obj;
+  }).filter(c => c.name || c.phone || c.email || c.role);
+}
+
+function addContactRow() {
+  const contacts = collectContactsFromUI();
+  contacts.push({name:'', role:'', phone:'', email:'', av:'', avColor:'#1e3461'});
+  renderContacts(contacts);
+}
+
+function removeContactRow(idx) {
+  const contacts = collectContactsFromUI();
+  contacts.splice(idx, 1);
+  renderContacts(contacts);
+}
+
+function saveContacts() {
+  if(!currentClient) return;
+  const contacts = collectContactsFromUI();
+  currentClient.contacts = contacts;
+  const idx = CLIENTS.findIndex(c => String(c.id) === String(currentClient.id));
+  if(idx > -1) CLIENTS[idx].contacts = contacts;
+
+  if(typeof db !== 'undefined' && String(currentClient.id).length > 10) {
+    db.collection('clients').doc(String(currentClient.id)).update({contacts: contacts})
+      .then(() => alert('אנשי הקשר נשמרו'))
+      .catch(err => alert('שגיאה בשמירת אנשי קשר: ' + err.message));
+  } else {
+    alert('אנשי הקשר עודכנו במסך. שמירה קבועה תעבוד ללקוחות שמגיעים מ-Firebase.');
+  }
 }
 
 function swTab(id, el) {
@@ -555,77 +628,3 @@ db.collection('clients').orderBy('createdAt', 'desc').onSnapshot(function(snap) 
 </script>
 </body>
 </html>
-<style>
-#panelSidebar {
-  position: fixed;
-  right: 0;
-  top: 56px;
-  width: 500px;
-  height: calc(100vh - 56px);
-  background: white;
-  border-left: 1px solid #ddd;
-  z-index: 9998;
-  display: flex;
-  flex-direction: column;
-  transform: translateX(100%);
-  transition: transform 0.3s ease;
-}
-#panelSidebar.open {
-  transform: translateX(0);
-}
-</style>
-
-<div id="panelSidebar">
-  <div style="padding:12px;border-bottom:1px solid #ddd;display:flex;align-items:center;">
-    <button onclick="document.getElementById('panelSidebar').classList.remove('open')" style="background:none;border:none;cursor:pointer;"><i class="fa-solid fa-arrow-left"></i></button>
-    <h3 id="pTitle" style="margin:0;flex:1;"></h3>
-  </div>
-  <div style="display:flex;border-bottom:1px solid #ddd;">
-    <button onclick="showPanelTab(0)" id="pTabDet" style="flex:1;padding:8px;background:none;border:none;border-bottom:3px solid #1e3461;cursor:pointer;font-weight:500;">פרטים</button>
-    <button onclick="showPanelTab(1)" id="pTabCon" style="flex:1;padding:8px;background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;">אנשי קשר</button>
-    <button onclick="showPanelTab(2)" id="pTabJob" style="flex:1;padding:8px;background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;">משרות</button>
-  </div>
-  <div style="flex:1;overflow-y:auto;padding:12px;">
-    <div id="pCont0"></div>
-    <div id="pCont1" style="display:none;"></div>
-    <div id="pCont2" style="display:none;"></div>
-  </div>
-</div>
-
-<script>
-function openClientDetailPanel(cid) {
-  const c = window.CLIENTS.find(x => x.id === cid);
-  if (!c) return;
-  
-  document.getElementById('pTitle').textContent = c.name;
-  document.getElementById('pCont0').innerHTML = `
-    <div style="margin-bottom:10px;"><label style="font-size:10px;color:#999;">שם</label><input type="text" value="${c.name}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box;"></div>
-    <div style="margin-bottom:10px;"><label style="font-size:10px;color:#999;">טלפון</label><input type="text" value="${c.phone || ''}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box;"></div>
-    <div style="margin-bottom:10px;"><label style="font-size:10px;color:#999;">דוא"ל</label><input type="text" value="${c.email || ''}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box;"></div>
-  `;
-  
-  if (c.contacts && c.contacts.length > 0) {
-    document.getElementById('pCont1').innerHTML = c.contacts.map(ct => `<div style="padding:8px;background:#f9f9f9;margin-bottom:8px;border-radius:4px;"><strong style="font-size:11px;">${ct.name}</strong><div style="font-size:10px;color:#666;margin-top:4px;">תפקיד: ${ct.role || '-'}</div></div>`).join('');
-  } else {
-    document.getElementById('pCont1').innerHTML = '<p style="text-align:center;color:#999;">אין</p>';
-  }
-  
-  if (c.jobs && c.jobs.length > 0) {
-    document.getElementById('pCont2').innerHTML = c.jobs.map(j => `<div style="padding:8px;background:#f9f9f9;margin-bottom:8px;border-radius:4px;"><strong style="font-size:11px;">${j.title}</strong></div>`).join('');
-  } else {
-    document.getElementById('pCont2').innerHTML = '<p style="text-align:center;color:#999;">אין</p>';
-  }
-  
-  document.getElementById('panelSidebar').classList.add('open');
-}
-
-function showPanelTab(n) {
-  for (let i = 0; i < 3; i++) {
-    document.getElementById('pCont' + i).style.display = i === n ? 'block' : 'none';
-  }
-  for (let btn of document.querySelectorAll('#panelSidebar > div:nth-child(2) > button')) {
-    btn.style.borderBottomColor = 'transparent';
-  }
-  event.target.style.borderBottomColor = '#1e3461';
-}
-</script>
