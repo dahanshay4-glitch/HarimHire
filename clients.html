@@ -329,7 +329,7 @@ window.renderClients = function renderClients(list) {
     <tr>
       <td><input type="checkbox"></td>
       <td style="color:var(--text-light);font-size:11px;">${c.num || (i+1)}</td>
-      <td><a class="link" onclick="openPanel('${c.id}')" style="cursor:pointer;">${c.name}</a></td>
+      <td><a class="link" onclick="showClientPanel('${c.id}')">${c.name}</a></td>
       <td><span class="pill pill-green">${c.type}</span></td>
       <td>${c.date}</td>
       <td><a class="link">${c.contact}</a></td>
@@ -553,75 +553,92 @@ db.collection('clients').orderBy('createdAt', 'desc').onSnapshot(function(snap) 
   console.log('Clients Firebase error:', err);
 });
 </script>
-
-<!-- SIDE PANEL FOR CLIENT DETAILS -->
-<div id="sidePanel" style="position:fixed;right:0;top:56px;width:500px;height:calc(100vh-56px);background:white;border-left:1px solid #ddd;z-index:9999;display:none;flex-direction:column;overflow:hidden;">
-  <div style="padding:12px 16px;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:10px;">
-    <button onclick="closePanel()" style="background:none;border:none;cursor:pointer;"><i class="fa-solid fa-arrow-left"></i></button>
-    <h3 id="panelName" style="margin:0;font-size:14px;flex:1;"></h3>
+</body>
+</html>
+<!-- CLIENT SIDE PANEL -->
+<div id="clientPanel" style="position:fixed;right:0;top:56px;width:500px;height:calc(100vh-56px);background:white;border-left:1px solid #ddd;z-index:9999;display:none;flex-direction:column;overflow:hidden;">
+  <div style="padding:12px;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:8px;">
+    <button onclick="document.getElementById('clientPanel').style.display='none'" style="background:0;border:0;cursor:pointer;"><i class="fa-solid fa-close"></i></button>
+    <h3 id="pName" style="margin:0;font-size:13px;flex:1;"></h3>
   </div>
   <div style="display:flex;border-bottom:1px solid #ddd;">
-    <button id="btn-details" style="flex:1;padding:8px;background:none;border:none;border-bottom:2px solid #1e3461;cursor:pointer;font-size:11px;font-weight:500;" onclick="showPanelTab('details')">פרטים</button>
-    <button id="btn-contacts" style="flex:1;padding:8px;background:none;border:none;border-bottom:2px solid #ccc;cursor:pointer;font-size:11px;color:#999;" onclick="showPanelTab('contacts')">אנשי קשר</button>
-    <button id="btn-jobs" style="flex:1;padding:8px;background:none;border:none;border-bottom:2px solid #ccc;cursor:pointer;font-size:11px;color:#999;" onclick="showPanelTab('jobs')">משרות</button>
+    <button id="btnDet" style="flex:1;padding:8px;background:0;border:0;border-bottom:2px solid #1e3461;cursor:pointer;font-size:11px;font-weight:500;" onclick="swTab(0)">פרטים</button>
+    <button id="btnCon" style="flex:1;padding:8px;background:0;border:0;border-bottom:2px solid #ddd;cursor:pointer;font-size:11px;" onclick="swTab(1)">אנשי קשר</button>
+    <button id="btnJob" style="flex:1;padding:8px;background:0;border:0;border-bottom:2px solid #ddd;cursor:pointer;font-size:11px;" onclick="swTab(2)">משרות</button>
   </div>
-  <div style="flex:1;overflow-y:auto;padding:16px;">
-    <div id="panel-details" style="display:block;">
-      <div style="margin-bottom:12px;"><label style="display:block;font-size:10px;color:#666;margin-bottom:4px;">שם</label><input id="pn" type="text" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:11px;box-sizing:border-box;"></div>
-      <div style="margin-bottom:12px;"><label style="display:block;font-size:10px;color:#666;margin-bottom:4px;">טלפון</label><input id="pp" type="text" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:11px;box-sizing:border-box;"></div>
-      <div style="margin-bottom:12px;"><label style="display:block;font-size:10px;color:#666;margin-bottom:4px;">דוא"ל</label><input id="pe" type="text" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:11px;box-sizing:border-box;"></div>
-    </div>
-    <div id="panel-contacts" style="display:none;"></div>
-    <div id="panel-jobs" style="display:none;"></div>
+  <div style="flex:1;overflow-y:auto;padding:12px;">
+    <div id="tabDet"></div>
+    <div id="tabCon" style="display:none;"></div>
+    <div id="tabJob" style="display:none;"></div>
   </div>
 </div>
 
 <script>
-function openPanel(cid) {
-  const c = CLIENTS.find(x => x.id === cid);
-  if(!c) return;
-  document.getElementById('panelName').textContent = c.name;
-  document.getElementById('pn').value = c.name;
-  document.getElementById('pp').value = c.phone || '';
-  document.getElementById('pe').value = c.email || '';
+function showClientPanel(cid) {
+  const c = window.CLIENTS.find(x => x.id === cid);
+  if (!c) return;
   
-  const cf = document.getElementById('panel-contacts');
-  if(c.contacts && c.contacts.length > 0) {
-    cf.innerHTML = c.contacts.map(ct => `<div style="padding:8px;background:#f5f5f5;margin-bottom:8px;border-radius:4px;"><div style="font-weight:bold;font-size:11px;margin-bottom:4px;">${ct.name}</div><div style="font-size:10px;color:#666;">תפקיד: ${ct.role || '-'}</div><div style="font-size:10px;color:#666;">טלפון: ${ct.phone || '-'}</div><div style="font-size:10px;color:#666;">דוא"ל: ${ct.email || '-'}</div></div>`).join('');
+  document.getElementById('pName').textContent = c.name;
+  
+  document.getElementById('tabDet').innerHTML = `
+    <div style="margin-bottom:10px;"><label style="font-size:10px;color:#666;display:block;margin-bottom:4px;">שם</label><input type="text" value="${c.name}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;font-size:11px;box-sizing:border-box;"></div>
+    <div style="margin-bottom:10px;"><label style="font-size:10px;color:#666;display:block;margin-bottom:4px;">טלפון</label><input type="text" value="${c.phone || ''}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;font-size:11px;box-sizing:border-box;"></div>
+    <div style="margin-bottom:10px;"><label style="font-size:10px;color:#666;display:block;margin-bottom:4px;">דוא"ל</label><input type="text" value="${c.email || ''}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;font-size:11px;box-sizing:border-box;"></div>
+    <div style="margin-bottom:10px;"><label style="font-size:10px;color:#666;display:block;margin-bottom:4px;">ישוב</label><input type="text" value="${c.city || ''}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;font-size:11px;box-sizing:border-box;"></div>
+  `;
+  
+  if (c.contacts && c.contacts.length > 0) {
+    document.getElementById('tabCon').innerHTML = c.contacts.map(ct => `
+      <div style="padding:8px;background:#f9f9f9;margin-bottom:6px;border-radius:4px;">
+        <div style="font-weight:bold;font-size:11px;margin-bottom:3px;">${ct.name}</div>
+        <div style="font-size:10px;color:#666;">תפקיד: ${ct.role || '-'}</div>
+        <div style="font-size:10px;color:#666;">טלפון: ${ct.phone || '-'}</div>
+        <div style="font-size:10px;color:#666;">דוא"ל: ${ct.email || '-'}</div>
+      </div>
+    `).join('');
   } else {
-    cf.innerHTML = '<p style="text-align:center;color:#999;">אין אנשי קשר</p>';
+    document.getElementById('tabCon').innerHTML = '<p style="text-align:center;color:#999;padding:20px;">אין אנשי קשר</p>';
   }
   
-  const jf = document.getElementById('panel-jobs');
-  if(c.jobs && c.jobs.length > 0) {
-    jf.innerHTML = c.jobs.map(j => `<div style="padding:8px;background:#f5f5f5;margin-bottom:8px;border-radius:4px;"><div style="font-weight:bold;font-size:11px;">${j.title}</div><div style="font-size:10px;color:#666;">סטטוס: ${j.status || '-'}</div></div>`).join('');
+  if (c.jobs && c.jobs.length > 0) {
+    document.getElementById('tabJob').innerHTML = c.jobs.map(j => `
+      <div style="padding:8px;background:#f9f9f9;margin-bottom:6px;border-radius:4px;">
+        <div style="font-weight:bold;font-size:11px;">${j.title || 'משרה'}</div>
+        <div style="font-size:10px;color:#666;">סטטוס: ${j.status || '-'}</div>
+      </div>
+    `).join('');
   } else {
-    jf.innerHTML = '<p style="text-align:center;color:#999;">אין משרות</p>';
+    document.getElementById('tabJob').innerHTML = '<p style="text-align:center;color:#999;padding:20px;">אין משרות</p>';
   }
   
-  document.getElementById('sidePanel').style.display = 'flex';
+  document.getElementById('clientPanel').style.display = 'flex';
 }
 
-function closePanel() {
+function swTab(t) {
+  document.getElementById('tabDet').style.display = 'none';
+  document.getElementById('tabCon').style.display = 'none';
+  document.getElementById('tabJob').style.display = 'none';
+  document.getElementById('btnDet').style.borderBottomColor = '#ddd';
+  document.getElementById('btnCon').style.borderBottomColor = '#ddd';
+  document.getElementById('btnJob').style.borderBottomColor = '#ddd';
+  document.getElementById('btnDet').style.fontWeight = 'normal';
+  document.getElementById('btnCon').style.fontWeight = 'normal';
+  document.getElementById('btnJob').style.fontWeight = 'normal';
   
-}
-
-function showPanelTab(t) {
-  document.getElementById('panel-details').style.display = 'none';
-  document.getElementById('panel-contacts').style.display = 'none';
-  document.getElementById('panel-jobs').style.display = 'none';
-  document.getElementById('panel-' + t).style.display = 'block';
-  
-  document.getElementById('btn-details').style.borderBottomColor = '#ccc';
-  document.getElementById('btn-details').style.color = '#999';
-  document.getElementById('btn-contacts').style.borderBottomColor = '#ccc';
-  document.getElementById('btn-contacts').style.color = '#999';
-  document.getElementById('btn-jobs').style.borderBottomColor = '#ccc';
-  document.getElementById('btn-jobs').style.color = '#999';
-  
-  document.getElementById('btn-' + t).style.borderBottomColor = '#1e3461';
-  document.getElementById('btn-' + t).style.color = '#000';
-  document.getElementById('btn-' + t).style.fontWeight = '500';
+  if (t === 0) {
+    document.getElementById('tabDet').style.display = 'block';
+    document.getElementById('btnDet').style.borderBottomColor = '#1e3461';
+    document.getElementById('btnDet').style.fontWeight = '500';
+  } else if (t === 1) {
+    document.getElementById('tabCon').style.display = 'block';
+    document.getElementById('btnCon').style.borderBottomColor = '#1e3461';
+    document.getElementById('btnCon').style.fontWeight = '500';
+  } else {
+    document.getElementById('tabJob').style.display = 'block';
+    document.getElementById('btnJob').style.borderBottomColor = '#1e3461';
+    document.getElementById('btnJob').style.fontWeight = '500';
+  }
 }
 </script>
+</body>
 </html>
