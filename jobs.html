@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HarimHire – משרות</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="harimhire.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase.js"></script>
+<style>
+.nav-dropdown { position: relative; display: inline-block; }
+.nav-dropdown > a { display: flex; align-items: center; gap: 5px; padding: 6px 4px; }
+.nav-dropdown > a::after { content: "\25BE"; font-size: 10px; opacity: 0.8; }
+.dropdown-menu {
+  position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  background: #ffffff; border: 1px solid #dde2ea; border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.14); min-width: 200px; z-index: 99999;
+  display: none; overflow: hidden; padding: 5px 0;
+}
+.dropdown-menu.open { display: block; }
+.dropdown-item {
+  display: flex !important; align-items: center !important; gap: 12px !important;
+  padding: 12px 18px !important; font-size: 13px !important; color: #1a2332 !important;
+  text-decoration: none !important; background: #ffffff !important; border-bottom: 0.5px solid #f0f2f5 !important;
+  white-space: nowrap !important; cursor: pointer !important; border-right: none !important; border-left: none !important; border-top: none !important;
+}
+.dropdown-item:last-child { border-bottom: none !important; }
+.dropdown-item:hover { background: #f4f6f9 !important; color: #1e3461 !important; }
+.dropdown-item i { font-size: 14px !important; color: #6b7a99 !important; width: 18px !important; text-align: center !important; flex-shrink: 0 !important; }
+.dropdown-item:hover i { color: #1e3461 !important; }
+.subbar{margin:0 0 0.75rem 0 !important;padding:8px 1.2rem;}
+.status-open { background: rgba(28,169,122,0.12); color: #0e7a55; }
+.status-paused { background: rgba(232,153,46,0.15); color: #b5720a; }
+.status-closed { background: rgba(138,154,181,0.2); color: #6b7a99; }
+.clickable-number { color: var(--blue); cursor: pointer; font-weight: 500; }
+.clickable-number:hover { text-decoration: underline; }
+</style>
+
+<style>
+/* Hard isolated navbar for jobs page - prevents broken legacy nav styles */
+#hhNav { background:#1e3461; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 1.4rem; position:fixed; top:0; left:0; right:0; z-index:1000; box-sizing:border-box; font-family:var(--font, 'Segoe UI', Arial, sans-serif); direction:rtl; }
+#hhNav * { box-sizing:border-box; }
+#hhNav .hh-logo { display:flex; align-items:center; gap:10px; cursor:pointer; color:#fff; text-decoration:none; }
+#hhNav .hh-logo-text { font-family:Georgia, serif; color:#fff; font-size:15px; font-weight:700; line-height:1; }
+#hhNav .hh-logo-text span { color:#e8992e; font-weight:400; }
+#hhNav .hh-logo-sub { color:rgba(255,255,255,.38); font-size:7.5px; letter-spacing:3px; margin-top:3px; }
+#hhNav .hh-left { display:flex; align-items:center; gap:14px; }
+#hhNav .hh-icons { display:flex; gap:12px; color:rgba(255,255,255,.65); font-size:15px; margin-left:8px; }
+#hhNav .hh-links { display:flex; align-items:center; gap:1.35rem; height:56px; }
+#hhNav .hh-link, #hhNav .hh-drop-title { color:rgba(255,255,255,.76); font-size:13px; text-decoration:none; cursor:pointer; padding:18px 2px 15px; height:56px; display:flex; align-items:center; gap:5px; background:transparent !important; border:0 !important; outline:0 !important; font-family:var(--font, 'Segoe UI', Arial, sans-serif); white-space:nowrap; }
+#hhNav .hh-link:hover, #hhNav .hh-drop-title:hover { color:#fff; }
+#hhNav .hh-link.active, #hhNav .hh-drop-title.active { color:#fff; font-weight:600; border-bottom:2.5px solid #e8992e !important; }
+#hhNav .hh-drop { position:relative; height:56px; display:flex; align-items:center; }
+#hhNav .hh-drop-title::after { content:'▾'; font-size:10px; opacity:.8; margin-right:3px; }
+#hhNav .hh-menu { position:absolute; top:56px; right:50%; transform:translateX(50%); background:#fff; border:1px solid #dde2ea; border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,.14); min-width:200px; display:none; overflow:hidden; padding:5px 0; z-index:100000; }
+#hhNav .hh-drop:hover .hh-menu { display:block; }
+#hhNav .hh-item { display:flex; align-items:center; gap:12px; padding:12px 18px; font-size:13px; color:#1a2332; text-decoration:none; background:#fff; border-bottom:.5px solid #f0f2f5; white-space:nowrap; }
+#hhNav .hh-item:hover { background:#f4f6f9; color:#1e3461; }
+#hhNav .hh-item i { color:#6b7a99; width:18px; text-align:center; }
+</style>
+</head>
+<body>
+<!-- NAVBAR -->
+<nav id="hhNav">
+  <div class="hh-links">
+    <div class="hh-drop">
+      <a class="hh-drop-title" href="candidates.html">מועמדים</a>
+      <div class="hh-menu">
+        <a class="hh-item" href="candidates.html"><i class="fa-solid fa-users"></i> מועמדים</a>
+        <a class="hh-item" href="new_candidate.html"><i class="fa-solid fa-user-plus"></i> מועמד חדש</a>
+        <a class="hh-item" href="segments.html"><i class="fa-solid fa-filter"></i> חיתוכי מועמדים</a>
+        <a class="hh-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+      </div>
+    </div>
+    <div class="hh-drop">
+      <a class="hh-drop-title" href="clients.html">לקוחות</a>
+      <div class="hh-menu">
+        <a class="hh-item" href="clients.html"><i class="fa-solid fa-building"></i> לקוחות</a>
+        <a class="hh-item" href="new_client.html"><i class="fa-solid fa-building-circle-arrow-right"></i> לקוח חדש</a>
+      </div>
+    </div>
+    <div class="hh-drop">
+      <a class="hh-drop-title active" href="jobs.html">משרות</a>
+      <div class="hh-menu">
+        <a class="hh-item" href="jobs.html"><i class="fa-solid fa-briefcase"></i> משרות</a>
+        <a class="hh-item" href="new_job.html"><i class="fa-solid fa-plus"></i> משרה חדשה</a>
+      </div>
+    </div>
+    <a class="hh-link" href="process.html">תהליך ראשוני</a>
+    <a class="hh-link" href="fixes.html">תיקונים</a>
+    <a class="hh-link" href="tags.html">תגיות</a>
+    <div class="hh-drop">
+      <a class="hh-drop-title" href="#">דוחות</a>
+      <div class="hh-menu">
+        <a class="hh-item" href="#"><i class="fa-solid fa-chart-bar"></i> דוחות</a>
+        <a class="hh-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+        <a class="hh-item" href="#"><i class="fa-solid fa-bullseye"></i> דוח מקורות גיוס</a>
+        <a class="hh-item" href="#"><i class="fa-solid fa-briefcase"></i> דוח סוגי משרה</a>
+      </div>
+    </div>
+  </div>
+  <div class="hh-left">
+    <div class="hh-icons"><i class="fa-regular fa-bell"></i><i class="fa-solid fa-gear"></i><i class="fa-regular fa-circle-question"></i></div>
+    <a class="hh-logo" href="index.html">
+      <svg width="30" height="22" viewBox="0 0 34 26"><polygon points="2,24 13,4 24,24" fill="rgba(255,255,255,0.92)"/><polygon points="12,24 19,10 24,24" fill="#e8992e" opacity="0.85"/></svg>
+      <div><div class="hh-logo-text">Harim<span>Hire</span></div><div class="hh-logo-sub">HR SOLUTIONS</div></div>
+    </a>
+  </div>
+</nav>
+
+<div class="main">
+  <div style="padding:0.75rem 1rem;">
+    <div class="filter-bar">
+      <div class="fg"><div class="fl">חיפוש</div><div class="fiw"><input type="text" id="searchInput" placeholder="שם משרה, לקוח, סוג..." oninput="renderJobs()"><i class="fa-solid fa-search ic"></i></div></div>
+      <div class="fg narrow"><div class="fl">סטטוס</div><div class="fiw"><select id="statusFilter" onchange="renderJobs()"><option value="">הכל</option><option value="open">פתוחה</option><option value="paused">מוקפאת</option><option value="closed">סגורה</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
+      <button class="btn btn-primary" onclick="window.location.href='new_job.html'"><i class="fa-solid fa-plus"></i> משרה חדשה</button>
+      <button class="btn btn-export"><i class="fa-solid fa-download"></i> ייצוא</button>
+    </div>
+    <div class="count-bar">מציג <strong id="jobsCount">0</strong> משרות</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortTable(0)">מס׳ <span>&#8597;</span></th>
+            <th onclick="sortTable(1)">כותרת <span>&#8597;</span></th>
+            <th onclick="sortTable(2)">לקוח <span>&#8597;</span></th>
+            <th onclick="sortTable(3)">סטטוס <span>&#8597;</span></th>
+            <th onclick="sortTable(4)">תאריך יצירה <span>&#8597;</span></th>
+            <th onclick="sortTable(5)">מתעניינים <span>&#8597;</span></th>
+            <th onclick="sortTable(6)">בתהליך <span>&#8597;</span></th>
+            <th onclick="sortTable(7)">התחילו לעבוד <span>&#8597;</span></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="jobsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+window.sortOrder = {};
+let jobsUnsub = null;
+let activeClientIds = new Set();
+let activeClientNames = new Set();
+
+async function refreshActiveClients() {
+  activeClientIds = new Set();
+  activeClientNames = new Set();
+  try {
+    const snap = await firestore.collection('clients').get();
+    snap.forEach(doc => {
+      const c = doc.data() || {};
+      if (c.status === 'deleted' || c.deleted === true) return;
+      activeClientIds.add(String(doc.id));
+      if (c.name) activeClientNames.add(String(c.name).trim());
+    });
+  } catch (err) {
+    console.error('Clients sync error:', err);
+  }
+}
+
+function jobHasActiveClient(j) {
+  const clientId = j.clientId ? String(j.clientId) : '';
+  const clientName = j.clientName ? String(j.clientName).trim() : '';
+  if (!clientId && !clientName) return false;
+  if (clientId && activeClientIds.has(clientId)) return true;
+  if (clientName && activeClientNames.has(clientName)) return true;
+  return false;
+}
+
+function formatDate(v) {
+  try {
+    if (!v) return '';
+    if (v.toDate) return v.toDate().toLocaleDateString('he-IL');
+    return new Date(v).toLocaleDateString('he-IL');
+  } catch(e) { return ''; }
+}
+
+function statusLabel(s) {
+  if (s === 'open') return 'פתוחה';
+  if (s === 'paused') return 'מוקפאת';
+  if (s === 'closed') return 'סגורה';
+  return s || 'לא ידוע';
+}
+
+function renderJobs() {
+  const searchTerm = (document.getElementById('searchInput').value || '').toLowerCase();
+  const statusFilter = document.getElementById('statusFilter').value;
+  if (jobsUnsub) jobsUnsub();
+  jobsUnsub = firestore.collection('jobs').onSnapshot(async snapshot => {
+    await refreshActiveClients();
+    const tbody = document.getElementById('jobsTableBody');
+    tbody.innerHTML = '';
+    const rows = [];
+    snapshot.forEach((doc, index) => {
+      const j = doc.data() || {};
+      j.id = doc.id;
+      j.num = j.num || j.jobTypeCode || (index + 1);
+      if (j.status === 'deleted' || j.deleted === true) return;
+      if (!jobHasActiveClient(j)) return;
+      const haystack = [j.num, j.title, j.clientName, j.typeName, j.jobTypeName, j.jobTypeCode, j.status].join(' ').toLowerCase();
+      if (searchTerm && !haystack.includes(searchTerm)) return;
+      if (statusFilter && j.status !== statusFilter) return;
+      rows.push(j);
+    });
+    rows.sort((a,b) => String(b.createdDate || b.createdAt || '').localeCompare(String(a.createdDate || a.createdAt || '')));
+    document.getElementById('jobsCount').textContent = rows.length;
+    rows.forEach(j => {
+      const row = document.createElement('tr');
+      row.onclick = () => { sessionStorage.setItem('jobData', JSON.stringify(j)); window.location.href = 'job.html'; };
+      const created = formatDate(j.createdDate || j.createdAt);
+      const title = j.title || j.jobTypeName || '';
+      row.innerHTML = `
+        <td>${j.num || ''}</td>
+        <td>${title}</td>
+        <td><a class="link">${j.clientName || 'לא ידוע'}</a></td>
+        <td><span class="pill status-${j.status}">${statusLabel(j.status)}</span></td>
+        <td>${created}</td>
+        <td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList('interested', '${j.id}')">${j.interestedCount || j.waitingCount || 0}</span></td>
+        <td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList('inProcess', '${j.id}')">${j.inProcessCount || 0}</span></td>
+        <td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList('hired', '${j.id}')">${j.hiredCount || 0}</span></td>
+        <td><button class="btn" style="padding:2px 6px;" onclick="event.stopPropagation();"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>`;
+      tbody.appendChild(row);
+    });
+  }, err => {
+    console.error('Jobs Firebase error:', err);
+    alert('שגיאה בטעינת משרות');
+  });
+}
+
+
+function openCandidatesList(type, jobId) { sessionStorage.setItem('filterType', type); sessionStorage.setItem('filterJobId', jobId); window.location.href = 'candidates.html'; }
+function sortTable(colIndex) {
+  const tbody = document.getElementById('jobsTableBody');
+  const rows = Array.from(tbody.getElementsByTagName('tr'));
+  window.sortOrder[colIndex] = !window.sortOrder[colIndex];
+  rows.sort((a,b) => {
+    const aVal = a.cells[colIndex].textContent;
+    const bVal = b.cells[colIndex].textContent;
+    return window.sortOrder[colIndex] ? aVal.localeCompare(bVal, 'he') : bVal.localeCompare(aVal, 'he');
+  });
+  rows.forEach(row => tbody.appendChild(row));
+}
+(function() {
+  var closeTimer = null, currentOpen = null;
+  function openMenu(wrapper) {
+    if (closeTimer) clearTimeout(closeTimer);
+    if (currentOpen && currentOpen !== wrapper) { var other = currentOpen.querySelector('.dropdown-menu'); if (other) other.classList.remove('open'); }
+    currentOpen = wrapper;
+    var menu = wrapper.querySelector('.dropdown-menu'); if (menu) menu.classList.add('open');
+  }
+  function closeMenu(wrapper) { closeTimer = setTimeout(function() { var menu = wrapper.querySelector('.dropdown-menu'); if (menu) menu.classList.remove('open'); if (currentOpen === wrapper) currentOpen = null; }, 250); }
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.nav-dropdown').forEach(function(wrapper) { wrapper.addEventListener('mouseenter', function() { openMenu(wrapper); }); wrapper.addEventListener('mouseleave', function() { closeMenu(wrapper); }); });
+    renderJobs();
+  });
+})();
+</script>
+</body>
+</html>
