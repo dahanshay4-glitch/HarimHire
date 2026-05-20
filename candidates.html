@@ -128,7 +128,7 @@
       <i class="fa-solid fa-gear"></i>
       <i class="fa-regular fa-circle-question"></i>
     </div>
-    <div class="navbar-logo" onclick="window.location.href='index.html'">
+    <div class="navbar-logo" onclick="showPage('dashboard',null)">
       <svg width="30" height="22" viewBox="0 0 34 26">
         <polygon points="2,24 13,4 24,24" fill="rgba(255,255,255,0.92)"/>
         <polygon points="12,24 19,10 24,24" fill="#e8992e" opacity="0.85"/>
@@ -231,7 +231,6 @@
     <div class="fg narrow"><div class="fl">ישוב</div><div class="fiw"><input type="text" id="fCity" placeholder="חפש..." oninput="filterCands()"><i class="fa-solid fa-location-dot ic"></i></div></div>
     <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> מועמד חדש</button>
     <button class="btn btn-export"><i class="fa-solid fa-download"></i> ייצוא</button>
-    <button class="btn" style="color:var(--red);border-color:rgba(220,53,69,0.35);" onclick="deleteSelectedCandidates()"><i class="fa-solid fa-trash"></i> מחק מסומנים</button>
   </div>
   <div class="count-bar">מציג <strong id="candCount">0</strong> מועמדים</div>
   <div class="table-wrap">
@@ -282,7 +281,7 @@ window.renderCands = function(list) {
   const tb = document.getElementById('candsTbody');
   tb.innerHTML = list.map(c => `
     <tr>
-      <td><input type="checkbox" class="cand-check" data-id="${c.id}" onclick="event.stopPropagation()"></td>
+      <td><input type="checkbox"></td>
       <td><div style="display:flex;align-items:center;gap:7px;">
         <div class="avatar" style="background:${c.avBg};color:${c.avColor};">${c.av}</div>
         <a class="link" onclick="openCandidate('${c.id}')">${c.first} ${c.last}</a>
@@ -332,27 +331,6 @@ function doSort() {
 
 function toggleAll(cb) {
   document.querySelectorAll('#candsTbody input[type=checkbox]').forEach(c => c.checked = cb.checked);
-}
-
-
-async function deleteSelectedCandidates() {
-  const ids = Array.from(document.querySelectorAll('#candsTbody .cand-check:checked')).map(cb => cb.dataset.id).filter(Boolean);
-  if (!ids.length) {
-    alert('לא סומנו מועמדים למחיקה');
-    return;
-  }
-  if (!confirm('למחוק ' + ids.length + ' מועמדים מסומנים?')) return;
-  try {
-    const batch = db.batch();
-    ids.forEach(id => {
-      batch.delete(db.collection('candidates').doc(id));
-    });
-    await batch.commit();
-    alert('המועמדים נמחקו בהצלחה');
-  } catch (err) {
-    console.error('Delete candidates error:', err);
-    alert('אירעה שגיאה במחיקת המועמדים');
-  }
 }
 
 function openCandidate(id) {
@@ -434,7 +412,6 @@ db.collection('candidates').orderBy('createdAt', 'desc').onSnapshot(function(sna
     var last = c.last || '';
     return {
       id: d.id,
-      num: c.num || 0,
       av: c.av || (first[0]||'?')+(last[0]||'?'),
       avBg: c.avBg || 'rgba(30,52,97,0.12)',
       avColor: c.avColor || '#1e3461',

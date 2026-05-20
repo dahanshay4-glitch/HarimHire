@@ -1,12 +1,26 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משרות - HarimHire</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="harimhire.css">
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HarimHire – משרות</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="harimhire.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDhvquMr_6zODjgFIiU2y1Uzpc2wNgmX0",
+      authDomain: "harimhire.firebaseapp.com",
+      projectId: "harimhire",
+      storageBucket: "harimhire.firebasestorage.app",
+      messagingSenderId: "723909250338",
+      appId: "1:723909250338:web:70f5ac52e307083379697b"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
 <style>
 .nav-dropdown { position: relative; display: inline-block; }
 .nav-dropdown > a { display: flex; align-items: center; gap: 5px; padding: 6px 4px; }
@@ -39,17 +53,28 @@
   border-bottom: 0.5px solid #f0f2f5 !important;
   white-space: nowrap !important;
   cursor: pointer !important;
-  border: none !important;
+  border-right: none !important;
+  border-left: none !important;
+  border-top: none !important;
 }
 .dropdown-item:last-child { border-bottom: none !important; }
 .dropdown-item:hover { background: #f4f6f9 !important; color: #1e3461 !important; }
-.dropdown-item i { font-size: 14px !important; color: #6b7a99 !important; width: 18px !important; text-align: center !important; flex-shrink: 0 !important; }
+.dropdown-item i {
+  font-size: 14px !important;
+  color: #6b7a99 !important;
+  width: 18px !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+}
 .dropdown-item:hover i { color: #1e3461 !important; }
 </style>
+
+<style>.subbar{margin:0 0 0.75rem 0 !important;padding:8px 1.2rem;}</style>
 </head>
 <body>
-    <nav class="navbar">
-  <div class="nav-links">
+
+<nav class="navbar">
+                    <div class="nav-links">
     <div class="nav-dropdown">
       <a href="candidates.html">מועמדים</a>
       <div class="dropdown-menu">
@@ -87,6 +112,12 @@
         <a class="dropdown-item" href="#"><i class="fa-solid fa-calendar-day"></i> דוח יומי לרכז</a>
         <a class="dropdown-item" href="#"><i class="fa-solid fa-bullseye"></i> דוח מקורות גיוס</a>
         <a class="dropdown-item" href="#"><i class="fa-solid fa-briefcase"></i> דוח סוגי משרה</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-users"></i> סטטיסטיקות מועמדים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-building"></i> סטטיסטיקות משרות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-user-tie"></i> סטטיסטיקות רכזים</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-pie"></i> סטטיסטיקות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-right-to-bracket"></i> לוג כניסות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-envelope"></i> מיילים מסוננים</a>
       </div>
     </div>
   </div>
@@ -109,281 +140,561 @@
   </div>
 </nav>
 
-    <div class="page-content">
-        <div class="page-header">
-            <h1>משרות</h1>
-        </div>
+<div class="main">
 
-        <div class="filter-bar">
-            <input type="text" id="searchInput" placeholder="חיפוש משרה..." class="filter-input">
-            <select id="statusFilter" class="filter-input">
-                <option value="">כל הסטטוסים</option>
-                <option value="open">פתוחה</option>
-                <option value="paused">מוקפאת</option>
-                <option value="closed">סגורה</option>
-            </select>
-            <button class="btn-secondary" onclick="toggleColumns()">עמודות</button>
-            <button class="btn-secondary" style="color:#dc3545;border-color:rgba(220,53,69,0.35);" onclick="deleteSelectedJobs()"><i class="fa-solid fa-trash"></i> מחק מסומנות</button>
-        </div>
+<!-- ===== JOBS LIST ===== -->
+<div id="view-list">
+  <div style="padding:0.75rem 1rem;">
+    <div class="filter-bar">
+      <div class="fg"><div class="fl">חיפוש</div><div class="fiw"><input type="text" id="srch" placeholder="שם משרה, לקוח..." oninput="filterJobs()"><i class="fa-solid fa-search ic"></i></div></div>
+      <div class="fg narrow"><div class="fl">סטטוס</div><div class="fiw"><select id="fStatus" onchange="filterJobs()"><option value="">הכל</option><option>פתוחה</option><option>מוקפאת</option><option>סגורה</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
+      <div class="fg narrow"><div class="fl">לקוח</div><div class="fiw"><select id="fClient" onchange="filterJobs()"><option value="">הכל</option><option>מוקד חיפה</option><option>מוקד מגדל העמק</option><option>מוקד ירושלים</option><option>מוקד אשדוד</option><option>מוקד באר שבע</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
+      <div class="fg narrow"><div class="fl">רמת סינון</div><div class="fiw"><select id="fScreen" onchange="filterJobs()"><option value="">הכל</option><option>טלפוני</option><option>פרונטלי</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
+      <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> משרה חדשה</button>
+      <button class="btn btn-export"><i class="fa-solid fa-download"></i> ייצוא</button>
+    </div>
+    <div class="count-bar">מציג <strong id="jobCount">0</strong> משרות</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:28px;"><input type="checkbox"></th>
+            <th onclick="sortJobs('num')">מס׳ משרה <span>&#8597;</span></th>
+            <th onclick="sortJobs('title')">כותרת <span>&#8597;</span></th>
+            <th onclick="sortJobs('client')">לקוח <span>&#8597;</span></th>
+            <th onclick="sortJobs('status')">סטטוס <span>&#8597;</span></th>
+            <th onclick="sortJobs('date')">תאריך יצירה <span>&#8597;</span></th>
+            <th onclick="sortJobs('screening')">רמת סינון <span>&#8597;</span></th>
+            <th onclick="sortJobs('total')">מתעניינים <span>&#8597;</span></th>
+            <th onclick="sortJobs('process')">בתהליך <span>&#8597;</span></th>
+            <th onclick="sortJobs('started')">התחילו לעבוד <span>&#8597;</span></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="jobsTbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
-        <div class="table-container">
-            <table id="jobsTable" class="data-table">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" id="selectAllJobs" onclick="toggleAllJobs(this)"></th>
-                        <th onclick="sortTable(0)">מס׳</th>
-                        <th onclick="sortTable(1)">כותרת</th>
-                        <th onclick="sortTable(2)">לקוח</th>
-                        <th onclick="sortTable(3)">סטטוס</th>
-                        <th onclick="sortTable(4)">תאריך יצירה</th>
-                        <th onclick="sortTable(5)">מתעניינים</th>
-                        <th onclick="sortTable(6)">בתהליך</th>
-                        <th onclick="sortTable(7)">התחילו</th>
-                    </tr>
-                </thead>
-                <tbody id="jobsTableBody">
-                </tbody>
-            </table>
+<!-- ===== JOB DETAIL ===== -->
+<div id="view-detail" class="hidden">
+  <div style="padding:0.75rem 1rem;">
+    <div class="subbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn" onclick="showList()"><i class="fa-solid fa-arrow-right" style="font-size:10px"></i> חזרה</button>
+        <div class="breadcrumb">
+          <a onclick="showList()">משרות</a>
+          <i class="fa-solid fa-chevron-left" style="font-size:9px"></i>
+          <span id="jBread"></span>
         </div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-export"><i class="fa-solid fa-download"></i> ייצוא</button>
+        <button class="btn btn-danger" id="jFreezeBtn"><i class="fa-solid fa-lock"></i> הקפא משרה</button>
+        <button class="btn btn-primary"><i class="fa-solid fa-pen"></i> עריכה</button>
+      </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="firebase.js"></script>
-    <script>
-        let allJobs = [];
-        let renderedJobs = [];
-        let sortState = { field: 'createdDate', dir: -1 };
+    <!-- Job Header -->
+    <div class="card" style="margin-bottom:8px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:8px;">
+        <div class="client-icon-lg"><i class="fa-solid fa-briefcase"></i></div>
+        <div style="flex:1;">
+          <div style="font-size:16px;font-weight:500;" id="jTitle"></div>
+          <div style="font-size:10px;color:var(--text-light);margin-top:2px;">לקוח: <a class="link" id="jClientLink" href="clients.html"></a></div>
+        </div>
+        <div style="text-align:left;">
+          <div style="font-size:24px;font-weight:500;color:var(--blue);" id="jNumber"></div>
+          <div style="font-size:10px;color:var(--text-light);">מספר משרה</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;padding-right:54px;" id="jPills"></div>
+    </div>
 
-        function safeText(value, fallback = '') {
-            return value === undefined || value === null || value === '' ? fallback : String(value);
-        }
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val" id="jStatTotal">0</div><div class="stat-label">מתעניינים</div><a class="stat-link">צפה</a></div>
+      <div class="stat-card"><div class="stat-val" id="jStatProcess">0</div><div class="stat-label">בתהליך</div><a class="stat-link">צפה</a></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--green);" id="jStatStarted">0</div><div class="stat-label">התחילו לעבוד</div><a class="stat-link">צפה</a></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--red);" id="jStatRejected">0</div><div class="stat-label">לא התקבלו</div><a class="stat-link">צפה</a></div>
+      <div class="stat-card"><div class="stat-val" id="jStatWaiting">0</div><div class="stat-label">ממתינים לסינון</div><a class="stat-link" href="process.html">עבור לסינון</a></div>
+    </div>
 
-        function getJobNumber(job, index) {
-            return job.number || job.num || job.jobNumber || (index + 1);
-        }
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" onclick="swTab('details',this)">פרטי משרה</div>
+      <div class="tab" onclick="swTab('cities',this)">ערים ואזורים</div>
+      <div class="tab" onclick="swTab('tags',this)">תגיות</div>
+      <div class="tab" onclick="swTab('candidates',this)">מועמדים למשרה</div>
+      <div class="tab" onclick="swTab('events',this)">אירועי משרה</div>
+      <div class="tab" onclick="swTab('publish',this)">פרסום</div>
+    </div>
+    <div class="tab-content">
 
-        function getJobTitle(job) {
-            return safeText(job.title || job.jobTitle || job.jobTypeName, 'ללא כותרת');
-        }
+      <!-- פרטי משרה -->
+      <div class="tab-pane active" id="tab-details">
+        <div class="two-col">
+          <div>
+            <div class="field-row"><div class="field-label">שם משרה</div><div class="field-val" id="jdTitle"></div></div>
+            <div class="field-row"><div class="field-label">לקוח</div><div class="field-val" id="jdClient"></div></div>
+            <div class="field-row"><div class="field-label">מס׳ משרה</div><div class="field-val" id="jdNum"></div></div>
+            <div class="field-row"><div class="field-label">קוד לפרסום</div><div class="field-val" id="jdCode"></div></div>
+            <div class="field-row"><div class="field-label">סטטוס</div><div class="field-val" id="jdStatus"></div></div>
+            <div class="field-row"><div class="field-label">סוג משרה</div><div class="field-val" id="jdType"></div></div>
+          </div>
+          <div>
+            <div class="field-row"><div class="field-label">תאריך יצירה</div><div class="field-val" id="jdCreated"></div></div>
+            <div class="field-row"><div class="field-label">עדכון אחרון</div><div class="field-val" id="jdUpdated"></div></div>
+            <div class="field-row"><div class="field-label">תאריך סגירה</div><div class="field-val empty">לא הוגדר</div></div>
+            <div class="field-row"><div class="field-label">רמת סינון ראשוני</div><div class="field-val" id="jdScreening"></div></div>
+            <div class="field-row"><div class="field-label">שיטת שליחה</div><div class="field-val" id="jdDelivery"></div></div>
+            <div class="field-row"><div class="field-label">ימי חזרה אחרי דחייה</div><div class="field-val" id="jdRejDays"></div></div>
+          </div>
+        </div>
+        <div class="section-title">תיאור משרה פנימי</div>
+        <div class="field-val tv" id="jdDesc"></div>
+      </div>
 
-        function getClientName(job) {
-            return safeText(job.clientName || job.client || job.customerName, 'לא ידוע');
-        }
+      <!-- ערים ואזורים -->
+      <div class="tab-pane" id="tab-cities">
+        <div class="cities-panel">
+          <div>
+            <div class="filter-bar" style="margin-bottom:6px;">
+              <div class="fiw" style="flex:1;"><input class="extra-input" id="citySearch" placeholder="חפש עיר או אזור..." oninput="searchCities(this.value)"><i class="fa-solid fa-search" style="position:absolute;left:6px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text-light);pointer-events:none;"></i></div>
+            </div>
+            <div style="font-size:10px;color:var(--blue);font-weight:500;margin-bottom:6px;" id="citiesCount">נבחרו 0 ישובים</div>
+            <div class="regions-list" id="regionsList"></div>
+          </div>
+          <div class="cities-right">
+            <div class="rs-title">סיכום בחירה</div>
+            <div class="saved-box" id="savedBox">
+              <div style="font-size:10px;color:var(--text-light);font-style:italic;">לא נשמרו ישובים</div>
+            </div>
+            <button class="preview-btn" onclick="showPreview()"><i class="fa-solid fa-list" style="font-size:10px;margin-left:4px;"></i> תצוגה מלאה לפני שמירה</button>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-primary" style="flex:1;" onclick="saveCities()">שמור</button>
+              <button class="btn" style="flex:1;" onclick="cancelCities()">ביטול</button>
+            </div>
+            <div style="border-top:0.5px solid var(--border);padding-top:8px;margin-top:4px;">
+              <div class="fp-label" style="margin-bottom:4px;">הוספה לפי רדיוס</div>
+              <input class="extra-input" id="radiusCity" placeholder="ישוב מרכזי..." style="margin-bottom:4px;">
+              <div style="display:flex;gap:5px;align-items:center;">
+                <input class="extra-input-sm" id="radiusKm" type="number" value="10" min="1" max="100">
+                <span style="font-size:9px;color:var(--text-light);">ק"מ</span>
+                <button class="btn btn-primary" style="flex:1;" onclick="addByRadius()">הוסף</button>
+              </div>
+              <div style="font-size:10px;min-height:14px;margin-top:3px;" id="radiusStatus"></div>
+            </div>
+            <div style="border-top:0.5px solid var(--border);padding-top:8px;">
+              <div class="fp-label" style="margin-bottom:4px;">הוספה בין ישובים</div>
+              <div style="display:flex;gap:5px;margin-bottom:4px;">
+                <input class="extra-input" id="fromCity" placeholder="מ-ישוב...">
+                <input class="extra-input" id="toCity" placeholder="ל-ישוב...">
+              </div>
+              <button class="btn btn-primary" style="width:100%;" onclick="addBetween()">הוסף ישובים שביניהם</button>
+              <div style="font-size:10px;min-height:14px;margin-top:3px;" id="betweenStatus"></div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        function getJobTypeName(job) {
-            const code = job.jobType || job.jobTypeCode || '';
-            const name = job.jobTypeName || job.typeName || '';
-            if (code && name) return `${code} – ${name}`;
-            return safeText(name || code || job.type, '');
-        }
+      <!-- תגיות -->
+      <div class="tab-pane" id="tab-tags">
+        <div class="section-title">תגיות</div>
+        <div id="jTagsList" style="padding:6px 0;"></div>
+        <button class="btn" style="margin-top:8px;"><i class="fa-solid fa-plus"></i> הוסף תגית</button>
+      </div>
 
-        function normalizeStatus(status) {
-            const s = safeText(status, 'open');
-            if (['open', 'פתוחה', 'פעילה'].includes(s)) return 'open';
-            if (['paused', 'מוקפאת', 'הוקפאה'].includes(s)) return 'paused';
-            if (['closed', 'סגורה'].includes(s)) return 'closed';
-            if (['deleted', 'מחוקה'].includes(s)) return 'deleted';
-            return s;
-        }
+      <!-- מועמדים למשרה -->
+      <div class="tab-pane" id="tab-candidates">
+        <div class="section-divider">תהליכים פעילים<span class="section-badge badge-active" id="jActiveCands">0 מועמדים</span></div>
+        <div id="jActiveCandsList"></div>
+        <div class="section-divider" style="margin-top:14px;">פניות ללא תהליך<span class="section-badge badge-pending" id="jPendingCands">0 מועמדים</span></div>
+        <div id="jPendingInfo"></div>
+        <div style="display:flex;gap:6px;margin-top:8px;">
+          <button class="btn btn-primary" onclick="window.location.href='process.html'"><i class="fa-solid fa-play"></i> פתח בתהליך ראשוני</button>
+        </div>
+      </div>
 
-        function statusLabel(status) {
-            const s = normalizeStatus(status);
-            if (s === 'open') return 'פתוחה';
-            if (s === 'paused') return 'מוקפאת';
-            if (s === 'closed') return 'סגורה';
-            if (s === 'deleted') return 'מחוקה';
-            return safeText(status, 'לא ידוע');
-        }
+      <!-- אירועי משרה -->
+      <div class="tab-pane" id="tab-events">
+        <div class="section-title">אירועי משרה</div>
+        <div id="jEventsList"></div>
+      </div>
 
-        function statusClass(status) {
-            const s = normalizeStatus(status);
-            if (s === 'open') return 'status-open';
-            if (s === 'paused') return 'status-paused';
-            if (s === 'closed') return 'status-closed';
-            return 'status-closed';
-        }
+      <!-- פרסום -->
+      <div class="tab-pane" id="tab-publish">
+        <div class="section-title">פרסומים פעילים</div>
+        <div id="jPublishList"></div>
+        <button class="btn btn-primary" style="margin-top:8px;"><i class="fa-solid fa-plus"></i> הוסף פרסום</button>
+      </div>
 
-        function toDateValue(value) {
-            if (!value) return null;
-            if (value.toDate && typeof value.toDate === 'function') return value.toDate();
-            if (value instanceof Date) return value;
-            const d = new Date(value);
-            return isNaN(d.getTime()) ? null : d;
-        }
+    </div>
+  </div>
+</div>
 
-        function formatDate(value) {
-            const d = toDateValue(value);
-            return d ? d.toLocaleDateString('he-IL') : '';
-        }
+<!-- CITIES PREVIEW MODAL -->
+<div id="previewModal" class="modal-overlay hidden">
+  <div class="modal" style="width:440px;max-height:520px;display:flex;flex-direction:column;">
+    <div class="modal-title">כל הישובים שנבחרו</div>
+    <div style="overflow-y:auto;flex:1;" id="previewBody"></div>
+    <div class="modal-footer">
+      <span style="font-size:11px;color:var(--text-light);" id="previewCount"></span>
+      <button class="btn" onclick="hideModal('previewModal')">סגור</button>
+    </div>
+  </div>
+</div>
 
-        function countField(job, ...names) {
-            for (const name of names) {
-                const val = job[name];
-                if (typeof val === 'number') return val;
-                if (typeof val === 'string' && val.trim() !== '' && !isNaN(Number(val))) return Number(val);
-            }
-            return 0;
-        }
+</div>
 
-        function renderJobs() {
-            const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
-            const statusFilter = document.getElementById('statusFilter').value;
-            const tbody = document.getElementById('jobsTableBody');
+<script>
+// ── JOBS DATA ──
+window.JOBS = [
+  {num:48,title:'שליח שכיר',client:'מוקד מגדל העמק',status:'פתוחה',date:'11/12/2025',updated:'24/02/2026',screening:'טלפוני',delivery:'לא',code:'516119',type:'שליח שכיר (1002)',rejDays:90,total:172,process:4,started:10,rejected:3,waiting:158,desc:'לחברה דרושים שליחים למשרה מלאה וקבועה\nמקבלים רכב צמוד עם דלקן\nשכר בסיסי 37 ש"ח + בונוסים\nרישיון מעל שנה ומעל גיל 21',tags:['שליח','רכב צמוד','משרה מלאה'],events:[{text:'משרה נפתחה',date:'11/12/2025',user:'שי דהן',color:'var(--blue)'},{text:'עודכנו ערים ואזורים',date:'15/01/2026',user:'נטלי',color:'var(--orange)'},{text:'10 מועמדים התחילו לעבוד',date:'24/02/2026',user:'אוטומטי',color:'var(--green)'}],publish:[{platform:'דרושים.co.il',date:'11/12/2025',status:'פעיל'},{platform:'פייסבוק לידים',date:'15/12/2025',status:'פעיל'}],activeCands:[{name:'אברהם בסול',city:'כפר כנא',status:'נשלח ביטחון',date:'15/05/2026',av:'אב',avColor:'#b5720a'},{name:'דנה לוי',city:'ירושלים',status:'התחיל לעבוד',date:'07/05/2026',av:'דל',avColor:'#0e7a55'}]},
+  {num:47,title:'שליח עצמאי (קבלן)',client:'מוקד מגדל העמק',status:'פתוחה',date:'11/12/2025',updated:'15/01/2026',screening:'טלפוני',delivery:'לא',code:'565541',type:'שליח עצמאי (1001)',rejDays:90,total:153,process:5,started:15,rejected:2,waiting:131,desc:'דרוש שליח עצמאי לסניפי דואר\nרכב פרטי חובה\nעבודה עצמאית גמישה',tags:['שליח','רכב פרטי','עצמאי'],events:[{text:'משרה נפתחה',date:'11/12/2025',user:'שי דהן',color:'var(--blue)'}],publish:[{platform:'דרושים.co.il',date:'11/12/2025',status:'פעיל'}],activeCands:[]},
+  {num:46,title:'עובד מיון',client:'מוקד מגדל העמק',status:'מוקפאת',date:'11/12/2025',updated:'11/12/2025',screening:'טלפוני',delivery:'לא',code:'962299',type:'עובד מיון (1000)',rejDays:90,total:144,process:0,started:0,rejected:0,waiting:144,desc:'עובד מיון למרכז לוגיסטי',tags:['מיון'],events:[{text:'משרה נפתחה',date:'11/12/2025',user:'שי דהן',color:'var(--blue)'},{text:'משרה הוקפאה',date:'20/01/2026',user:'שי דהן',color:'var(--red)'}],publish:[],activeCands:[]},
+  {num:25,title:'עובד מיון',client:'מוקד חיפה',status:'פתוחה',date:'10/12/2025',updated:'01/03/2026',screening:'טלפוני',delivery:'לא',code:'828147',type:'עובד מיון (1000)',rejDays:90,total:828,process:0,started:15,rejected:5,waiting:808,desc:'עובד מיון למוקד חיפה',tags:['מיון','חיפה'],events:[{text:'משרה נפתחה',date:'10/12/2025',user:'שי דהן',color:'var(--blue)'}],publish:[{platform:'פייסבוק לידים',date:'10/12/2025',status:'פעיל'}],activeCands:[]},
+];
 
-            renderedJobs = allJobs.filter(job => {
-                const status = normalizeStatus(job.status);
-                if (status === 'deleted') return false;
-                if (statusFilter && status !== statusFilter) return false;
-                if (!searchTerm) return true;
-                const haystack = [
-                    getJobNumber(job, 0),
-                    getJobTitle(job),
-                    getClientName(job),
-                    getJobTypeName(job),
-                    statusLabel(job.status)
-                ].join(' ').toLowerCase();
-                return haystack.includes(searchTerm);
-            });
+let filtered = [...JOBS];
+let sortCol = 'num', sortDir = -1;
 
-            sortJobsInMemory();
+function statusClass(s) {
+  if(s==='פתוחה') return 'pill-green';
+  if(s==='מוקפאת') return 'pill-orange';
+  return 'pill-red';
+}
 
-            if (!renderedJobs.length) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:#777;">לא נמצאו משרות להצגה</td></tr>';
-                return;
-            }
+window.renderJobs = function renderJobs(list) {
+  const tb = document.getElementById('jobsTbody');
+  tb.innerHTML = list.map(j => `
+    <tr>
+      <td><input type="checkbox"></td>
+      <td style="font-weight:500;">${j.num}</td>
+      <td><a class="link" onclick="openJob(${j.num})">${j.title}</a></td>
+      <td><a class="link" href="clients.html">${j.client}</a></td>
+      <td><span class="pill ${statusClass(j.status)}">${j.status}</span></td>
+      <td>${j.date}</td>
+      <td>${j.screening}</td>
+      <td><a class="link" style="color:var(--blue);font-weight:500;" onclick="openJobTab(${j.num},'candidates','waiting')">${j.total}</a></td>
+      <td><a class="link" style="color:var(--blue);font-weight:500;" onclick="openJobTab(${j.num},'candidates','active')">${j.process}</a></td>
+      <td><a class="link" style="color:var(--green);font-weight:500;" onclick="openJobTab(${j.num},'candidates','started')">${j.started}</a></td>
+      <td><button class="btn" style="padding:2px 6px;"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+    </tr>`).join('');
+  document.getElementById('jobCount').textContent = list.length;
+}
 
-            tbody.innerHTML = renderedJobs.map((j, index) => {
-                const jobNumber = getJobNumber(j, index);
-                const waiting = countField(j, 'waitingCount', 'interestedCount', 'matchesCount', 'pendingScreeningCount');
-                const inProcess = countField(j, 'processCount', 'inProcessCount', 'activeProcessCount');
-                const hired = countField(j, 'hiredCount', 'startedCount');
-                const created = j.createdDate || j.createdAt || j.created;
+function filterJobs() {
+  const s = document.getElementById('srch').value.toLowerCase();
+  const st = document.getElementById('fStatus').value;
+  const cl = document.getElementById('fClient').value;
+  const sc = document.getElementById('fScreen').value;
+  filtered = JOBS.filter(j => {
+    if(s && !j.title.toLowerCase().includes(s) && !j.client.toLowerCase().includes(s)) return false;
+    if(st && j.status !== st) return false;
+    if(cl && j.client !== cl) return false;
+    if(sc && j.screening !== sc) return false;
+    return true;
+  });
+  doSort();
+}
 
-                return `
-                    <tr onclick="openJob('${j.id}')">
-                        <td onclick="event.stopPropagation()"><input type="checkbox" class="job-checkbox" value="${j.id}"></td>
-                        <td>${jobNumber}</td>
-                        <td>${getJobTitle(j)}</td>
-                        <td>${getClientName(j)}</td>
-                        <td><span class="status-badge ${statusClass(j.status)}">${statusLabel(j.status)}</span></td>
-                        <td>${formatDate(created)}</td>
-                        <td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList('waiting', '${j.id}')">${waiting}</span></td>
-                        <td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList('inProcess', '${j.id}')">${inProcess}</span></td>
-                        <td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList('hired', '${j.id}')">${hired}</span></td>
-                    </tr>
-                `;
-            }).join('');
-        }
+function sortJobs(col) {
+  if(sortCol===col) sortDir*=-1; else {sortCol=col;sortDir=1;}
+  doSort();
+}
 
-        function sortJobsInMemory() {
-            const field = sortState.field;
-            const dir = sortState.dir;
-            renderedJobs.sort((a, b) => {
-                let av, bv;
-                if (field === 'number') {
-                    av = Number(getJobNumber(a, 0)) || 0;
-                    bv = Number(getJobNumber(b, 0)) || 0;
-                } else if (field === 'title') {
-                    av = getJobTitle(a);
-                    bv = getJobTitle(b);
-                } else if (field === 'client') {
-                    av = getClientName(a);
-                    bv = getClientName(b);
-                } else if (field === 'status') {
-                    av = statusLabel(a.status);
-                    bv = statusLabel(b.status);
-                } else if (field === 'createdDate') {
-                    av = (toDateValue(a.createdDate || a.createdAt || a.created) || new Date(0)).getTime();
-                    bv = (toDateValue(b.createdDate || b.createdAt || b.created) || new Date(0)).getTime();
-                } else if (field === 'waiting') {
-                    av = countField(a, 'waitingCount', 'interestedCount', 'matchesCount', 'pendingScreeningCount');
-                    bv = countField(b, 'waitingCount', 'interestedCount', 'matchesCount', 'pendingScreeningCount');
-                } else if (field === 'process') {
-                    av = countField(a, 'processCount', 'inProcessCount', 'activeProcessCount');
-                    bv = countField(b, 'processCount', 'inProcessCount', 'activeProcessCount');
-                } else if (field === 'hired') {
-                    av = countField(a, 'hiredCount', 'startedCount');
-                    bv = countField(b, 'hiredCount', 'startedCount');
-                }
+function doSort() {
+  filtered.sort((a,b) => {
+    let av=a[sortCol]||'', bv=b[sortCol]||'';
+    if(typeof av==='number') return (av-bv)*sortDir;
+    return String(av).localeCompare(String(bv),'he')*sortDir;
+  });
+  renderJobs(filtered);
+}
 
-                if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir;
-                return String(av || '').localeCompare(String(bv || ''), 'he') * dir;
-            });
-        }
+function openJob(num) {
+  const j = JOBS.find(x => x.num === num);
+  if(!j) return;
+  loadDetail(j);
+  document.getElementById('view-list').classList.add('hidden');
+  document.getElementById('view-detail').classList.remove('hidden');
+}
 
-        function sortTable(colIndex) {
-            const fields = ['number', 'title', 'client', 'status', 'createdDate', 'waiting', 'process', 'hired'];
-            const field = fields[colIndex] || 'createdDate';
-            if (sortState.field === field) {
-                sortState.dir *= -1;
-            } else {
-                sortState.field = field;
-                sortState.dir = field === 'createdDate' ? -1 : 1;
-            }
-            renderJobs();
-        }
+function showList() {
+  document.getElementById('view-list').classList.remove('hidden');
+  document.getElementById('view-detail').classList.add('hidden');
+}
 
-        function openJob(jobId) {
-            const job = allJobs.find(j => j.id === jobId);
-            if (!job) return;
-            sessionStorage.setItem('jobData', JSON.stringify(job));
-            sessionStorage.setItem('jobId', jobId);
-            window.location.href = 'job.html';
-        }
+function loadDetail(j) {
+  document.getElementById('jBread').textContent = j.num + ' – ' + j.title;
+  document.getElementById('jTitle').textContent = j.title;
+  document.getElementById('jClientLink').textContent = j.client;
+  document.getElementById('jNumber').textContent = j.num;
+  const sc = statusClass(j.status);
+  document.getElementById('jPills').innerHTML =
+    '<span class="pill ' + sc + '">' + j.status + '</span>' +
+    '<span class="pill pill-gray"><i class="fa-regular fa-calendar" style="font-size:9px"></i> נוצרה ' + j.date + '</span>' +
+    '<span class="pill pill-gray"><i class="fa-solid fa-rotate" style="font-size:9px"></i> עודכנה ' + j.updated + '</span>' +
+    '<span class="pill pill-gray"><i class="fa-solid fa-phone" style="font-size:9px"></i> ' + j.screening + '</span>';
 
-        function openCandidatesList(type, jobId) {
-            sessionStorage.setItem('filterType', type);
-            sessionStorage.setItem('filterJobId', jobId);
-            window.location.href = 'candidates.html';
-        }
+  document.getElementById('jStatTotal').textContent = j.total;
+  document.getElementById('jStatProcess').textContent = j.process;
+  document.getElementById('jStatStarted').textContent = j.started;
+  document.getElementById('jStatRejected').textContent = j.rejected;
+  document.getElementById('jStatWaiting').textContent = j.waiting;
 
+  document.getElementById('jdTitle').textContent = j.title;
+  document.getElementById('jdClient').textContent = j.client;
+  document.getElementById('jdNum').textContent = j.num;
+  document.getElementById('jdCode').textContent = j.code;
+  document.getElementById('jdStatus').innerHTML = '<span class="pill ' + sc + '">' + j.status + '</span>';
+  document.getElementById('jdType').textContent = j.type;
+  document.getElementById('jdCreated').textContent = j.date;
+  document.getElementById('jdUpdated').textContent = j.updated;
+  document.getElementById('jdScreening').textContent = j.screening;
+  document.getElementById('jdDelivery').textContent = j.delivery;
+  document.getElementById('jdRejDays').textContent = j.rejDays + ' ימים';
+  document.getElementById('jdDesc').textContent = j.desc;
 
-        function toggleAllJobs(source) {
-            document.querySelectorAll('.job-checkbox').forEach(cb => cb.checked = source.checked);
-        }
+  // Tags
+  document.getElementById('jTagsList').innerHTML = (j.tags||[]).map(t =>
+    '<span class="tag tag-blue">' + t + '</span>').join('');
 
-        async function deleteSelectedJobs() {
-            const ids = Array.from(document.querySelectorAll('.job-checkbox:checked')).map(cb => cb.value);
-            if (!ids.length) {
-                alert('לא נבחרו משרות למחיקה');
-                return;
-            }
-            if (!confirm('למחוק ' + ids.length + ' משרות מסומנות?')) return;
-            try {
-                const batch = firestore.batch();
-                ids.forEach(id => batch.update(firestore.collection('jobs').doc(id), { status: 'deleted', deletedAt: new Date() }));
-                await batch.commit();
-                const all = document.getElementById('selectAllJobs');
-                if (all) all.checked = false;
-                alert('המשרות נמחקו');
-            } catch (err) {
-                console.error('Delete jobs error:', err);
-                alert('שגיאה במחיקת משרות: ' + err.message);
-            }
-        }
+  // Active candidates
+  const ac = j.activeCands || [];
+  document.getElementById('jActiveCands').textContent = ac.length + ' מועמדים';
+  document.getElementById('jActiveCandsList').innerHTML = ac.map(c =>
+    '<div class="job-row">' +
+    '<div class="avatar-sm" style="background:rgba(30,52,97,0.12);color:' + c.avColor + ';">' + c.av + '</div>' +
+    '<div style="flex:1;"><div style="font-size:11px;font-weight:500;"><a class="link" href="candidate.html">' + c.name + '</a></div>' +
+    '<div style="font-size:10px;color:var(--text-light);">' + c.city + '</div></div>' +
+    '<span class="pill ' + (c.status.includes('התחיל')?'pill-green':c.status.includes('ביטחון')?'pill-blue':'pill-orange') + '">' + c.status + '</span>' +
+    '<span style="font-size:10px;color:var(--text-light);">' + c.date + '</span></div>'
+  ).join('') || '<div style="font-size:11px;color:var(--text-light);padding:8px 0;">אין מועמדים בתהליך פעיל</div>';
 
-        function loadJobsFromFirestore() {
-            if (!window.firestore) {
-                document.getElementById('jobsTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:#dc3545;">שגיאה: Firebase לא נטען</td></tr>';
-                return;
-            }
+  document.getElementById('jPendingCands').textContent = j.waiting + ' מועמדים';
+  document.getElementById('jPendingInfo').innerHTML =
+    '<div style="font-size:11px;color:var(--text-light);padding:8px 0;">' + j.waiting + ' מועמדים ממתינים לסינון ראשוני</div>';
 
-            // Important: no Firestore where/orderBy combination here, to avoid index errors.
-            firestore.collection('jobs').onSnapshot(snapshot => {
-                allJobs = snapshot.docs.map((doc, index) => ({ id: doc.id, _index: index, ...doc.data() }));
-                renderJobs();
-            }, error => {
-                console.error('Error loading jobs:', error);
-                document.getElementById('jobsTableBody').innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px;color:#dc3545;">שגיאה בטעינת משרות: ${error.message}</td></tr>`;
-            });
-        }
+  // Events
+  document.getElementById('jEventsList').innerHTML = (j.events||[]).map(ev =>
+    '<div class="tl-item">' +
+    '<div class="tl-dot" style="background:' + ev.color + ';"></div>' +
+    '<div><div class="tl-status">' + ev.text + '</div>' +
+    '<div class="tl-meta">' + ev.date + ' · ' + ev.user + '</div></div></div>'
+  ).join('');
 
-        document.getElementById('searchInput').addEventListener('input', renderJobs);
-        document.getElementById('statusFilter').addEventListener('change', renderJobs);
+  // Publish
+  document.getElementById('jPublishList').innerHTML = (j.publish||[]).map(p =>
+    '<div style="background:var(--bg);border:0.5px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">' +
+    '<div><div style="font-size:11px;font-weight:500;">' + p.platform + '</div>' +
+    '<div style="font-size:10px;color:var(--text-light);">פורסם ' + p.date + '</div></div>' +
+    '<span class="pill pill-green">' + p.status + '</span></div>'
+  ).join('') || '<div style="font-size:11px;color:var(--text-light);padding:8px 0;">אין פרסומים פעילים</div>';
 
-        loadJobsFromFirestore();
-    </script>
+  // Freeze btn
+  document.getElementById('jFreezeBtn').textContent = j.status === 'מוקפאת' ? '  בטל הקפאה' : '  הקפא משרה';
+  document.getElementById('jFreezeBtn').innerHTML = '<i class="fa-solid ' + (j.status==='מוקפאת'?'fa-lock-open':'fa-lock') + '"></i> ' + (j.status==='מוקפאת'?'בטל הקפאה':'הקפא משרה');
+
+  // Reset tabs
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active',i===0));
+  document.querySelectorAll('.tab-pane').forEach((p,i) => p.classList.toggle('active',i===0));
+
+  // Init cities tab
+  pendingCities = REGIONS.map(r => r.cities.map(() => false));
+  savedCities = REGIONS.map(r => r.cities.map(() => false));
+  openRegions = new Set();
+  buildRegions('');
+}
+
+function swTab(id, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
+
+function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
+document.querySelector('.modal-overlay').addEventListener('click', function(e) { if(e.target===this) this.classList.add('hidden'); });
+
+// ── CITIES ──
+const REGIONS = [
+  {name:'הקריות',cities:['קרית אתא','קרית ביאליק','קרית ים','קרית מוצקין','אושה','אפק','יסעור','כפר ביאליק','כפר המכבי','כפר מסריק','עין המפרץ','רמת יוחנן']},
+  {name:'חיפה, טירת כרמל ונשר',cities:['חיפה','טירת כרמל','נשר']},
+  {name:'כרמיאל והסביבה',cities:['כרמיאל','עראבה','שפרעם','אחיהוד','גילון','דייר חנא','הררית','חנתון','טורעאן','טמרה','יובלים','יודפת','יעד','כאבול','כלנית','כמאנה','כפר חנניה','כפר מנדא','לוטם','מגאר','מורן','מכמנים','מנוף','מסד','מצפה נטופה','סחנין','סלמה','עיילבון','עין דור','עצמון שגב','קדרים','קורנית','ראס אל-עין','רומת הייב','רקפת','שדה אילן','שורשים','שכניה','שעב']},
+  {name:'נצרת, מגדל העמק והסביבה',cities:['נצרת','מגדל העמק','נוף הגליל','קרית טבעון','רמת ישי','אכסאל','יפיע','משהד','כפר כנא','אורנים','אילניה','אלון הגליל','אלוני אבא','אלונים','בית לחם הגלילית','בסמת טבעון','גבעת אלה','גבת','גיניגר','דבוריה','דברת','הושעיה','כדורי','כפר ברוך','כפר גדעון','כפר יהושע','מזרע','נהלל','נופית','ניין','עדי','עילוט','עין מאהל','ציפורי','ריינה','רכסים','רמת דוד','שדה יעקב','שמשית','שריד','תל עדשים','תמרת']},
+  {name:'עפולה והסביבה',cities:['עפולה','בית אלפא','בית השיטה','גבע','גדיש','גדעונה','גזית','גן נר','דבורה','חמדיה','חפצי-בה','יזרעאל','יעל','ירדנה','כפר יחזקאל','כפר קיש','מגן שאול','מולדת','מרחביה (מושב)','מרחביה (קיבוץ)','נאעורה','נווה אור','נורית','ניר יפה','סולם','עין חרוד (איחוד)','עין חרוד (מאוחד)','פרזון','צנדלה','רם-און','רמת צבי','שדה נחום','תל יוסף']},
+  {name:'טבריה והסביבה',cities:['טבריה','כפר כמא','כפר תבור','אלומות','אפיקים','ארבל','גינוסר','יבנאל','לביא','מגדל','מנחמיה','פוריה עילית','רביד','שדמות דבורה','שעורים','שער הגולן','שרונה']},
+  {name:'נהריה, עכו והסביבה',cities:['נהריה','עכו','אבו סנאן','אבירים','אדמית','אילון','אשרת','בוסתן הגליל','בית העמק','בן עמי','בענה','בצת','גורן','גיתה','גשר הזיו','דייר אל-אסד','הילה','חוסן','חורפיש','חלוץ','חניתה','חרשים','יחיעם','יערה','כברי','כישור','כליל','כפר ורדים','כפר יאסיף','לבון','לוחמי הגיטאות','לימן','לפידות','מגד אל-כרום','מזרעה','מנות','מעונה','מעיליא','מצובה','מתת','נחף','נטועה','נס עמים','סאסא','סער','עבדון','עברון','עין יעקב','עמקה','פלך','פסוטה','פקיעין','צוריאל','ראמה','רגבה','שבי ציון','שומרה','שלומי','שמרת','שתולה']},
+  {name:'צפת, חצור והסביבה',cities:['חצור הגלילית','צפת','אביבים','אור הגנוז','איילת השחר','אליפלט','אמירים','ביריה','בר יוחאי','ברעם','גדות','דישון','דלתון','חולתה','טובא-זנגריה','יסוד המעלה','יראון','כדיתה','כורזים','כפר הנשיא','כפר חושן','כפר שמאי','כרם בן זמרה','מחניים','מירון','משמר הירדן','עין אל-אסד','עלמה','עמוקה','עמיעד','פרוד','צבעון','ראש פינה','ריחאניה','שדה אליעזר','שפר']},
+  {name:'קרית שמונה והסביבה',cities:['קרית שמונה','בית הלל','גונן','דן','דפנה','הגושרים','יובל','יפתח','כפר בלום','כפר גלעדי','כפר סאלד','להבות הבשן','מטולה','מלכיה','מנרה','מסעדה','מעין ברוך','מרגליות','מרום גולן','משגב עם','נאות מרדכי','נמרוד','עמיר','קלע','רמות נפתלי','שדה נחמיה','שמיר','שניר']},
+  {name:'ירושלים והסביבה',cities:['ירושלים','מעלה אדומים','משמר יהודה','רמת רחל','בית שמש','ביתר עילית','גבעת זאב','מבשרת ציון','אבו גוש']},
+  {name:'תל-אביב - יפו',cities:['תל אביב - יפו']},
+  {name:'ראשון לציון, חולון, בת-ים',cities:['חולון','ראשון לציון','בת ים','אזור','בית דגן','מקווה ישראל','משמר השבעה']},
+  {name:'רמת גן, גבעתיים, בני ברק',cities:['רמת גן','בני ברק','גבעתיים']},
+  {name:'פתח תקווה, ראש העין והסביבה',cities:['פתח תקווה','ראש העין','אורנית','גבעת השלושה','חגור','חורשים','כפר ברא','כפר קאסם','עינת']},
+  {name:'נתניה והסביבה',cities:['נתניה','אבן יהודה','כפר יונה','פרדסיה','קדימה-צורן','תל מונד','אביחיל','בית יהושע','בית ינאי','ביתן אהרן','בני דרור','גאולים','גנות הדר','חבצלת השרון','חופית','חירות','טייבה','יד חנה','כפר הס','כפר ויתקין','כפר חיים','כפר נטר','מעברות','נורדיה','עין ורד','עין שריד','פורת','צוקי ים','צור משה','קלנסווה','שבי שומרון','שפיים','תל יצחק','תנובות']},
+  {name:'הרצליה והסביבה',cities:['הרצליה','כפר סבא','הוד השרון','כוכב יאיר','רמת השרון','רעננה','אייל','ארסוף','בית ברל','בני ציון','גליל ים','גן חיים','גני עם','חרוצים','טירה','יקום','ירחיב','כפר מל"ל','כפר שמריהו','משמרת','מתן','ניר אליהו','נירית','צופים','צופית','צור יצחק','צור נתן','רמות השבים','רמת הכובש','רשפון']},
+  {name:'חדרה והסביבה',cities:['חדרה','באקה אל-גרביה','אחיטוב','אליכין','אלישיב','בית חגלה','בית חירות','גבעת חיים (איחוד)','גבעת חיים (מאוחד)','גן השומרון','גן יאשיה','המעפיל','העוגן','זמר','חגלה','חיננית','חריש','חרמש','כפר הרא"ה','להבות חביבה','מאור','מבוא דותן','מבואות ים','מגל','מכמורת','מענית','מצפה אילן','משמר השרון','עין החורש','עין שמר','שדה יצחק','שקד','תלמי אלעזר']},
+  {name:'אשדוד והסביבה',cities:['אשדוד','גן יבנה','קרית מלאכי','ביצרון','בית חלקיה','בית רבן','בני דרום','גן הדרום','גני טל','חפץ חיים','חצור-אשדוד','יד בנימין','ניר גלים','קבוצת יבנה']},
+  {name:'אשקלון והסביבה',cities:['אשקלון','אור הנר','ארז','באר גנים','בית שקמה','ברכיה','גברעם','הודיה','זיקים','חלץ','יד מרדכי','כוכב מיכאל','כפר סילבר','כרמיה','מבקיעים','משען','ניצן','ניצנים','ניר ישראל','נתיב העשרה','תלמי יפה']},
+  {name:'באר שבע והסביבה',cities:['באר שבע','חורה','מיתר','עומר','גבולות','דקל','חולית','חצרים','יבול','ישע','כרם שלום','כרמים','לקיה','מבטחים','נבטים','נווה','ניר יצחק','סופה','עמיעוז','פרי גן','צאלים','שגב-שלום','שלומית','תל שבע','תלמי אליהו','תלמי יוסף']},
+  {name:'נתיבות, שדרות, אופקים והסביבה',cities:['אופקים','להבים','נתיבות','רהט','שדרות','אורים','אשל הנשיא','בארי','בטחה','בית הגדי','בית קמה','ברוש','גבים','גבעולים','גילת','דבירה','דורות','זמרת','זרועה','יכיני','כיסופים','כפר מימון','כפר עזה','להב','מבועים','מגן','מלילות','מסלול','מעגלים','מפלסים','משמר הנגב','נחל עוז','ניר משה','ניר עוז','ניר עם','ניר עקיבא','נירים','סעד','עין הבשור','עלומים','פדויים','פטיש','קלחים','רוחמה','רנן','רעים','שבי דרום','שדה צבי','שובה','שובל','שומריה','שיבולים','תפרח','תקומה']},
+  {name:'רחובות והסביבה',cities:['רחובות','יבנה','נס ציונה','אירוס','בית גמליאל','בית חנן','גבעת ברנר','גיבתון','גן שורק','גן שלמה','כפר מרדכי','נטעים','נצר סרני','עיינות','עשרת','פלמחים','שדמה']},
+  {name:'רמלה, לוד והסביבה',cities:['באר יעקב','לוד','רמלה','אחיעזר','זיתן','יגל','ניר צבי']},
+  {name:'אילת וחבל אילות',cities:['אילת','אילות','אליפז','באר אורה','גרופית','יהל','יטבתה','לוטן','נאות סמדר','נווה חריף','סמר','קטורה','שחרות','שיטים']},
+];
+
+const cityCoords = {'חיפה':[32.794,34.989],'קרית אתא':[32.808,35.107],'קרית ביאליק':[32.834,35.075],'קרית ים':[32.852,35.071],'קרית מוצקין':[32.836,35.076],'נשר':[32.775,35.039],'טירת כרמל':[32.762,34.972],'עכו':[32.924,35.083],'נהריה':[33.006,35.098],'כרמיאל':[32.916,35.296],'נצרת':[32.701,35.297],'מגדל העמק':[32.674,35.241],'עפולה':[32.706,35.289],'טבריה':[32.793,35.531],'ירושלים':[31.782,35.218],'באר שבע':[31.245,34.792],'אשדוד':[31.802,34.644],'אשקלון':[31.667,34.571],'רחובות':[31.894,34.811],'נתניה':[32.333,34.860],'הרצליה':[32.166,34.843],'ראשון לציון':[31.972,34.789],'חולון':[32.011,34.773],'בת ים':[32.018,34.753],'רמת גן':[32.082,34.814],'בני ברק':[32.084,34.834],'גבעתיים':[32.071,34.813],'תל אביב - יפו':[32.087,34.798],'לוד':[31.951,34.895],'רמלה':[31.927,34.868],'נס ציונה':[31.930,34.797],'יבנה':[31.876,34.743],'ערד':[31.261,35.212],'אילת':[29.558,34.952],'כפר סבא':[32.175,34.906],'הוד השרון':[32.151,34.889],'חדרה':[32.434,34.920],'פתח תקווה':[32.087,34.888],'ראש העין':[32.095,34.952],'בית שמש':[31.752,34.987],'קרית שמונה':[33.208,35.571],'צפת':[32.965,35.497],'שדרות':[31.525,34.597],'נתיבות':[31.421,34.589],'אופקים':[31.312,34.621],'יקנעם עילית':[32.659,35.103],'נוף הגליל':[32.705,35.304],'קרית טבעון':[32.722,35.133],'רמת השרון':[32.147,34.838]};
+
+let pendingCities = [], savedCities = [], openRegions = new Set();
+
+function buildRegions(term) {
+  const list = document.getElementById('regionsList');
+  if(!list) return;
+  list.innerHTML = '';
+  const t = term.trim().toLowerCase();
+  REGIONS.forEach((r, ri) => {
+    const mc = t ? r.cities.filter(c => c.toLowerCase().includes(t)) : r.cities;
+    const rm = t && r.name.toLowerCase().includes(t);
+    if(t && mc.length===0 && !rm) return;
+    const allSel = pendingCities[ri] && pendingCities[ri].every(s=>s);
+    const someSel = pendingCities[ri] && pendingCities[ri].some(s=>s);
+    const isOpen = openRegions.has(ri) || (t && (mc.length>0||rm));
+    const selCount = pendingCities[ri] ? pendingCities[ri].filter(s=>s).length : 0;
+    const div = document.createElement('div');
+    div.className = 'region-item';
+    const hdr = document.createElement('div');
+    hdr.className = 'region-header';
+    hdr.innerHTML = '<input type="checkbox" class="region-cb" onclick="event.stopPropagation();toggleRegion(' + ri + ',this.checked)"><span class="region-name">' + r.name + '</span><span class="region-count">' + (selCount>0?selCount+'/':'') + r.cities.length + '</span><i class="fa-solid fa-chevron-down region-toggle' + (isOpen?' open':'') + '"></i>';
+    const cb = hdr.querySelector('.region-cb');
+    cb.checked = allSel;
+    cb.indeterminate = someSel && !allSel;
+    hdr.addEventListener('click', () => { if(openRegions.has(ri)) openRegions.delete(ri); else openRegions.add(ri); buildRegions(document.getElementById('citySearch').value||''); });
+    const cl = document.createElement('div');
+    cl.className = 'cities-list' + (isOpen?' open':'');
+    const toShow = t ? r.cities.map((c,i)=>({c,i})).filter(({c})=>c.toLowerCase().includes(t)||rm) : r.cities.map((c,i)=>({c,i}));
+    toShow.forEach(({c,i}) => {
+      const cd = document.createElement('div');
+      cd.className = 'city-item';
+      const hl = t && c.toLowerCase().includes(t);
+      cd.innerHTML = '<input type="checkbox" class="city-cb" ' + (pendingCities[ri]&&pendingCities[ri][i]?'checked':'') + ' onchange="toggleCity(' + ri + ',' + i + ',this.checked)"><span class="city-name' + (hl?' hl':'') + '">' + c + '</span>';
+      cl.appendChild(cd);
+    });
+    div.appendChild(hdr); div.appendChild(cl); list.appendChild(div);
+  });
+  updateCount();
+}
+
+function toggleRegion(ri, checked) { if(pendingCities[ri]) pendingCities[ri] = pendingCities[ri].map(()=>checked); buildRegions(document.getElementById('citySearch').value||''); }
+function toggleCity(ri, ci, checked) { if(pendingCities[ri]) pendingCities[ri][ci]=checked; buildRegions(document.getElementById('citySearch').value||''); }
+function searchCities(v) { if(v.trim()) openRegions=new Set(REGIONS.map((_,i)=>i)); buildRegions(v); }
+function updateCount() {
+  const t = pendingCities.reduce((s,r)=>s+(r?r.filter(x=>x).length:0),0);
+  const el = document.getElementById('citiesCount');
+  if(el) el.textContent = 'נבחרו ' + t + ' ישובים (לפני שמירה)';
+}
+function saveCities() {
+  savedCities = pendingCities.map(r=>r?r.map(s=>s):[]);
+  renderSaved();
+}
+function cancelCities() { pendingCities = savedCities.map(r=>r?r.map(s=>s):[]); buildRegions(''); }
+function renderSaved() {
+  const box = document.getElementById('savedBox');
+  let html='', total=0;
+  REGIONS.forEach((r,ri)=>{
+    const sel = r.cities.filter((_,i)=>savedCities[ri]&&savedCities[ri][i]);
+    if(!sel.length) return;
+    total+=sel.length;
+    html+='<div class="saved-region-name">'+r.name+' ('+sel.length+')</div><div class="saved-cities-text">'+sel.join(', ')+'</div>';
+  });
+  box.innerHTML = html || '<div style="font-size:10px;color:var(--text-light);font-style:italic;">לא נשמרו ישובים</div>';
+}
+function showPreview() {
+  const body = document.getElementById('previewBody');
+  body.innerHTML=''; let total=0;
+  REGIONS.forEach((r,ri)=>{
+    const sel = r.cities.filter((_,i)=>pendingCities[ri]&&pendingCities[ri][i]);
+    if(!sel.length) return;
+    total+=sel.length;
+    const d=document.createElement('div'); d.className='modal-region';
+    d.innerHTML='<div class="modal-region-name">'+r.name+' ('+sel.length+')</div><div class="modal-cities-text">'+sel.join(' · ')+'</div>';
+    body.appendChild(d);
+  });
+  if(!total) body.innerHTML='<div style="font-size:12px;color:var(--text-light);padding:1rem 0;">לא נבחרו ישובים</div>';
+  document.getElementById('previewCount').textContent='סה"כ: '+total+' ישובים';
+  document.getElementById('previewModal').classList.remove('hidden');
+}
+
+function calcDist(lat1,lon1,lat2,lon2){const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
+
+async function addByRadius(){
+  const city=document.getElementById('radiusCity').value.trim();
+  const km=parseFloat(document.getElementById('radiusKm').value)||10;
+  const status=document.getElementById('radiusStatus');
+  if(!city){status.textContent='יש להזין ישוב';status.style.color='var(--red)';return;}
+  status.textContent='מחפש...';status.style.color='var(--text-light)';
+  try{
+    const res=await fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(city+', ישראל')+'&format=json&limit=1',{headers:{'Accept-Language':'he'}});
+    const data=await res.json();
+    if(!data.length){status.textContent='לא נמצא הישוב';status.style.color='var(--red)';return;}
+    const lat=parseFloat(data[0].lat),lon=parseFloat(data[0].lon);
+    let added=0;
+    REGIONS.forEach((r,ri)=>{r.cities.forEach((c,ci)=>{if(pendingCities[ri]&&pendingCities[ri][ci])return;const coord=cityCoords[c];if(!coord)return;if(calcDist(lat,lon,coord[0],coord[1])<=km){pendingCities[ri][ci]=true;added++;}});});
+    status.textContent=added>0?'נוספו '+added+' ישובים בטווח '+km+' ק"מ':'לא נמצאו ישובים בטווח';
+    status.style.color=added>0?'var(--green)':'var(--text-light)';
+    buildRegions(document.getElementById('citySearch').value||'');
+  }catch(e){status.textContent='שגיאה בחיבור';status.style.color='var(--red)';}
+}
+
+function addBetween(){
+  const from=document.getElementById('fromCity').value.trim();
+  const to=document.getElementById('toCity').value.trim();
+  const status=document.getElementById('betweenStatus');
+  if(!from||!to){status.textContent='יש להזין שני ישובים';status.style.color='var(--red)';return;}
+  const c1=cityCoords[from],c2=cityCoords[to];
+  if(!c1){status.textContent='"'+from+'" לא נמצא';status.style.color='var(--red)';return;}
+  if(!c2){status.textContent='"'+to+'" לא נמצא';status.style.color='var(--red)';return;}
+  const midLat=(c1[0]+c2[0])/2,midLon=(c1[1]+c2[1])/2;
+  const radius=calcDist(c1[0],c1[1],c2[0],c2[1])/2;
+  let added=0;
+  REGIONS.forEach((r,ri)=>{r.cities.forEach((c,ci)=>{if(pendingCities[ri]&&pendingCities[ri][ci])return;const coord=cityCoords[c];if(!coord)return;if(calcDist(midLat,midLon,coord[0],coord[1])<=radius){pendingCities[ri][ci]=true;added++;}});});
+  status.textContent=added>0?'נוספו '+added+' ישובים בין '+from+' ל-'+to:'לא נמצאו ישובים';
+  status.style.color=added>0?'var(--green)':'var(--text-light)';
+  buildRegions(document.getElementById('citySearch').value||'');
+}
+
+function openJobTab(num, tab, filter) {
+  const j = JOBS.find(x => x.num === num);
+  if(!j) return;
+  loadDetail(j);
+  document.getElementById('view-list').classList.add('hidden');
+  document.getElementById('view-detail').classList.remove('hidden');
+  // Switch to correct tab
+  swTab(tab, document.querySelector('.tab[onclick*=\''+tab+'\']'));
+  // Store filter for highlighting
+  sessionStorage.setItem('jobCandFilter', filter);
+  // Scroll to candidates section
+  setTimeout(() => {
+    const el = document.getElementById('tab-candidates');
+    if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+    // Highlight relevant section
+    if(filter === 'waiting') {
+      document.getElementById('jPendingInfo').style.background = 'rgba(232,153,46,0.08)';
+      document.getElementById('jPendingInfo').style.borderRadius = '6px';
+      document.getElementById('jPendingInfo').style.padding = '8px';
+    } else if(filter === 'active') {
+      document.getElementById('jActiveCandsList').style.background = 'rgba(30,52,97,0.05)';
+      document.getElementById('jActiveCandsList').style.borderRadius = '6px';
+      document.getElementById('jActiveCandsList').style.padding = '8px';
+    }
+  }, 100);
+}
+
+window.onload = function() { renderJobs(JOBS); };
+</script>
 
 <script>
 (function() {
@@ -404,7 +715,7 @@
       var menu = wrapper.querySelector('.dropdown-menu');
       if (menu) menu.classList.remove('open');
       if (currentOpen === wrapper) currentOpen = null;
-    }, 180);
+    }, 250);
   }
   document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.nav-dropdown').forEach(function(wrapper) {
@@ -426,5 +737,47 @@
 })();
 </script>
 
+<script>
+// Firebase: load jobs in real time
+db.collection('jobs').orderBy('createdAt', 'desc').onSnapshot(function(snap) {
+  if(snap.empty) return;
+  var liveJobs = snap.docs.map(function(d) {
+    var j = d.data();
+    var createdDate = '';
+    if(j.createdAt && j.createdAt.toDate) {
+      createdDate = j.createdAt.toDate().toLocaleDateString('he-IL');
+    }
+    return {
+      id: d.id,
+      num: j.num || d.id.slice(0,6),
+      title: j.title || '',
+      client: j.clientName || j.client || '',
+      clientId: j.clientId || '',
+      status: j.status || 'פתוחה',
+      date: j.date || createdDate,
+      updated: j.updated || createdDate,
+      screening: j.screening || 'טלפוני',
+      delivery: j.delivery || 'ללא',
+      code: j.code || '',
+      type: j.type || '',
+      rejDays: j.rejDays || 90,
+      total: j.total || 0,
+      process: j.process || 0,
+      started: j.started || 0,
+      rejected: j.rejected || 0,
+      waiting: j.waiting || 0,
+      desc: j.desc || '',
+      tags: j.tags || [],
+      events: j.events || [],
+      publish: j.publish || [],
+      activeCands: j.activeCands || []
+    };
+  });
+  window.JOBS = liveJobs;
+  if(window.renderJobs) window.renderJobs(liveJobs);
+}, function(err) {
+  console.log('Jobs Firebase error:', err);
+});
+</script>
 </body>
 </html>
