@@ -70,7 +70,9 @@
 </style>
 
 <style>.subbar{margin:0 0 0.75rem 0 !important;padding:8px 1.2rem;}</style>
-</head>
+<style>
+.panel-hidden { display: none !important; }
+</style>
 <body>
 
 <!-- NAVBAR -->
@@ -556,9 +558,9 @@ db.collection('clients').orderBy('createdAt', 'desc').onSnapshot(function(snap) 
 </body>
 </html>
 <!-- CLIENT SIDE PANEL -->
-<div id="clientPanel" style="position:fixed;right:0;top:56px;width:500px;height:calc(100vh-56px);background:white;border-left:1px solid #ddd;z-index:9999;display:none;flex-direction:column;overflow:hidden;">
+<div id="clientPanel" style="position:fixed;right:0;top:56px;width:500px;height:calc(100vh-56px);background:white;border-left:1px solid #ddd;z-index:9999;flex-direction:column;overflow:hidden;" class="panel-hidden">
   <div style="padding:12px;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:8px;">
-    <button onclick="document.getElementById('clientPanel').style.display='none'" style="background:0;border:0;cursor:pointer;"><i class="fa-solid fa-close"></i></button>
+    <button onclick="document.getElementById('clientPanel').classList.add('panel-hidden')" style="background:0;border:0;cursor:pointer;"><i class="fa-solid fa-close"></i></button>
     <h3 id="pName" style="margin:0;font-size:13px;flex:1;"></h3>
   </div>
   <div style="display:flex;border-bottom:1px solid #ddd;">
@@ -625,7 +627,7 @@ function showClientPanel(cid) {
     document.getElementById('tabJob').innerHTML = '<p style="text-align:center;color:#999;padding:20px;">אין משרות</p>';
   }
   
-  document.getElementById('clientPanel').style.display = 'flex';
+  document.getElementById('clientPanel').classList.remove('panel-hidden');
 }
 
 function swTab(t) {
