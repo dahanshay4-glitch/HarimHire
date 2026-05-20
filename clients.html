@@ -79,8 +79,8 @@
   width: 100%;
   height: 100vh;
   background: var(--white);
-  z-index: 999;
-  display: flex;
+  z-index: 9999 !important;
+  display: flex !important;
   flex-direction: column;
   box-shadow: -2px 0 12px rgba(0,0,0,0.1);
   transition: transform 0.25s;
@@ -88,6 +88,7 @@
 .client-panel.hidden {
   transform: translateX(100%);
   pointer-events: none;
+  visibility: hidden;
 }
 .panel-header {
   display: flex;
@@ -147,12 +148,16 @@
   flex: 1;
   overflow-y: auto;
   padding: 16px;
+  display: block !important;
+  visibility: visible !important;
 }
 .panel-tab-content {
   display: none;
+  visibility: hidden;
 }
 .panel-tab-content.active {
-  display: block;
+  display: block !important;
+  visibility: visible !important;
 }
 .panel-form {
   display: flex;
@@ -227,11 +232,11 @@
   right: 0;
   bottom: 0;
   background: rgba(0,0,0,0.3);
-  z-index: 998;
+  z-index: 9998 !important;
   transition: opacity 0.25s;
 }
 .panel-overlay.hidden {
-  display: none;
+  display: none !important;
 }
 </style>
 </head>
@@ -712,10 +717,12 @@ function toggleCol(key, val) {
 
 function openClientPanel(id) {
   console.log('🔵 openClientPanel called with id:', id);
-  alert('Panel should open now for client: ' + id);
   const c = CLIENTS.find(x => x.id === id);
   console.log('Found client:', c);
-  if(!c) return;
+  if(!c) {
+    console.error('Client not found!');
+    return;
+  }
   
   // עדכון הפנל עם נתוני הלקוח
   document.getElementById('clientPanelTitle').textContent = c.name;
