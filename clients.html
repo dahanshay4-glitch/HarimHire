@@ -724,6 +724,14 @@ function openClientPanel(id) {
     return;
   }
   
+  // TEST DATA - להבטיח שזה עובד
+  if(!c.contacts || c.contacts.length === 0) {
+    c.contacts = [
+      { name: 'דוד כהן', role: 'מנהל', phone: '0501234567', email: 'david@example.com' },
+      { name: 'ליאור גפן', role: 'איש קשר', phone: '0502345678', email: 'lior@example.com' }
+    ];
+  }
+  
   // עדכון הפנל עם נתוני הלקוח
   document.getElementById('clientPanelTitle').textContent = c.name;
   document.getElementById('clientName').value = c.name || '';
