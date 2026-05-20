@@ -329,7 +329,7 @@ window.renderClients = function renderClients(list) {
     <tr>
       <td><input type="checkbox"></td>
       <td style="color:var(--text-light);font-size:11px;">${c.num || (i+1)}</td>
-      <td><a class="link" onclick="openClientPanel('${c.id}')" style="cursor:pointer;">${c.name}</a></td>
+      <td><a class="link" onclick="openPanel('${c.id}')" style="cursor:pointer;">${c.name}</a></td>
       <td><span class="pill pill-green">${c.type}</span></td>
       <td>${c.date}</td>
       <td><a class="link">${c.contact}</a></td>
@@ -554,117 +554,74 @@ db.collection('clients').orderBy('createdAt', 'desc').onSnapshot(function(snap) 
 });
 </script>
 
-<!-- CLIENT PANEL -->
-<div id="clientPanel" style="position:fixed;right:0;top:56px;width:500px;height:calc(100vh - 56px);background:white;border-left:1px solid #ddd;box-shadow:-2px 0 8px rgba(0,0,0,0.1);z-index:9999;display:none;flex-direction:column;">
-  
-  <!-- Header -->
+<!-- SIDE PANEL FOR CLIENT DETAILS -->
+<div id="sidePanel" style="position:fixed;right:0;top:56px;width:500px;height:calc(100vh-56px);background:white;border-left:1px solid #ddd;z-index:9999;display:none;flex-direction:column;overflow:hidden;">
   <div style="padding:12px 16px;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:10px;">
-    <button onclick="closeClientPanel()" style="background:none;border:none;cursor:pointer;padding:4px;">
-      <i class="fa-solid fa-arrow-left"></i>
-    </button>
-    <h3 id="pTitle" style="margin:0;font-size:14px;font-weight:500;flex:1;"></h3>
+    <button onclick="closePanel()" style="background:none;border:none;cursor:pointer;"><i class="fa-solid fa-arrow-left"></i></button>
+    <h3 id="panelName" style="margin:0;font-size:14px;flex:1;"></h3>
   </div>
-  
-  <!-- Tabs -->
   <div style="display:flex;border-bottom:1px solid #ddd;">
-    <button class="tab-btn active" onclick="switchTab('details')" style="flex:1;padding:10px;background:none;border:none;cursor:pointer;font-size:11px;border-bottom:2px solid #1e3461;">פרטים</button>
-    <button class="tab-btn" onclick="switchTab('contacts')" style="flex:1;padding:10px;background:none;border:none;cursor:pointer;font-size:11px;border-bottom:2px solid transparent;color:#999;">אנשי קשר</button>
-    <button class="tab-btn" onclick="switchTab('jobs')" style="flex:1;padding:10px;background:none;border:none;cursor:pointer;font-size:11px;border-bottom:2px solid transparent;color:#999;">משרות</button>
+    <button id="btn-details" style="flex:1;padding:8px;background:none;border:none;border-bottom:2px solid #1e3461;cursor:pointer;font-size:11px;font-weight:500;" onclick="showPanelTab('details')">פרטים</button>
+    <button id="btn-contacts" style="flex:1;padding:8px;background:none;border:none;border-bottom:2px solid #ccc;cursor:pointer;font-size:11px;color:#999;" onclick="showPanelTab('contacts')">אנשי קשר</button>
+    <button id="btn-jobs" style="flex:1;padding:8px;background:none;border:none;border-bottom:2px solid #ccc;cursor:pointer;font-size:11px;color:#999;" onclick="showPanelTab('jobs')">משרות</button>
   </div>
-  
-  <!-- Content -->
   <div style="flex:1;overflow-y:auto;padding:16px;">
-    
-    <!-- Details Tab -->
-    <div id="tab-details" style="display:block;">
-      <div style="margin-bottom:12px;">
-        <label style="font-size:10px;color:#666;display:block;margin-bottom:4px;">שם</label>
-        <input id="pName" type="text" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:12px;box-sizing:border-box;">
-      </div>
-      <div style="margin-bottom:12px;">
-        <label style="font-size:10px;color:#666;display:block;margin-bottom:4px;">טלפון</label>
-        <input id="pPhone" type="text" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:12px;box-sizing:border-box;">
-      </div>
-      <div style="margin-bottom:12px;">
-        <label style="font-size:10px;color:#666;display:block;margin-bottom:4px;">דוא"ל</label>
-        <input id="pEmail" type="text" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:12px;box-sizing:border-box;">
-      </div>
+    <div id="panel-details" style="display:block;">
+      <div style="margin-bottom:12px;"><label style="display:block;font-size:10px;color:#666;margin-bottom:4px;">שם</label><input id="pn" type="text" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:11px;box-sizing:border-box;"></div>
+      <div style="margin-bottom:12px;"><label style="display:block;font-size:10px;color:#666;margin-bottom:4px;">טלפון</label><input id="pp" type="text" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:11px;box-sizing:border-box;"></div>
+      <div style="margin-bottom:12px;"><label style="display:block;font-size:10px;color:#666;margin-bottom:4px;">דוא"ל</label><input id="pe" type="text" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:11px;box-sizing:border-box;"></div>
     </div>
-    
-    <!-- Contacts Tab -->
-    <div id="tab-contacts" style="display:none;">
-      <div id="pContacts"></div>
-      <button onclick="alert('הוספת איש קשר - בבנייה')" style="width:100%;padding:8px;background:#1e3461;color:white;border:none;border-radius:4px;cursor:pointer;font-size:11px;margin-top:10px;">
-        <i class="fa-solid fa-plus"></i> הוסף איש קשר
-      </button>
-    </div>
-    
-    <!-- Jobs Tab -->
-    <div id="tab-jobs" style="display:none;">
-      <div id="pJobs"></div>
-    </div>
-    
+    <div id="panel-contacts" style="display:none;"></div>
+    <div id="panel-jobs" style="display:none;"></div>
   </div>
-  
 </div>
 
 <script>
-// CLIENT PANEL FUNCTIONS
-function openClientPanel(clientId) {
-  const c = CLIENTS.find(x => x.id === clientId);
+function openPanel(cid) {
+  const c = CLIENTS.find(x => x.id === cid);
   if(!c) return;
+  document.getElementById('panelName').textContent = c.name;
+  document.getElementById('pn').value = c.name;
+  document.getElementById('pp').value = c.phone || '';
+  document.getElementById('pe').value = c.email || '';
   
-  document.getElementById('pTitle').textContent = c.name;
-  document.getElementById('pName').value = c.name;
-  document.getElementById('pPhone').value = c.phone;
-  document.getElementById('pEmail').value = c.email;
-  
-  const contactsDiv = document.getElementById('pContacts');
+  const cf = document.getElementById('panel-contacts');
   if(c.contacts && c.contacts.length > 0) {
-    contactsDiv.innerHTML = c.contacts.map(ct => `
-      <div style="padding:10px;background:#f5f5f5;border-radius:4px;margin-bottom:8px;">
-        <div style="font-size:11px;font-weight:bold;margin-bottom:4px;">${ct.name}</div>
-        <div style="font-size:10px;color:#666;">תפקיד: ${ct.role || '-'}</div>
-        <div style="font-size:10px;color:#666;">טלפון: ${ct.phone || '-'}</div>
-        <div style="font-size:10px;color:#666;">דוא"ל: ${ct.email || '-'}</div>
-      </div>
-    `).join('');
+    cf.innerHTML = c.contacts.map(ct => `<div style="padding:8px;background:#f5f5f5;margin-bottom:8px;border-radius:4px;"><div style="font-weight:bold;font-size:11px;margin-bottom:4px;">${ct.name}</div><div style="font-size:10px;color:#666;">תפקיד: ${ct.role || '-'}</div><div style="font-size:10px;color:#666;">טלפון: ${ct.phone || '-'}</div><div style="font-size:10px;color:#666;">דוא"ל: ${ct.email || '-'}</div></div>`).join('');
   } else {
-    contactsDiv.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">אין אנשי קשר</p>';
+    cf.innerHTML = '<p style="text-align:center;color:#999;">אין אנשי קשר</p>';
   }
   
-  const jobsDiv = document.getElementById('pJobs');
+  const jf = document.getElementById('panel-jobs');
   if(c.jobs && c.jobs.length > 0) {
-    jobsDiv.innerHTML = c.jobs.map(j => `
-      <div style="padding:10px;background:#f5f5f5;border-radius:4px;margin-bottom:8px;">
-        <div style="font-size:11px;font-weight:bold;">${j.title}</div>
-        <div style="font-size:10px;color:#666;">סטטוס: ${j.status}</div>
-      </div>
-    `).join('');
+    jf.innerHTML = c.jobs.map(j => `<div style="padding:8px;background:#f5f5f5;margin-bottom:8px;border-radius:4px;"><div style="font-weight:bold;font-size:11px;">${j.title}</div><div style="font-size:10px;color:#666;">סטטוס: ${j.status || '-'}</div></div>`).join('');
   } else {
-    jobsDiv.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">אין משרות</p>';
+    jf.innerHTML = '<p style="text-align:center;color:#999;">אין משרות</p>';
   }
   
-  document.getElementById('clientPanel').style.display = 'flex';
+  document.getElementById('sidePanel').style.display = 'flex';
 }
 
-function closeClientPanel() {
-  document.getElementById('clientPanel').style.display = 'none';
+function closePanel() {
+  document.getElementById('sidePanel').style.display = 'none';
 }
 
-function switchTab(tab) {
-  document.getElementById('tab-details').style.display = 'none';
-  document.getElementById('tab-contacts').style.display = 'none';
-  document.getElementById('tab-jobs').style.display = 'none';
-  document.getElementById('tab-' + tab).style.display = 'block';
+function showPanelTab(t) {
+  document.getElementById('panel-details').style.display = 'none';
+  document.getElementById('panel-contacts').style.display = 'none';
+  document.getElementById('panel-jobs').style.display = 'none';
+  document.getElementById('panel-' + t).style.display = 'block';
   
-  document.querySelectorAll('.tab-btn').forEach(b => {
-    b.style.color = '#999';
-    b.style.borderBottomColor = 'transparent';
-  });
-  event.target.style.color = '#1a2332';
-  event.target.style.borderBottomColor = '#1e3461';
-  event.target.style.fontWeight = '500';
+  document.getElementById('btn-details').style.borderBottomColor = '#ccc';
+  document.getElementById('btn-details').style.color = '#999';
+  document.getElementById('btn-contacts').style.borderBottomColor = '#ccc';
+  document.getElementById('btn-contacts').style.color = '#999';
+  document.getElementById('btn-jobs').style.borderBottomColor = '#ccc';
+  document.getElementById('btn-jobs').style.color = '#999';
+  
+  document.getElementById('btn-' + t).style.borderBottomColor = '#1e3461';
+  document.getElementById('btn-' + t).style.color = '#000';
+  document.getElementById('btn-' + t).style.fontWeight = '500';
 }
 </script>
 </html>
