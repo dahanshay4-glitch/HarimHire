@@ -599,6 +599,7 @@ function showClientPanel(cid) {
     <div style="margin-bottom:10px;"><label style="font-size:10px;color:#666;display:block;margin-bottom:4px;">דוא"ל</label><input type="text" value="${c.email || ''}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;font-size:11px;box-sizing:border-box;"></div>
     <div style="margin-bottom:10px;"><label style="font-size:10px;color:#666;display:block;margin-bottom:4px;">ישוב</label><input type="text" value="${c.city || ''}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;font-size:11px;box-sizing:border-box;"></div>
   `;
+  console.log('tabDet innerHTML updated:', document.getElementById('tabDet').innerHTML.substring(0, 50));
   
   if (c.contacts && c.contacts.length > 0) {
     document.getElementById('tabCon').innerHTML = c.contacts.map(ct => `
