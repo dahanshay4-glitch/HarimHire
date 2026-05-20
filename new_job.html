@@ -484,13 +484,14 @@
         const preselectedClientId = urlParams.get('clientId');
         const preselectedClientName = urlParams.get('clientName');
         
-        const jobTypes = {
-            '1001': { name: 'שליח עצמאי', icon: '🚗' },
+        const defaultJobTypes = {
+            '1000': { name: 'עובד מיון', icon: '📦' },
+            '1001': { name: 'שליח עצמאי (קבלן)', icon: '🚗' },
             '1002': { name: 'שליח שכיר', icon: '👔' },
-            '1003': { name: 'עובד מיון', icon: '📦' },
-            '1004': { name: 'מוקדן', icon: '☎️' },
-            '1005': { name: 'דואר נע', icon: '🚚' }
+            '1003': { name: 'מוקדנים', icon: '☎️' },
+            '1004': { name: 'דואר נע', icon: '🚚' }
         };
+        let jobTypes = { ...defaultJobTypes };
         
         function loadClients() {
             firestore.collection('clients').onSnapshot(snapshot => {
@@ -498,6 +499,7 @@
                 let counter = 1;
                 snapshot.forEach(doc => {
                     const c = doc.data();
+                    if (c.status === 'deleted' || c.deleted === true) return;
                     c.id = doc.id;
                     c.num = c.num || counter++;
                     allClients.push(c);
@@ -623,7 +625,27 @@
         }
         
         function loadJobTypes() {
-            renderJobTypeOptions();
+            // סוגי משרה הם ישות נפרדת: 1002 = שליח שכיר וכו'.
+            // אם הוגדרו ב-Firestore נשתמש בהם; אם לא, נשאיר ברירת מחדל כדי שהמערכת תמשיך לעבוד.
+            firestore.collection('jobTypes').get().then(snapshot => {
+                const liveTypes = {};
+                snapshot.forEach(doc => {
+                    const data = doc.data() || {};
+                    if (data.status === 'deleted' || data.deleted === true || data.active === false) return;
+                    const code = String(data.code || data.num || data.number || doc.id || '').trim();
+                    const name = String(data.name || data.title || data.jobTypeName || '').trim();
+                    if (!code || !name) return;
+                    liveTypes[code] = {
+                        name: name,
+                        icon: data.icon || ''
+                    };
+                });
+                if (Object.keys(liveTypes).length) jobTypes = liveTypes;
+                renderJobTypeOptions();
+            }).catch(err => {
+                console.log('Job types Firebase error:', err);
+                renderJobTypeOptions();
+            });
         }
 
         let jobTypeActiveIndex = -1;

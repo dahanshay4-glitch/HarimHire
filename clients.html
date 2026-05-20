@@ -159,6 +159,7 @@
       <div class="fg narrow"><div class="fl">רכז מטפל</div><div class="fiw"><select id="fHandler" onchange="filterClients()"><option value="">הכל</option><option>שי דהן</option><option>נטלי</option><option>בתאל</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
       <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> לקוח חדש</button>
       <button class="btn btn-export"><i class="fa-solid fa-download"></i> ייצוא</button>
+      <button class="btn" style="color:#dc3545;border-color:rgba(220,53,69,0.35);" onclick="deleteSelectedClients()"><i class="fa-solid fa-trash"></i> מחק מסומנים</button>
       <button class="btn" onclick="toggleCols()"><i class="fa-solid fa-sliders"></i> עמודות</button>
     </div>
     <div class="count-bar">מציג <strong id="clientCount">0</strong> לקוחות</div>
@@ -166,7 +167,7 @@
       <table>
         <thead>
           <tr>
-            <th style="width:28px;"><input type="checkbox"></th>
+            <th style="width:28px;"><input type="checkbox" id="chkAllClients" onchange="toggleAllClients(this)"></th>
             <th onclick="sortClients('id')">מס׳ <span>&#8597;</span></th>
             <th onclick="sortClients('name')">שם הלקוח <span>&#8597;</span></th>
             <th onclick="sortClients('type')">סוג לקוח <span>&#8597;</span></th>
@@ -344,7 +345,7 @@ window.renderClients = function renderClients(list) {
   const tb = document.getElementById('clientsTbody');
   tb.innerHTML = list.map((c,i) => `
     <tr>
-      <td><input type="checkbox"></td>
+      <td><input type="checkbox" class="client-check" data-id="${c.id}" onclick="event.stopPropagation()"></td>
       <td style="color:var(--text-light);font-size:11px;">${c.num || (i+1)}</td>
       <td><a class="link" onclick="openClient('${c.id}')">${c.name}</a></td>
       <td><span class="pill pill-green">${c.type}</span></td>
@@ -359,6 +360,49 @@ window.renderClients = function renderClients(list) {
       <td><button class="btn" style="padding:2px 6px;"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
     </tr>`).join('');
   document.getElementById('clientCount').textContent = list.length;
+}
+
+
+function toggleAllClients(cb) {
+  document.querySelectorAll('#clientsTbody .client-check').forEach(c => c.checked = cb.checked);
+}
+
+async function deleteSelectedClients() {
+  const ids = Array.from(document.querySelectorAll('#clientsTbody .client-check:checked')).map(cb => cb.dataset.id).filter(Boolean);
+  if (!ids.length) {
+    alert('לא סומנו לקוחות למחיקה');
+    return;
+  }
+  if (!confirm('למחוק ' + ids.length + ' לקוחות מסומנים?\nפעולה זו תסמן גם משרות שמשויכות ללקוחות האלה כמחוקות כדי לשמור על סנכרון.')) return;
+  try {
+    const batch = db.batch();
+    ids.forEach(id => {
+      batch.update(db.collection('clients').doc(String(id)), {
+        status: 'deleted',
+        deleted: true,
+        deletedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    });
+
+    // שמירה על קשרים: משרות ששייכות ללקוח מחוק יוסתרו גם הן.
+    const jobsSnap = await db.collection('jobs').get();
+    jobsSnap.forEach(doc => {
+      const job = doc.data() || {};
+      if (ids.includes(String(job.clientId))) {
+        batch.update(db.collection('jobs').doc(doc.id), {
+          status: 'deleted',
+          deleted: true,
+          deletedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+    });
+
+    await batch.commit();
+    alert('הלקוחות והמשרות המשויכות נמחקו מהתצוגה');
+  } catch (err) {
+    console.error('Delete clients error:', err);
+    alert('שגיאה במחיקת לקוחות: ' + err.message);
+  }
 }
 
 function filterClients() {
@@ -699,6 +743,7 @@ db.collection('clients').orderBy('createdAt', 'desc').onSnapshot(function(snap) 
   if(snap.empty) return;
   var liveClients = snap.docs.map(function(d) {
     var c = d.data();
+    if (c.status === 'deleted' || c.deleted === true) return null;
     var contacts = Array.isArray(c.contacts) ? c.contacts : [];
     var primary = contacts.find(function(ct){ return ct && (ct.name || ct.phone || ct.email); }) || {};
     return {
@@ -719,7 +764,7 @@ db.collection('clients').orderBy('createdAt', 'desc').onSnapshot(function(snap) 
       contacts: contacts,
       events: c.events || []
     };
-  });
+  }).filter(Boolean);
   window.CLIENTS = liveClients;
   if(window.renderClients) window.renderClients(liveClients);
 }, function(err) {
