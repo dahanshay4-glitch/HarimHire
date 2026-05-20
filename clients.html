@@ -746,6 +746,8 @@ function openClientPanel(id) {
   const contactsList = document.getElementById('contactsList');
   contactsList.innerHTML = '';
   
+  console.log('Client contacts:', c.contacts);
+  
   if(c.contacts && c.contacts.length > 0) {
     c.contacts.forEach((ct, idx) => {
       const contactId = 'contact_' + idx;
@@ -759,35 +761,39 @@ function openClientPanel(id) {
           <div class="form-row" style="gap:6px;">
             <div class="form-col">
               <label>שם</label>
-              <input type="text" value="${ct.name}" class="contact-name" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;">
+              <input type="text" value="${ct.name}" class="contact-name" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;width:100%;">
             </div>
             <div class="form-col">
               <label>תפקיד</label>
-              <input type="text" value="${ct.role || ''}" class="contact-role" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;">
+              <input type="text" value="${ct.role || ''}" class="contact-role" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;width:100%;">
             </div>
           </div>
           
           <div class="form-row" style="gap:6px;margin-top:6px;">
             <div class="form-col">
               <label>טלפון</label>
-              <input type="tel" value="${ct.phone || ''}" class="contact-phone" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;">
+              <input type="tel" value="${ct.phone || ''}" class="contact-phone" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;width:100%;">
             </div>
             <div class="form-col">
               <label>דוא"ל</label>
-              <input type="email" value="${ct.email || ''}" class="contact-email" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;">
+              <input type="email" value="${ct.email || ''}" class="contact-email" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;width:100%;">
             </div>
           </div>
         </div>
       `;
       contactsList.insertAdjacentHTML('beforeend', html);
     });
+  } else {
+    contactsList.innerHTML = '<div class="empty-state"><i class="fa-solid fa-users"></i><p>אין אנשי קשר</p></div>';
   }
   
   // הוסף כפתור הוספה
-  const addBtnHtml = `
-    <button class="btn btn-primary" onclick="addNewContact()" style="width:100%;margin-top:10px;"><i class="fa-solid fa-plus"></i> הוסף איש קשר</button>
-  `;
-  contactsList.insertAdjacentHTML('afterend', addBtnHtml);
+  const addBtn = document.createElement('button');
+  addBtn.className = 'btn btn-primary';
+  addBtn.style.cssText = 'width:100%;margin-top:10px;';
+  addBtn.innerHTML = '<i class="fa-solid fa-plus"></i> הוסף איש קשר';
+  addBtn.onclick = addNewContact;
+  contactsList.parentElement.appendChild(addBtn);
   
   // שמירת ה-ID
   window.currentClientId = id;
