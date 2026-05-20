@@ -575,8 +575,21 @@ db.collection('clients').orderBy('createdAt', 'desc').onSnapshot(function(snap) 
 
 <script>
 function showClientPanel(cid) {
+  console.log('showClientPanel called with:', cid);
+  console.log('CLIENTS array:', window.CLIENTS);
+  
+  if (!window.CLIENTS || window.CLIENTS.length === 0) {
+    console.error('CLIENTS not loaded yet');
+    return;
+  }
+  
   const c = window.CLIENTS.find(x => x.id === cid);
-  if (!c) return;
+  console.log('Found client:', c);
+  
+  if (!c) {
+    console.error('Client not found with id:', cid);
+    return;
+  }
   
   document.getElementById('pName').textContent = c.name;
   
