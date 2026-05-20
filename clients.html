@@ -75,11 +75,10 @@
 .client-panel {
   position: fixed;
   right: 0;
-  top: 56px;
-  width: 500px;
-  height: calc(100vh - 56px);
+  top: 0;
+  width: 100%;
+  height: 100vh;
   background: var(--white);
-  border-left: 0.5px solid var(--border);
   z-index: 999;
   display: flex;
   flex-direction: column;
@@ -96,16 +95,21 @@
   gap: 10px;
   padding: 12px 16px;
   border-bottom: 0.5px solid var(--border);
-  background: var(--bg);
+  background: var(--blue);
+  color: #fff;
+  height: 56px;
 }
 .btn-back {
   padding: 4px 8px !important;
   font-size: 10px !important;
+  background: transparent !important;
+  color: #fff !important;
+  border: none !important;
 }
 .panel-title {
   font-size: 13px;
   font-weight: 500;
-  color: var(--text);
+  color: #fff;
   flex: 1;
 }
 .panel-tabs {
@@ -562,8 +566,13 @@
 
     <!-- TAB: CONTACTS -->
     <div id="tab-contacts" class="panel-tab-content">
-      <div id="contactsList" style="display:flex;flex-direction:column;gap:10px;"></div>
-      <button class="btn btn-primary" onclick="addContact()" style="margin-top:10px;width:100%;"><i class="fa-solid fa-plus"></i> הוסף איש קשר</button>
+      <div style="margin-bottom: 16px;">
+        <button class="btn btn-primary" onclick="addNewContact()" style="width:100%;"><i class="fa-solid fa-plus"></i> הוסף איש קשר</button>
+      </div>
+      
+      <div id="contactsList" style="display:flex;flex-direction:column;gap:10px;">
+        <!-- Contacts will be rendered here -->
+      </div>
     </div>
 
     <!-- TAB: JOBS -->
@@ -735,23 +744,50 @@ function openClientPanel(id) {
   
   // עדכון אנשי קשר
   const contactsList = document.getElementById('contactsList');
+  contactsList.innerHTML = '';
+  
   if(c.contacts && c.contacts.length > 0) {
-    contactsList.innerHTML = c.contacts.map(ct => `
-      <div style="padding:10px;background:var(--bg);border-radius:6px;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div class="avatar" style="width:28px;height:28px;font-size:10px;background:rgba(30,52,97,0.12);color:#1e3461;">${ct.av}</div>
-          <div style="flex:1;">
+    c.contacts.forEach((ct, idx) => {
+      const contactId = 'contact_' + idx;
+      const html = `
+        <div id="${contactId}" style="padding:12px;background:var(--bg);border-radius:6px;border:0.5px solid var(--border);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
             <div style="font-weight:500;font-size:11px;">${ct.name}</div>
-            <div style="font-size:10px;color:var(--text-light);">${ct.role}</div>
+            <button class="btn" onclick="removeContact('${contactId}')" style="padding:2px 6px;font-size:9px;color:var(--red);"><i class="fa-solid fa-trash"></i></button>
+          </div>
+          
+          <div class="form-row" style="gap:6px;">
+            <div class="form-col">
+              <label>שם</label>
+              <input type="text" value="${ct.name}" class="contact-name" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;">
+            </div>
+            <div class="form-col">
+              <label>תפקיד</label>
+              <input type="text" value="${ct.role || ''}" class="contact-role" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;">
+            </div>
+          </div>
+          
+          <div class="form-row" style="gap:6px;margin-top:6px;">
+            <div class="form-col">
+              <label>טלפון</label>
+              <input type="tel" value="${ct.phone || ''}" class="contact-phone" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;">
+            </div>
+            <div class="form-col">
+              <label>דוא"ל</label>
+              <input type="email" value="${ct.email || ''}" class="contact-email" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;">
+            </div>
           </div>
         </div>
-        <div style="font-size:10px;color:var(--text-light);margin-top:6px;">
-          <div>${ct.phone}</div>
-          <div>${ct.email}</div>
-        </div>
-      </div>
-    `).join('');
+      `;
+      contactsList.insertAdjacentHTML('beforeend', html);
+    });
   }
+  
+  // הוסף כפתור הוספה
+  const addBtnHtml = `
+    <button class="btn btn-primary" onclick="addNewContact()" style="width:100%;margin-top:10px;"><i class="fa-solid fa-plus"></i> הוסף איש קשר</button>
+  `;
+  contactsList.insertAdjacentHTML('afterend', addBtnHtml);
   
   // שמירת ה-ID
   window.currentClientId = id;
@@ -819,6 +855,48 @@ function deleteClient() {
 
 function addContact() {
   alert('הוסף איש קשר - feature בבנייה');
+}
+
+function addNewContact() {
+  const contactsList = document.getElementById('contactsList');
+  const contactId = 'contact_' + Date.now();
+  
+  const html = `
+    <div id="${contactId}" style="padding:12px;background:var(--bg);border-radius:6px;border:0.5px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="font-weight:500;font-size:11px;">איש קשר חדש</div>
+        <button class="btn" onclick="removeContact('${contactId}')" style="padding:2px 6px;font-size:9px;color:var(--red);"><i class="fa-solid fa-trash"></i></button>
+      </div>
+      
+      <div class="form-row" style="gap:6px;">
+        <div class="form-col">
+          <label>שם</label>
+          <input type="text" placeholder="שם מלא" class="contact-name" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;">
+        </div>
+        <div class="form-col">
+          <label>תפקיד</label>
+          <input type="text" placeholder="תפקיד" class="contact-role" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;">
+        </div>
+      </div>
+      
+      <div class="form-row" style="gap:6px;margin-top:6px;">
+        <div class="form-col">
+          <label>טלפון</label>
+          <input type="tel" placeholder="05xxxxxxxxx" class="contact-phone" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;">
+        </div>
+        <div class="form-col">
+          <label>דוא"ל</label>
+          <input type="email" placeholder="email@example.com" class="contact-email" style="padding:6px;font-size:10px;border:0.5px solid var(--border);border-radius:4px;">
+        </div>
+      </div>
+    </div>
+  `;
+  
+  contactsList.insertAdjacentHTML('beforeend', html);
+}
+
+function removeContact(contactId) {
+  document.getElementById(contactId).remove();
 }
 
 function showList() {
