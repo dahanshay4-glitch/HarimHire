@@ -441,18 +441,27 @@
                 <div class="step-title">פרטי משרה</div>
                 
                 <div class="form-group">
-                    <label>כותרת משרה *</label>
-                    <input type="text" id="jobTitle" placeholder="לדוגמה: שליח שכיר - ירושלים">
-                </div>
-                
-                <div class="form-group">
                     <label>תיאור משרה</label>
                     <textarea id="jobDescription" placeholder="פרטי המשרה..."></textarea>
                 </div>
-                
-                <div class="form-group">
-                    <label>מספר משרות פתוחות</label>
-                    <input type="number" id="openPositions" value="1" min="1">
+
+                <div class="form-section" style="margin-top: 16px;">
+                    <div class="form-section-title">דרישות משרה / פרמטרים מסננים</div>
+                    <div class="form-grid">
+                        <div class="form-group"><label>מצב משפחתי</label><select id="reqMaritalStatus" class="form-select"><option value="לא חשוב" selected>לא חשוב</option><option value="רווק/ה">רווק/ה</option><option value="נשוי/אה">נשוי/אה</option><option value="גרוש/ה">גרוש/ה</option><option value="אלמן/ה">אלמן/ה</option></select></div>
+                        <div class="form-group"><label>ניידות</label><select id="reqMobility" class="form-select"><option value="לא חשוב" selected>לא חשוב</option><option value="יש רכב">יש רכב</option><option value="אין רכב">אין רכב</option><option value="תחבורה ציבורית">תחבורה ציבורית</option></select></div>
+                        <div class="form-group"><label>מין</label><select id="reqGender" class="form-select"><option value="לא חשוב" selected>לא חשוב</option><option value="זכר">זכר</option><option value="נקבה">נקבה</option></select></div>
+                        <div class="form-group"><label>רישיון נהיגה</label><select id="reqDriverLicense" class="form-select"><option value="לא חשוב" selected>לא חשוב</option><option value="כן">כן</option><option value="לא">לא</option></select></div>
+                        <div class="form-group"><label>גיל מינימום</label><input type="number" id="reqAgeMin" value="18"></div>
+                        <div class="form-group"><label>גיל מקסימום</label><input type="number" id="reqAgeMax" value="67"></div>
+                        <div class="form-group"><label>שכר מינימום</label><input type="number" id="reqSalaryMin" value="0"></div>
+                        <div class="form-group"><label>שכר מקסימום</label><input type="number" id="reqSalaryMax" value="1000000"></div>
+                        <div class="form-group"><label>תוקף ימים</label><input type="number" id="reqValidityDays" value="60"></div>
+                        <div class="form-group"><label>חזרה חודשים</label><input type="number" id="reqReturnMonths" value="3"></div>
+                        <div class="form-group"><label><input type="checkbox" id="reqIncludeUnknownAvailability" checked> includeUnknownAvailability</label></div>
+                        <div class="form-group"><label><input type="checkbox" id="reqIncludeUnknownAge" checked> includeUnknownAge</label></div>
+                        <div class="form-group"><label><input type="checkbox" id="reqIncludeUnknownSalary" checked> includeUnknownSalary</label></div>
+                    </div>
                 </div>
                 
                 <div class="button-group">
@@ -721,7 +730,6 @@
         });
         
         async function saveJob() {
-            const title = document.getElementById('jobTitle').value.trim();
             
             if (!selectedClient) {
                 alert('יש לבחור לקוח');
@@ -731,15 +739,13 @@
                 alert('יש לבחור סוג משרה');
                 return;
             }
-            if (!title) {
-                alert('כותרת משרה חובה');
-                return;
-            }
             
             try {
                 const jobsSnapshot = await firestore.collection('jobs').get();
                 const jobNumber = 1000 + jobsSnapshot.size + 1;
                 
+                // validityDays is a job-level rule compared against candidateInterest.createdAt.
+                // returnMonths prevents re-entering candidates who were recently in process for the same jobType.
                 await firestore.collection('jobs').add({
                     clientId: String(selectedClient.id),
                     clientName: selectedClient.name || (selectedClient.extraCoords && selectedClient.extraCoords.name) || '',
@@ -751,9 +757,23 @@
                     typeName: selectedJobType.code + ' – ' + selectedJobType.name,
                     number: jobNumber,
                     num: jobNumber,
-                    title: title,
+                    title: selectedJobType.name,
                     description: document.getElementById('jobDescription').value,
-                    openPositions: parseInt(document.getElementById('openPositions').value) || 1,
+                    requirements: {
+                        maritalStatus: document.getElementById('reqMaritalStatus').value,
+                        mobility: document.getElementById('reqMobility').value,
+                        gender: document.getElementById('reqGender').value,
+                        driverLicense: document.getElementById('reqDriverLicense').value,
+                        ageMin: parseInt(document.getElementById('reqAgeMin').value) || 18,
+                        ageMax: parseInt(document.getElementById('reqAgeMax').value) || 67,
+                        salaryMin: parseInt(document.getElementById('reqSalaryMin').value) || 0,
+                        salaryMax: parseInt(document.getElementById('reqSalaryMax').value) || 1000000,
+                        validityDays: parseInt(document.getElementById('reqValidityDays').value) || 60,
+                        returnMonths: parseInt(document.getElementById('reqReturnMonths').value) || 3,
+                        includeUnknownAvailability: document.getElementById('reqIncludeUnknownAvailability').checked,
+                        includeUnknownAge: document.getElementById('reqIncludeUnknownAge').checked,
+                        includeUnknownSalary: document.getElementById('reqIncludeUnknownSalary').checked
+                    },
                     status: 'open',
                     createdDate: new Date().toISOString(),
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
