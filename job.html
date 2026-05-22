@@ -503,40 +503,47 @@
           const boxes = document.querySelectorAll('.area-box');
           if (boxes[idx]) boxes[idx].classList.toggle('open');
         }
+        window.toggleArea = toggleArea;
 
         function toggleWholeArea(idx, checked) {
           CITY_AREAS[idx].cities.forEach(city => checked ? selectedCities.add(city) : selectedCities.delete(city));
           renderCityAreas(document.getElementById('citySearch')?.value || '');
           renderSelectedCities();
         }
+        window.toggleWholeArea = toggleWholeArea;
 
         function toggleCity(city, checked) {
           checked ? selectedCities.add(city) : selectedCities.delete(city);
           renderCityAreas(document.getElementById('citySearch')?.value || '');
           renderSelectedCities();
         }
+        window.toggleCity = toggleCity;
 
         function removeCity(city) {
           selectedCities.delete(city);
           renderCityAreas(document.getElementById('citySearch')?.value || '');
           renderSelectedCities();
         }
+        window.removeCity = removeCity;
 
         function filterCityAreas() {
           renderCityAreas(document.getElementById('citySearch').value || '');
         }
+        window.filterCityAreas = filterCityAreas;
 
         function clearCitySearch() {
           const el = document.getElementById('citySearch');
           if (el) el.value = '';
           renderCityAreas('');
         }
+        window.clearCitySearch = clearCitySearch;
 
         function loadJobCities() {
           selectedCities = new Set(savedCities || []);
           renderCityAreas(document.getElementById('citySearch')?.value || '');
           renderSelectedCities();
         }
+        window.loadJobCities = loadJobCities;
 
         async function saveJobCities() {
           const list = uniqueCities([...selectedCities]);
@@ -553,12 +560,13 @@
             alert('הערים נשמרו זמנית במסך.');
           }
           renderSelectedCities();
-        }
+        window.saveJobCities = saveJobCities;
 
         function showSelectedCitiesList() {
           const list = uniqueCities([...selectedCities]);
           alert(list.length ? list.join('\n') : 'לא נבחרו ערים');
         }
+        window.showSelectedCitiesList = showSelectedCitiesList;
 
         renderCityAreas();
         renderSelectedCities();
