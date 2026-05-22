@@ -141,6 +141,7 @@
 </div>
 <script type="module">
 import { db } from "./firebase.js";
+import { collection, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 let jobsUnsub = null;
 let activeClientIds = new Set();
 let activeClientNames = new Set();
@@ -149,7 +150,7 @@ async function refreshActiveClients() {
   activeClientIds = new Set();
   activeClientNames = new Set();
   try {
-    const snap = await db.collection('clients').get();
+    const snap = await getDocs(collection(db, 'clients'));
     snap.forEach(doc => {
       const c = doc.data() || {};
       if (c.status === 'deleted' || c.deleted === true) return;
@@ -189,7 +190,7 @@ function renderJobs() {
   const searchTerm = (document.getElementById('searchInput').value || '').toLowerCase();
   const statusFilter = document.getElementById('statusFilter').value;
   if (jobsUnsub) jobsUnsub();
-  jobsUnsub = db.collection('jobs').onSnapshot(snapshot => {
+  jobsUnsub = onSnapshot(collection(db, 'jobs'), snapshot => {
     const tbody = document.getElementById('jobsTableBody');
     tbody.innerHTML = '';
     const rows = [];
