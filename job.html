@@ -422,10 +422,9 @@
         function switchTab(tabName) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-            
-            event.target.classList.add('active');
             document.getElementById(tabName).classList.remove('hidden');
         }
+        window.switchTab = switchTab;
         
         function navigateNext() {
             alert('ניווט בין משרות - בשלב בנייה');
