@@ -156,7 +156,7 @@
       <div class="fg narrow"><div class="fl">ישוב</div><div class="fiw"><input type="text" id="fCity" placeholder="חפש..." oninput="filterClients()"><i class="fa-solid fa-location-dot ic"></i></div></div>
       <div class="fg narrow"><div class="fl">תעשייה</div><div class="fiw"><select id="fIndustry" onchange="filterClients()"><option value="">הכל</option><option>לוגיסטיקה</option><option>כללי</option><option>שירותים</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
       <div class="fg narrow"><div class="fl">רכז מטפל</div><div class="fiw"><select id="fHandler" onchange="filterClients()"><option value="">הכל</option><option>שי דהן</option><option>נטלי</option><option>בתאל</option></select><i class="fa-solid fa-chevron-down ic"></i></div></div>
-      <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> לקוח חדש</button>
+      <button class="btn btn-primary" onclick="window.location.href='new_client.html'"><i class="fa-solid fa-plus"></i> לקוח חדש</button>
       <button class="btn btn-export"><i class="fa-solid fa-download"></i> ייצוא</button>
       <button class="btn" style="color:#dc3545;border-color:rgba(220,53,69,0.35);" onclick="deleteSelectedClients()"><i class="fa-solid fa-trash"></i> מחק מסומנים</button>
       <button class="btn" onclick="toggleCols()"><i class="fa-solid fa-sliders"></i> עמודות</button>
@@ -692,7 +692,7 @@ function swTab(id, el) {
 function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
 document.querySelector('.modal-overlay').addEventListener('click', function(e) { if(e.target===this) this.classList.add('hidden'); });
 
-window.onload = function() { renderClients(CLIENTS); };
+window.onload = function() { renderClients([]); };
 </script>
 
 <script>
@@ -738,8 +738,10 @@ window.onload = function() { renderClients(CLIENTS); };
 
 <script>
 // Firebase: load clients in real time
+const clientsTbody = document.getElementById('clientsTbody');
+if (clientsTbody) clientsTbody.innerHTML = '<tr><td colspan="13" style="text-align:center;color:var(--text-light);font-size:11px;padding:1rem;">טוען לקוחות...</td></tr>';
 db.collection('clients').orderBy('createdAt', 'desc').onSnapshot(function(snap) {
-  if(snap.empty) return;
+  if(snap.empty) { window.CLIENTS = []; if(window.renderClients) window.renderClients([]); return; }
   var liveClients = snap.docs.map(function(d) {
     var c = d.data();
     if (c.status === 'deleted' || c.deleted === true) return null;
@@ -768,6 +770,8 @@ db.collection('clients').orderBy('createdAt', 'desc').onSnapshot(function(snap) 
   if(window.renderClients) window.renderClients(liveClients);
 }, function(err) {
   console.log('Clients Firebase error:', err);
+  window.CLIENTS = [];
+  if(window.renderClients) window.renderClients([]);
 });
 </script>
 </body>
