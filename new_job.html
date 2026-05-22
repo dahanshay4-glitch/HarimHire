@@ -473,7 +473,7 @@
 
     <script type="module">
         import { db } from './firebase.js';
-        window.firestore = db;
+        import { collection, getDocs, addDoc, serverTimestamp, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
         window.allClients = [];
         const urlParams = new URLSearchParams(window.location.search);
         const preselectedClientId = urlParams.get('clientId');
@@ -488,11 +488,12 @@
         };
         let jobTypes = { ...defaultJobTypes };
         
-        function loadClients() {
-            firestore.collection('clients').onSnapshot(snapshot => {
+        window.loadClients = async function() {
+            try {
+                const snap = await getDocs(query(collection(db, 'clients'), orderBy('createdAt', 'desc')));
                 window.allClients = [];
                 let counter = 1;
-                snapshot.forEach(doc => {
+                snap.forEach(doc => {
                     const c = doc.data();
                     if (c.status === 'deleted' || c.deleted === true) return;
                     c.id = doc.id;
@@ -502,49 +503,46 @@
                 if (preselectedClientId && !window.selectedClient) {
                     const match = window.allClients.find(c => String(c.id) === String(preselectedClientId));
                     if (match) {
-                        setSelectedClient(match);
+                        window.setSelectedClient(match);
                         const list = document.getElementById('clientSuggestions');
                         if (list) list.classList.remove('open');
                     }
                 } else if (preselectedClientName && !window.selectedClient) {
                     const match = window.allClients.find(c => String(c.name || '').trim() === String(preselectedClientName).trim());
-                    if (match) setSelectedClient(match);
+                    if (match) window.setSelectedClient(match);
                 }
-                renderClientOptions();
-            }, error => {
+                window.renderClientOptions();
+            } catch (error) {
                 console.error('Error loading clients:', error);
                 const list = document.getElementById('clientSuggestions');
                 if (list) {
                     list.innerHTML = '<div class="autocomplete-empty">שגיאה בטעינת לקוחות</div>';
                     list.classList.add('open');
                 }
-            });
-        }
+            }
+        };
 
         window.selectedClient = null;
         window.selectedJobType = null;
         window.window.clientActiveIndex = -1;
         window.clientFiltered = [];
 
-        function renderClientOptions() {
+        window.renderClientOptions = function() {
             const list = document.getElementById('clientSuggestions');
             const searchInput = document.getElementById('clientSearch');
             const searchTerm = (searchInput ? searchInput.value : '').trim().toLowerCase();
             window.clientActiveIndex = -1;
-
             window.clientFiltered = window.allClients.filter(c => {
                 const name = (c.name || (c.extraCoords && c.extraCoords.name) || '').toLowerCase();
                 const city = (c.city || (c.extraCoords && c.extraCoords.city) || '').toLowerCase();
                 const type = (c.type || (c.extraCoords && c.extraCoords.type) || '').toLowerCase();
                 return !searchTerm || name.startsWith(searchTerm) || city.startsWith(searchTerm) || type.startsWith(searchTerm) || name.includes(searchTerm) || city.includes(searchTerm) || type.includes(searchTerm);
             }).slice(0, 25);
-
             if (!window.clientFiltered.length) {
                 list.innerHTML = '<div class="autocomplete-empty">לא נמצאו לקוחות</div>';
                 list.classList.add('open');
                 return;
             }
-
             list.innerHTML = window.clientFiltered.map((c, i) => {
                 const displayName = c.name || (c.extraCoords && c.extraCoords.name) || 'ללא שם';
                 const city = c.city || (c.extraCoords && c.extraCoords.city) || 'לא ידוע';
@@ -556,61 +554,63 @@
                 </div>`;
             }).join('');
             list.classList.add('open');
-        }
+        };
 
-        function setSelectedClient(client) {
+        window.setSelectedClient = function(client) {
             window.selectedClient = client;
             const search = document.getElementById('clientSearch');
             const suggestions = document.getElementById('clientSuggestions');
             const next = document.getElementById('nextStep1');
-            if (search) search.value = window.selectedClient.name || (selectedClient.extraCoords && selectedClient.extraCoords.name) || '';
+            const sc = window.selectedClient;
+            if (search) search.value = sc.name || (sc.extraCoords && sc.extraCoords.name) || '';
             if (suggestions) suggestions.classList.remove('open');
             if (next) next.disabled = false;
             const preview = document.getElementById('selectedClientPreview');
             if (preview) {
-                preview.innerHTML = `<strong>${window.selectedClient.name || (selectedClient.extraCoords && selectedClient.extraCoords.name) || 'ללא שם'}</strong><br><span style="color:#666;">${window.selectedClient.city || (selectedClient.extraCoords && selectedClient.extraCoords.city) || 'לא ידוע'}${(window.selectedClient.type || (selectedClient.extraCoords && selectedClient.extraCoords.type)) ? ' · ' + (window.selectedClient.type || (selectedClient.extraCoords && selectedClient.extraCoords.type)) : ''}</span>`;
+                preview.innerHTML = `<strong>${sc.name || (sc.extraCoords && sc.extraCoords.name) || 'ללא שם'}</strong><br><span style="color:#666;">${sc.city || (sc.extraCoords && sc.extraCoords.city) || 'לא ידוע'}${(sc.type || (sc.extraCoords && sc.extraCoords.type)) ? ' · ' + (sc.type || (sc.extraCoords && sc.extraCoords.type)) : ''}</span>`;
             }
-        }
+        };
 
-        function selectClientFromSuggestion(index) {
+        window.selectClientFromSuggestion = function(index) {
             const client = window.clientFiltered[index];
             if (!client) return;
-            setSelectedClient(client);
-        }
+            window.setSelectedClient(client);
+        };
 
-        function handleClientKey(event) {
+        window.handleClientKey = function(event) {
             const list = document.getElementById('clientSuggestions');
             const items = list.querySelectorAll('.autocomplete-item');
             if (!items.length) return;
             if (event.key === 'ArrowDown') {
                 event.preventDefault();
-                window.clientActiveIndex = Math.min(clientActiveIndex + 1, items.length - 1);
-                updateActiveItem(items, window.clientActiveIndex);
+                window.clientActiveIndex = Math.min(window.clientActiveIndex + 1, items.length - 1);
+                window.updateActiveItem(items, window.clientActiveIndex);
             } else if (event.key === 'ArrowUp') {
                 event.preventDefault();
-                window.clientActiveIndex = Math.max(clientActiveIndex - 1, 0);
-                updateActiveItem(items, window.clientActiveIndex);
+                window.clientActiveIndex = Math.max(window.clientActiveIndex - 1, 0);
+                window.updateActiveItem(items, window.clientActiveIndex);
             } else if (event.key === 'Enter') {
                 event.preventDefault();
-                selectClientFromSuggestion(window.clientActiveIndex >= 0 ? window.clientActiveIndex : 0);
+                window.selectClientFromSuggestion(window.clientActiveIndex >= 0 ? window.clientActiveIndex : 0);
             } else if (event.key === 'Escape') {
                 list.classList.remove('open');
             }
-        }
+        };
 
-        function selectClient(client) {
-            setSelectedClient(client);
-        }
+        window.selectClient = function(client) {
+            window.setSelectedClient(client);
+        };
         
-        function goToStep(step) {
+        window.goToStep = function(step) {
             document.querySelectorAll('.wizard-step').forEach(s => s.style.display = 'none');
             document.getElementById('step' + step).style.display = 'block';
             document.getElementById('stepCounter').textContent = `משרה חדשה - שלב ${step} מתוך 3`;
             
             if (step === 2) {
                 if (!window.selectedClient) { alert('יש לבחור לקוח לפני המשך'); return; }
-                document.getElementById('selectedClientInfo').innerHTML = `<strong>לקוח:</strong> ${window.selectedClient.name || (selectedClient.extraCoords && selectedClient.extraCoords.name) || ''}`;
-                loadJobTypes();
+                const sc = window.selectedClient;
+                document.getElementById('selectedClientInfo').innerHTML = `<strong>לקוח:</strong> ${sc.name || (sc.extraCoords && sc.extraCoords.name) || ''}`;
+                window.loadJobTypes();
                 history.pushState({step: 2}, '', '#step2');
             } else if (step === 3) {
                 if (!window.selectedJobType) { alert('יש לבחור סוג משרה לפני המשך'); return; }
@@ -621,52 +621,47 @@
             }
         }
         
-        function loadJobTypes() {
-            // סוגי משרה הם ישות נפרדת: 1002 = שליח שכיר וכו'.
-            // אם הוגדרו ב-Firestore נשתמש בהם; אם לא, נשאיר ברירת מחדל כדי שהמערכת תמשיך לעבוד.
-            firestore.collection('jobTypes').get().then(snapshot => {
+        window.loadJobTypes = async function() {
+            try {
+                const snap = await getDocs(collection(db, 'jobTypes'));
                 const liveTypes = {};
-                snapshot.forEach(doc => {
+                snap.forEach(doc => {
                     const data = doc.data() || {};
                     if (data.status === 'deleted' || data.deleted === true || data.active === false) return;
                     const code = String(data.code || data.num || data.number || doc.id || '').trim();
                     const name = String(data.name || data.title || data.jobTypeName || '').trim();
                     if (!code || !name) return;
-                    liveTypes[code] = {
-                        name: name,
-                        icon: data.icon || ''
-                    };
+                    liveTypes[code] = { name, icon: data.icon || '' };
                 });
                 if (Object.keys(liveTypes).length) jobTypes = liveTypes;
-                renderJobTypeOptions();
-            }).catch(err => {
+            } catch (err) {
                 console.log('Job types Firebase error:', err);
-                renderJobTypeOptions();
-            });
-        }
+            }
+            window.renderJobTypeOptions();
+        };
 
-        let jobTypeActiveIndex = -1;
-        let jobTypeFiltered = [];
+        window.jobTypeActiveIndex = -1;
+        window.jobTypeFiltered = [];
 
-        function renderJobTypeOptions() {
+        window.renderJobTypeOptions = function() {
             const list = document.getElementById('jobTypeSuggestions');
             const searchInput = document.getElementById('jobTypeSearch');
             if (!list) return;
             const searchTerm = (searchInput ? searchInput.value : '').trim().toLowerCase();
-            jobTypeActiveIndex = -1;
+            window.jobTypeActiveIndex = -1;
 
-            jobTypeFiltered = Object.entries(jobTypes).filter(([code, details]) => {
+            window.jobTypeFiltered = Object.entries(jobTypes).filter(([code, details]) => {
                 const name = (details.name || '').toLowerCase();
                 return !searchTerm || code.startsWith(searchTerm) || name.startsWith(searchTerm) || code.includes(searchTerm) || name.includes(searchTerm);
             }).map(([code, details]) => ({ code, ...details }));
 
-            if (!jobTypeFiltered.length) {
+            if (!window.jobTypeFiltered.length) {
                 list.innerHTML = '<div class="autocomplete-empty">לא נמצאו סוגי משרה</div>';
                 list.classList.add('open');
                 return;
             }
 
-            list.innerHTML = jobTypeFiltered.map((jt, i) => `
+            list.innerHTML = window.jobTypeFiltered.map((jt, i) => `
                 <div class="autocomplete-item" data-index="${i}" onclick="selectJobTypeFromSuggestion(${i})">
                     <div class="autocomplete-item-title">${jt.code} – ${jt.name}</div>
                 </div>
@@ -674,8 +669,8 @@
             list.classList.add('open');
         }
 
-        function selectJobTypeFromSuggestion(index) {
-            const jt = jobTypeFiltered[index];
+        window.selectJobTypeFromSuggestion = function(index) {
+            const jt = window.jobTypeFiltered[index];
             if (!jt) return;
             window.selectedJobType = { code: jt.code, name: jt.name };
             document.getElementById('jobTypeSearch').value = `${jt.code} – ${jt.name}`;
@@ -684,30 +679,30 @@
             document.getElementById('selectedJobTypePreview').innerHTML = `<strong>${window.selectedJobType.code} – ${window.selectedJobType.name}</strong>`;
         }
 
-        function handleJobTypeKey(event) {
+        window.handleJobTypeKey = function(event) {
             const list = document.getElementById('jobTypeSuggestions');
             const items = list.querySelectorAll('.autocomplete-item');
             if (!items.length) return;
             if (event.key === 'ArrowDown') {
                 event.preventDefault();
-                jobTypeActiveIndex = Math.min(jobTypeActiveIndex + 1, items.length - 1);
-                updateActiveItem(items, jobTypeActiveIndex);
+                window.jobTypeActiveIndex = Math.min(window.jobTypeActiveIndex + 1, items.length - 1);
+                window.updateActiveItem(items, window.jobTypeActiveIndex);
             } else if (event.key === 'ArrowUp') {
                 event.preventDefault();
-                jobTypeActiveIndex = Math.max(jobTypeActiveIndex - 1, 0);
-                updateActiveItem(items, jobTypeActiveIndex);
+                window.jobTypeActiveIndex = Math.max(window.jobTypeActiveIndex - 1, 0);
+                window.updateActiveItem(items, window.jobTypeActiveIndex);
             } else if (event.key === 'Enter') {
                 event.preventDefault();
-                selectJobTypeFromSuggestion(jobTypeActiveIndex >= 0 ? jobTypeActiveIndex : 0);
+                window.selectJobTypeFromSuggestion(window.jobTypeActiveIndex >= 0 ? window.jobTypeActiveIndex : 0);
             } else if (event.key === 'Escape') {
                 list.classList.remove('open');
             }
-        }
+        };
 
-        function updateActiveItem(items, activeIndex) {
+        window.updateActiveItem = function(items, activeIndex) {
             items.forEach((item, i) => item.classList.toggle('active', i === activeIndex));
             if (items[activeIndex]) items[activeIndex].scrollIntoView({ block: 'nearest' });
-        }
+        };
 
         document.addEventListener('click', (event) => {
             if (!event.target.closest('.autocomplete-wrap')) {
@@ -717,36 +712,27 @@
                 if (jobTypeList) jobTypeList.classList.remove('open');
             }
         });
-        
-        async function saveJob() {
-            
-            if (!window.selectedClient) {
-                alert('יש לבחור לקוח');
-                return;
-            }
-            if (!window.selectedJobType) {
-                alert('יש לבחור סוג משרה');
-                return;
-            }
-            
+
+        window.saveJob = async function() {
+            if (!window.selectedClient) { alert('יש לבחור לקוח'); return; }
+            if (!window.selectedJobType) { alert('יש לבחור סוג משרה'); return; }
             try {
-                const jobsSnapshot = await firestore.collection('jobs').get();
-                const jobNumber = 1000 + jobsSnapshot.size + 1;
-                
-                // validityDays is a job-level rule compared against candidateInterest.createdAt.
-                // returnMonths prevents re-entering candidates who were recently in process for the same jobType.
-                await firestore.collection('jobs').add({
-                    clientId: String(window.selectedClient.id),
-                    clientName: window.selectedClient.name || (selectedClient.extraCoords && selectedClient.extraCoords.name) || '',
-                    clientCity: window.selectedClient.city || (selectedClient.extraCoords && selectedClient.extraCoords.city) || '',
-                    clientType: window.selectedClient.type || (selectedClient.extraCoords && selectedClient.extraCoords.type) || '',
-                    jobType: window.selectedJobType.code,
-                    jobTypeCode: window.selectedJobType.code,
-                    jobTypeName: window.selectedJobType.name,
-                    typeName: window.selectedJobType.code + ' – ' + window.selectedJobType.name,
+                const jobsSnap = await getDocs(collection(db, 'jobs'));
+                const jobNumber = 1000 + jobsSnap.size + 1;
+                const sc = window.selectedClient;
+                const sj = window.selectedJobType;
+                await addDoc(collection(db, 'jobs'), {
+                    clientId: String(sc.id),
+                    clientName: sc.name || (sc.extraCoords && sc.extraCoords.name) || '',
+                    clientCity: sc.city || (sc.extraCoords && sc.extraCoords.city) || '',
+                    clientType: sc.type || (sc.extraCoords && sc.extraCoords.type) || '',
+                    jobType: sj.code,
+                    jobTypeCode: sj.code,
+                    jobTypeName: sj.name,
+                    typeName: sj.code + ' – ' + sj.name,
                     number: jobNumber,
                     num: jobNumber,
-                    title: window.selectedJobType.name,
+                    title: sj.name,
                     description: document.getElementById('jobDescription').value,
                     requirements: {
                         maritalStatus: document.getElementById('reqMaritalStatus').value,
@@ -766,27 +752,27 @@
                     isDeleted: false,
                     status: 'open',
                     createdDate: new Date().toISOString(),
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdAt: serverTimestamp(),
                     interestedCount: 0,
                     inProcessCount: 0,
                     hiredCount: 0
                 });
-                
+
                 alert(`משרה ${jobNumber} נוצרה בהצלחה!`);
                 window.location.href = 'jobs.html';
             } catch (error) {
                 console.error('Error:', error);
                 alert('שגיאה בשמירה: ' + error.message);
             }
-        }
-        
+        };
+
         window.addEventListener('popstate', (e) => {
             if (e.state && e.state.step) {
-                goToStep(e.state.step);
+                window.goToStep(e.state.step);
             }
         });
-        
-        loadClients();
+
+        window.loadClients();
         history.pushState({step: 1}, '', '#step1');
     </script>
 
