@@ -190,8 +190,8 @@ function renderJobs() {
   const searchTerm = (document.getElementById('searchInput').value || '').toLowerCase();
   const statusFilter = document.getElementById('statusFilter').value;
   if (jobsUnsub) jobsUnsub();
-  jobsUnsub = firestore.collection('jobs').onSnapshot(async snapshot => {
-    await refreshActiveClients();
+  jobsUnsub = firestore.collection('jobs').onSnapshot(snapshot => {
+    refreshActiveClients(); // run async, non-blocking
     const tbody = document.getElementById('jobsTableBody');
     tbody.innerHTML = '';
     const rows = [];
@@ -200,7 +200,8 @@ function renderJobs() {
       j.id = doc.id;
       j.num = j.num || j.jobTypeCode || (index + 1);
       if (j.status === 'deleted' || j.deleted === true) return;
-      if (!jobHasActiveClient(j)) return;
+      // Show job if active client exists in our cache OR if we haven't loaded clients yet
+      if (activeClientIds.size > 0 && !jobHasActiveClient(j)) return;
       const haystack = [j.num, j.title, j.clientName, j.typeName, j.jobTypeName, j.jobTypeCode, j.status].join(' ').toLowerCase();
       if (searchTerm && !haystack.includes(searchTerm)) return;
       if (statusFilter && j.status !== statusFilter) return;
