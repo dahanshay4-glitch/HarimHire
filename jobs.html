@@ -190,8 +190,7 @@ function renderJobs() {
   const searchTerm = (document.getElementById('searchInput').value || '').toLowerCase();
   const statusFilter = document.getElementById('statusFilter').value;
   if (jobsUnsub) jobsUnsub();
-  jobsUnsub = firestore.collection('jobs').onSnapshot(snapshot => {
-    refreshActiveClients(); // run async, non-blocking
+  jobsUnsub = db.collection('jobs').onSnapshot(snapshot => {
     const tbody = document.getElementById('jobsTableBody');
     tbody.innerHTML = '';
     const rows = [];
