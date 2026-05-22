@@ -150,7 +150,7 @@ async function refreshActiveClients() {
   activeClientIds = new Set();
   activeClientNames = new Set();
   try {
-    const snap = await firestore.collection('clients').get();
+    const snap = await db.collection('clients').get();
     snap.forEach(doc => {
       const c = doc.data() || {};
       if (c.status === 'deleted' || c.deleted === true) return;
