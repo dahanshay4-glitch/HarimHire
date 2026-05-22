@@ -361,7 +361,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="firebase.js"></script>
+    <script type="module" src="firebase.js"></script>
     <script type="module">
         import { db } from './firebase.js';
         import { collection, query, where, orderBy, onSnapshot, getDocs, updateDoc, doc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
@@ -560,6 +560,7 @@
             alert('הערים נשמרו זמנית במסך.');
           }
           renderSelectedCities();
+        }
         window.saveJobCities = saveJobCities;
 
         function showSelectedCitiesList() {
