@@ -157,6 +157,8 @@ function statusLabel(s) {
   return s || 'לא ידוע';
 }
 
+let jobsUnsub = null;
+
 function renderJobs() {
   const searchTerm = (document.getElementById('searchInput').value || '').toLowerCase();
   const statusFilter = document.getElementById('statusFilter').value;
