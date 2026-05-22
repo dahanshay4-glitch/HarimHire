@@ -60,7 +60,7 @@
         }
         
         .job-header {
-            background: linear-gradient(135deg, #1e3461 0%, #e8992e 100%);
+            background: #1e3461;
             color: white;
             padding: 24px;
             display: flex;
@@ -361,7 +361,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="firebase.js"></script>
-    <script>
+    <script type="module">
+        import { db } from './firebase.js';
+        import { collection, query, where, orderBy, onSnapshot, getDocs, updateDoc, doc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
         let currentJobId = null;
         let allJobs = [];
         let currentJobIndex = 0;
@@ -373,16 +375,11 @@
                 displayJob(job);
                 currentJobId = job.id;
             } else {
-                firestore.collection('jobs')
-                    .where('status', '!=', 'deleted')
-                    .orderBy('status')
-                    .orderBy('createdDate', 'desc')
-                    .limit(1)
-                    .onSnapshot(snapshot => {
-                        if (!snapshot.empty) {
-                            const doc = snapshot.docs[0];
-                            const job = doc.data();
-                            job.id = doc.id;
+                onSnapshot(query(collection(db, 'jobs'), where('status', '!=', 'deleted'), orderBy('createdDate', 'desc')), snapshot => {
+                    if (!snapshot.empty) {
+                        const docSnap = snapshot.docs[0];
+                        const job = docSnap.data();
+                        job.id = docSnap.id;
                             displayJob(job);
                             currentJobId = job.id;
                         }
@@ -544,9 +541,9 @@
         async function saveJobCities() {
           const list = uniqueCities([...selectedCities]);
           savedCities = list;
-          if (currentJobId && window.firestore) {
+          if (currentJobId) {
             try {
-              await firestore.collection('jobs').doc(currentJobId).update({ cities: list, updatedAt: new Date().toISOString() });
+              await updateDoc(doc(db, 'jobs', currentJobId), { cities: list, updatedAt: new Date().toISOString() });
               alert('הערים נשמרו למשרה');
             } catch (e) {
               console.error(e);

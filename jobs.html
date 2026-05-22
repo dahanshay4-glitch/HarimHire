@@ -131,7 +131,6 @@
             <th onclick="sortTable(5)">מתעניינים <span>&#8597;</span></th>
             <th onclick="sortTable(6)">בתהליך <span>&#8597;</span></th>
             <th onclick="sortTable(7)">התחילו לעבוד <span>&#8597;</span></th>
-            <th></th>
           </tr>
         </thead>
         <tbody id="jobsTableBody"></tbody>
@@ -141,35 +140,7 @@
 </div>
 <script type="module">
 import { db } from "./firebase.js";
-import { collection, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-let jobsUnsub = null;
-let activeClientIds = new Set();
-let activeClientNames = new Set();
-
-async function refreshActiveClients() {
-  activeClientIds = new Set();
-  activeClientNames = new Set();
-  try {
-    const snap = await getDocs(collection(db, 'clients'));
-    snap.forEach(doc => {
-      const c = doc.data() || {};
-      if (c.status === 'deleted' || c.deleted === true) return;
-      activeClientIds.add(String(doc.id));
-      if (c.name) activeClientNames.add(String(c.name).trim());
-    });
-  } catch (err) {
-    console.error('Clients sync error:', err);
-  }
-}
-
-function jobHasActiveClient(j) {
-  const clientId = j.clientId ? String(j.clientId) : '';
-  const clientName = j.clientName ? String(j.clientName).trim() : '';
-  if (!clientId && !clientName) return false;
-  if (clientId && activeClientIds.has(clientId)) return true;
-  if (clientName && activeClientNames.has(clientName)) return true;
-  return false;
-}
+import { collection, getDocs, onSnapshot, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 function formatDate(v) {
   try {
@@ -209,15 +180,16 @@ function renderJobs() {
       if (statusFilter && j.status !== statusFilter) return;
       rows.push(j);
     });
-    rows.sort((a,b) => String(b.createdDate || b.createdAt || '').localeCompare(String(a.createdDate || a.createdAt || '')));
+    rows.sort((a,b) => String(a.createdDate || a.createdAt || '').localeCompare(String(b.createdDate || b.createdAt || '')));
     document.getElementById('jobsCount').textContent = rows.length;
-    rows.forEach(j => {
+    rows.forEach((j, displayIndex) => {
       const row = document.createElement('tr');
       row.onclick = () => { sessionStorage.setItem('jobData', JSON.stringify(j)); window.location.href = 'job.html'; };
       const created = formatDate(j.createdDate || j.createdAt);
       const title = j.title || j.jobTypeName || '';
+      const serialNum = rows.length - displayIndex;
       row.innerHTML = `
-        <td>${j.num || ''}</td>
+        <td>${serialNum}</td>
         <td>${title}</td>
         <td><a class="link">${j.clientName || 'לא ידוע'}</a></td>
         <td><span class="pill status-${j.status}">${statusLabel(j.status)}</span></td>
@@ -225,7 +197,7 @@ function renderJobs() {
         <td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList('interested', '${j.id}')">${j.interestedCount || j.waitingCount || 0}</span></td>
         <td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList('inProcess', '${j.id}')">${j.inProcessCount || 0}</span></td>
         <td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList('hired', '${j.id}')">${j.hiredCount || 0}</span></td>
-        <td><button class="btn" style="padding:2px 6px;" onclick="event.stopPropagation();"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>`;
+        <td><button class="btn" style="padding:2px 6px;color:#999;" title="מחיקה" onclick="event.stopPropagation(); window.confirmDeleteJob('${j.id}')"><i class="fa-solid fa-trash"></i></button></td>`;
       tbody.appendChild(row);
     });
   }, err => {
@@ -236,6 +208,11 @@ function renderJobs() {
 
 
 function openCandidatesList(type, jobId) { sessionStorage.setItem('filterType', type); sessionStorage.setItem('filterJobId', jobId); window.location.href = 'candidates.html'; }
+
+window.confirmDeleteJob = function(jobId) {
+  if (!confirm('למחוק את המשרה?')) return;
+  deleteDoc(doc(db, 'jobs', jobId)).catch(err => { console.error('Delete job error:', err); alert('שגיאה במחיקה'); });
+};
 function sortTable(colIndex) {
   const tbody = document.getElementById('jobsTableBody');
   const rows = Array.from(tbody.getElementsByTagName('tr'));
