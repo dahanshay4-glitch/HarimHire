@@ -276,6 +276,7 @@
             <div class="nav-buttons">
                 <button class="nav-button" onclick="navigatePrevious()">← הקודמת</button>
                 <button class="nav-button" onclick="navigateNext()">הבאה →</button>
+                <button class="nav-button" style="color:#cc3300;" onclick="window.confirmDeleteCurrentJob()">🗑️ מחיקה</button>
             </div>
         </div>
 
@@ -363,7 +364,7 @@
     <script src="firebase.js"></script>
     <script type="module">
         import { db } from './firebase.js';
-        import { collection, query, where, orderBy, onSnapshot, getDocs, updateDoc, doc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+        import { collection, query, where, orderBy, onSnapshot, getDocs, updateDoc, doc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
         let currentJobId = null;
         let allJobs = [];
         let currentJobIndex = 0;
@@ -603,7 +604,13 @@
       }
     });
   });
-})();
+        window.confirmDeleteCurrentJob = function() {
+          if (!confirm('למחוק את המשרה?')) return;
+          if (!currentJobId) { window.location.href = 'jobs.html'; return; }
+          deleteDoc(doc(db, 'jobs', currentJobId)).then(() => {
+            window.location.href = 'jobs.html';
+          }).catch(err => { console.error('Delete job error:', err); alert('שגיאה במחיקה'); });
+        };
 </script>
 
 </body>
