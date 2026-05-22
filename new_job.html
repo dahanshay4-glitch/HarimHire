@@ -774,6 +774,7 @@
                         includeUnknownAge: document.getElementById('reqIncludeUnknownAge').checked,
                         includeUnknownSalary: document.getElementById('reqIncludeUnknownSalary').checked
                     },
+                    isDeleted: false,
                     status: 'open',
                     createdDate: new Date().toISOString(),
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),

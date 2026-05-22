@@ -199,9 +199,12 @@ function renderJobs() {
       const j = doc.data() || {};
       j.id = doc.id;
       j.num = j.num || j.jobTypeCode || (index + 1);
-      if (j.status === 'deleted' || j.deleted === true) return;
-      // Show job if active client exists in our cache OR if we haven't loaded clients yet
-      if (activeClientIds.size > 0 && !jobHasActiveClient(j)) return;
+      // Exclude only deleted jobs
+      if (j.isDeleted === true || j.status === 'deleted' || j.deleted === true) return;
+      // Default status
+      if (!j.status) j.status = 'פתוחה';
+      // Default title from jobTypeName
+      if (!j.title) j.title = j.jobTypeName || '';
       const haystack = [j.num, j.title, j.clientName, j.typeName, j.jobTypeName, j.jobTypeCode, j.status].join(' ').toLowerCase();
       if (searchTerm && !haystack.includes(searchTerm)) return;
       if (statusFilter && j.status !== statusFilter) return;
