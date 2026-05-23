@@ -369,6 +369,7 @@
         let currentJobId = null;
         let allJobs = [];
         let currentJobIndex = 0;
+        let currentJob = null;
         let currentJobCities = [];
         let unwatchCandidates = null;
         let candidatesData = [];
@@ -377,21 +378,7 @@
             var params = new URLSearchParams(window.location.search);
             var jobIdParam = params.get('id');
 
-            // Try sessionStorage first
-            var jobDataStr = sessionStorage.getItem('jobData');
-            if (jobDataStr) {
-                try {
-                    var stored = JSON.parse(jobDataStr);
-                    // If URL has ?id= and it matches stored job, use it
-                    if (!jobIdParam || stored.id === jobIdParam) {
-                        displayJob(stored);
-                        currentJobId = stored.id;
-                        return;
-                    }
-                } catch(e) { /* fall through to Firestore */ }
-            }
-
-            // Load by ?id= from Firestore
+            // If ?id= is in URL, always load from Firestore as authoritative source
             if (jobIdParam) {
                 getDoc(doc(db, 'jobs', jobIdParam)).then(function(docSnap) {
                     if (docSnap.exists()) {
@@ -399,11 +386,26 @@
                         job.id = docSnap.id;
                         displayJob(job);
                         currentJobId = job.id;
+                        currentJob = job;
                     }
                 }).catch(function(err) {
                     console.error('loadJob error:', err);
                 });
                 return;
+            }
+
+            // No ?id=: try sessionStorage as shortcut
+            var jobDataStr = sessionStorage.getItem('jobData');
+            if (jobDataStr) {
+                try {
+                    var stored = JSON.parse(jobDataStr);
+                    if (stored && stored.id) {
+                        displayJob(stored);
+                        currentJobId = stored.id;
+                        currentJob = stored;
+                        return;
+                    }
+                } catch(e) { /* fall through to Firestore */ }
             }
 
             // Fallback: load most recent job from Firestore
@@ -414,6 +416,7 @@
                     job.id = docSnap.id;
                     displayJob(job);
                     currentJobId = job.id;
+                    currentJob = job;
                 }
             });
         }
@@ -456,7 +459,7 @@
             document.getElementById(tabName).classList.remove('hidden');
             event.target.classList.add('active');
             if (tabName === 'candidates') {
-                renderCandidatesTab(candidatesData);
+                renderCandidatesTab(candidatesData || []);
             }
         }
         window.switchTab = switchTab;
@@ -516,7 +519,7 @@
             candidatesData = candidates;
             var activeTab = document.querySelector('.tab.active');
             if (activeTab && activeTab.textContent.trim() === 'מועמדים') {
-                renderCandidatesTab(candidates);
+                renderCandidatesTab(candidatesData || []);
             }
         });
 
