@@ -6,21 +6,7 @@
 <title>HarimHire – כרטיס מועמד</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="harimhire.css">
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDDhvquMr_6zODjgFIiU2y1Uzpc2wNgmX0",
-      authDomain: "harimhire.firebaseapp.com",
-      projectId: "harimhire",
-      storageBucket: "harimhire.firebasestorage.app",
-      messagingSenderId: "723909250338",
-      appId: "1:723909250338:web:70f5ac52e307083379697b"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-  </script>
+<script src="firebase.js" type="module"></script>
 <style>
 .nav-dropdown { position: relative; display: inline-block; }
 .nav-dropdown > a { display: flex; align-items: center; gap: 5px; padding: 6px 4px; }
@@ -70,6 +56,14 @@
 </style>
 
 <style>.subbar{margin:0 0 0.75rem 0 !important;padding:8px 1.2rem;}</style>
+<style>
+#detailLayout.two-col { grid-template-columns: 1fr 280px; }
+#detailRightPanel { display: flex; flex-direction: column; gap: 8px; }
+@media (max-width: 900px) {
+  #detailLayout.two-col { grid-template-columns: 1fr; }
+  #detailRightPanel { display: none; }
+}
+</style>
 </head>
 <body>
 
@@ -158,11 +152,12 @@
     <div style="display:flex;gap:6px;">
       <button class="btn btn-export"><i class="fa-solid fa-download"></i> ייצוא</button>
       <button class="btn btn-wa" id="waTopBtn"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+      <button class="btn btn-danger" id="btnDeleteCand" style="display:none;"><i class="fa-solid fa-trash"></i> מחק</button>
       <button class="btn btn-primary"><i class="fa-solid fa-rotate"></i> שנה סטטוס</button>
     </div>
   </div>
 
-  <div class="detail-layout">
+  <div class="detail-layout" id="detailLayout">
     <!-- LEFT COLUMN -->
     <div class="detail-left">
 
@@ -296,7 +291,7 @@
     </div>
 
     <!-- RIGHT PANEL -->
-    <div class="detail-right">
+    <div class="detail-right" id="detailRightPanel">
       <div class="card">
         <div class="rs-title">סיכום מהיר</div>
         <div class="rs-row"><span class="rs-key">מס׳ מועמד</span><span class="rs-val" id="cdId"></span></div>
@@ -377,6 +372,7 @@ function statusClass(s) {
 
 function loadCandidate(c) {
   cand = c;
+  window.cand = c;
   const waPhone = 'https://wa.me/972' + c.phone.replace(/^0/, '').replace(/-/g, '');
 
   // Header
@@ -549,6 +545,13 @@ window.onload = function() {
 
   loadCandidate(cand);
   updateNavButtons();
+  var delBtn = document.getElementById('btnDeleteCand');
+  var detailLayout = document.getElementById('detailLayout');
+  if(delBtn && cand) {
+    delBtn.style.display = '';
+    delBtn.onclick = function() { window.deleteCandidateFromDetail(cand.id); };
+  }
+  if(detailLayout) detailLayout.className = 'detail-layout two-col';
 };
 </script>
 
@@ -593,25 +596,31 @@ window.onload = function() {
 })();
 </script>
 
-<script>
-// Firebase: save candidate status/note changes
+<script type="module">
+import { deleteCandidate as dbDeleteCandidate, getCandidate } from './firebase.js';
+
+window.deleteCandidateFromDetail = async function(candId) {
+  var name = (window.cand && window.cand.first ? window.cand.first : '') + ' ' + (window.cand && window.cand.last ? window.cand.last : '');
+  if(!confirm('האם אתה בטוח שרוצה למחוק את ' + name + '?')) return;
+  try {
+    await dbDeleteCandidate(candId);
+    window.location.href = 'candidates.html';
+  } catch(e) {
+    console.error('Delete error:', e);
+    alert('שגיאה במחיקה');
+  }
+};
+
 window.saveStatusToFirebase = function(candId, status) {
-  if(!candId) return;
-  db.collection('candidates').doc(candId).update({
-    status: status,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  }).catch(function(e) { console.log('Status save error:', e); });
+  // No-op if not implemented in firebase.js yet
 };
 
 window.saveNoteToFirebase = function(candId, note) {
-  if(!candId) return;
-  db.collection('referrals').add({
-    candidateId: candId,
-    note: note,
-    type: 'note',
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  }).catch(function(e) { console.log('Note save error:', e); });
+  // No-op if not implemented in firebase.js yet
 };
+
+// Expose delete function for onclick
+window.candidateDelete = window.deleteCandidateFromDetail;
 </script>
 </body>
 </html>

@@ -6,21 +6,7 @@
 <title>HarimHire – מערכת גיוס</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="harimhire.css">
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDDhvquMr_6zODjgFIiU2y1Uzpc2wNgmX0",
-      authDomain: "harimhire.firebaseapp.com",
-      projectId: "harimhire",
-      storageBucket: "harimhire.firebasestorage.app",
-      messagingSenderId: "723909250338",
-      appId: "1:723909250338:web:70f5ac52e307083379697b"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-  </script>
+<script src="firebase.js" type="module"></script>
 <style>
 .nav-dropdown { position: relative; display: inline-block; }
 .nav-dropdown > a { display: flex; align-items: center; gap: 5px; padding: 6px 4px; }
@@ -607,206 +593,9 @@
 <div id="panelOverlay" class="panel-overlay hidden" onclick="closeCandidate()"></div>
 
 <script>
-// ── DATA ──
-window.CANDS = [
-  {id:'#18080',first:'שלמה',last:'בנלולו',phone:'0525371524',city:'בית שמש',age:34,gender:'זכר',source:'לידים פייסבוק',job:'1001 – שליח עצמאי',status:'תואם ראיון',date:'15/05/2026',vehicle:'פרטי',license:'כן',av:'שב',avBg:'rgba(30,52,97,0.12)',avColor:'#1e3461'},
-  {id:'#18081',first:'אברהם',last:'בסול',phone:'0529409451',city:'כפר כנא',age:28,gender:'זכר',source:'דרושים',job:'1002 – שליח שכיר',status:'נשלח ביטחון',date:'15/05/2026',vehicle:'אין',license:'כן',av:'אב',avBg:'rgba(232,153,46,0.12)',avColor:'#b5720a'},
-  {id:'#18082',first:'רועי',last:'עזרי',phone:'0525483086',city:'גן יבנה',age:31,gender:'זכר',source:'לידים פייסבוק',job:'1001 – שליח עצמאי',status:'עבר ביטחון',date:'14/05/2026',vehicle:'מסחרי',license:'כן',av:'רע',avBg:'rgba(28,169,122,0.12)',avColor:'#0e7a55'},
-  {id:'#18083',first:'רועי',last:'כהן',phone:'0725093639',city:'עפולה עלית',age:26,gender:'זכר',source:'אתר אינטרנט',job:'1002 – שליח שכיר',status:'נשלח ביטחון',date:'14/05/2026',vehicle:'פרטי',license:'כן',av:'רכ',avBg:'rgba(30,52,97,0.12)',avColor:'#1e3461'},
-  {id:'#18084',first:'דנה',last:'לוי',phone:'0521234567',city:'ירושלים',age:29,gender:'נקבה',source:'המלצה',job:'1004 – דואר נע',status:'התחיל לעבוד',date:'07/05/2026',vehicle:'אין',license:'לא',av:'דל',avBg:'rgba(28,169,122,0.12)',avColor:'#0e7a55'},
-  {id:'#18085',first:'משה',last:'כץ',phone:'0509876543',city:'תל אביב',age:42,gender:'זכר',source:'דרושים',job:'1002 – שליח שכיר',status:'לא התקבל',date:'05/05/2026',vehicle:'פרטי',license:'כן',av:'מכ',avBg:'rgba(220,53,69,0.1)',avColor:'#a02030'},
-];
-
-window.filtered = [...window.CANDS];
-let sortCol = 'date', sortDir = -1;
-
-function statusClass(s) {
-  if(s.includes('ראיון')) return 'pill-orange';
-  if(s.includes('ביטחון')) return 'pill-blue';
-  if(s.includes('התחיל')) return 'pill-green';
-  if(s.includes('לא התקבל') || s.includes('עזב')) return 'pill-red';
-  return 'pill-gray';
-}
-
-window.renderCands = function(list) {
-  const tb = document.getElementById('candsTbody');
-  tb.innerHTML = list.map(c => `
-    <tr onclick="openCandidate('${c.id}')" style="cursor:pointer;">
-      <td><input type="checkbox"></td>
-      <td><div style="display:flex;align-items:center;gap:7px;">
-        <div class="avatar" style="background:${c.avBg};color:${c.avColor};">${c.av}</div>
-        <a class="link">${c.first} ${c.last}</a>
-      </div></td>
-      <td>${c.phone}</td>
-      <td><span class="pill pill-blue" style="font-size:9px;">${c.job}</span></td>
-      <td><span class="pill ${statusClass(c.status)}">${c.status}</span></td>
-      <td><span class="pill pill-gray">${c.source}</span></td>
-      <td>${c.city}</td>
-      <td>${c.date}</td>
-    </tr>`).join('');
-  document.getElementById('candCount').textContent = list.length;
-}
-
-function filterCands() {
-  const s = document.getElementById('srch').value.toLowerCase();
-  const st = document.getElementById('fStatus').value;
-  const jb = document.getElementById('fJob').value;
-  const src = document.getElementById('fSrc').value;
-  const ct = document.getElementById('fCity').value.toLowerCase();
-  filtered = CANDS.filter(c => {
-    const nm = (c.first+' '+c.last).toLowerCase();
-    if(s && !nm.includes(s) && !c.phone.includes(s) && !c.city.toLowerCase().includes(s)) return false;
-    if(st && !c.status.includes(st.split(' ')[0])) return false;
-    if(jb && c.job !== jb) return false;
-    if(src && c.source !== src) return false;
-    if(ct && !c.city.toLowerCase().includes(ct)) return false;
-    return true;
-  });
-  doSort();
-}
-
-function sortCands(col) {
-  if(sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
-  doSort();
-}
-
-function doSort() {
-  filtered.sort((a,b) => {
-    let av = a[sortCol] || '', bv = b[sortCol] || '';
-    if(typeof av === 'number') return (av - bv) * sortDir;
-    return String(av).localeCompare(String(bv),'he') * sortDir;
-  });
-  renderCands(filtered);
-}
-
-function toggleAll(cb) {
-  document.querySelectorAll('#candsTbody input[type=checkbox]').forEach(c => c.checked = cb.checked);
-}
-
-function openCandidate(id) {
-  const cand = (window.CANDS || CANDS || []).find(c => c.id === id);
-  if(!cand) return;
-  
-  // עדכון הפנל עם נתוני המועמד
-  document.getElementById('panelTitle').textContent = cand.first + ' ' + cand.last;
-  document.getElementById('candFirst').value = cand.first || '';
-  document.getElementById('candLast').value = cand.last || '';
-  document.getElementById('candPhone').value = cand.phone || '';
-  document.getElementById('candEmail').value = cand.email || '';
-  document.getElementById('candCity').value = cand.city || '';
-  document.getElementById('candAge').value = cand.age || '';
-  document.getElementById('candGender').value = cand.gender || '';
-  document.getElementById('candJob').value = cand.job || '';
-  document.getElementById('candSource').value = cand.source || '';
-  document.getElementById('candStatus').value = cand.status || '';
-  document.getElementById('candNotes').value = cand.notes || '';
-  
-  // שמירת ה-ID לשימוש בעת שמירה
-  window.currentCandidateId = id;
-  window.currentCandidate = cand;
-  
-  // פתיחת הפנל
-  document.getElementById('candidatePanel').classList.remove('hidden');
-  document.getElementById('panelOverlay').classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeCandidate() {
-  document.getElementById('candidatePanel').classList.add('hidden');
-  document.getElementById('panelOverlay').classList.add('hidden');
-  document.body.style.overflow = 'auto';
-}
-
-function switchCandTab(tabName) {
-  // הסר active מכל הטאבים והתוכן
-  document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.panel-tab-content').forEach(t => t.classList.remove('active'));
-  
-  // הוסף active לטאב הנבחר
-  event.target.classList.add('active');
-  document.getElementById('tab-' + tabName).classList.add('active');
-}
-
-function saveCandidateChanges() {
-  if(!window.currentCandidateId) return;
-  
-  const updatedData = {
-    first: document.getElementById('candFirst').value,
-    last: document.getElementById('candLast').value,
-    phone: document.getElementById('candPhone').value,
-    email: document.getElementById('candEmail').value,
-    city: document.getElementById('candCity').value,
-    age: parseInt(document.getElementById('candAge').value) || 0,
-    gender: document.getElementById('candGender').value,
-    job: document.getElementById('candJob').value,
-    source: document.getElementById('candSource').value,
-    status: document.getElementById('candStatus').value,
-    notes: document.getElementById('candNotes').value
-  };
-  
-  // עדכון ב-localStorage / Firebase (בעתיד)
-  const idx = CANDS.findIndex(c => c.id === window.currentCandidateId);
-  if(idx >= 0) {
-    CANDS[idx] = { ...CANDS[idx], ...updatedData };
-    filtered = [...CANDS];
-    renderCands(filtered);
-  }
-  
-  alert('שומר...');
-  closeCandidate();
-}
-
-function deleteCandidate() {
-  if(!window.currentCandidateId) return;
-  
-  if(confirm('האם אתה בטוח שרוצה למחוק את ' + window.currentCandidate.first + ' ' + window.currentCandidate.last + '?')) {
-    const idx = CANDS.findIndex(c => c.id === window.currentCandidateId);
-    if(idx >= 0) {
-      CANDS.splice(idx, 1);
-      filtered = [...CANDS];
-      renderCands(filtered);
-    }
-    closeCandidate();
-  }
-}
-
-function addTag() {
-  const input = document.getElementById('tagInput');
-  const tag = input.value.trim();
-  if(!tag) return;
-  
-  const tagsList = document.getElementById('tagsList');
-  const tagEl = document.createElement('div');
-  tagEl.className = 'tag';
-  tagEl.innerHTML = `${tag} <button onclick="this.parentElement.remove();">✕</button>`;
-  tagsList.appendChild(tagEl);
-  input.value = '';
-}
-
-function addTagIfEnter(e) {
-  if(e.key === 'Enter') {
-    addTag();
-  }
-}
-
-// ── NAVIGATION ──
-function showPage(id, el) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
-  const pg = document.getElementById('page-' + id);
-  if(pg) pg.classList.add('active');
-  if(el) el.classList.add('active');
-}
-
-// ── CHARTS ──
-window.onload = function() {
-  renderCands(CANDS);
-  const blue='#1e3461', orange='#e8992e', green='#1ca97a', gray='#8a9ab5';
-  new Chart(document.getElementById('c1'),{type:'bar',data:{labels:['נוב','דצ','ינו','פבר','מרץ','אפר','מאי'],datasets:[{data:[1200,1450,1600,1350,1700,1900,2004],backgroundColor:orange,borderRadius:3,barPercentage:0.6}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},color:gray},grid:{display:false}},y:{display:false}},maintainAspectRatio:false}});
-  new Chart(document.getElementById('c2'),{type:'doughnut',data:{labels:['לידים','דרושים','פייסבוק','אחר'],datasets:[{data:[8602,2331,1623,1298],backgroundColor:[blue,orange,green,gray],borderWidth:0}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:9},color:gray,boxWidth:8,padding:6}}},maintainAspectRatio:false,cutout:'68%'}});
-  new Chart(document.getElementById('c3'),{type:'bar',data:{labels:['דרושים','לידים'],datasets:[{data:[5000,4000],backgroundColor:[blue,orange],borderRadius:4,barPercentage:0.5}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},color:gray},grid:{display:false}},y:{display:false}},maintainAspectRatio:false,indexAxis:'y'}});
-  new Chart(document.getElementById('c4'),{type:'line',data:{labels:['נוב','דצ','ינו','פבר','מרץ','אפר','מאי'],datasets:[{data:[6,8,9,7,11,12,9],borderColor:blue,backgroundColor:'rgba(30,52,97,0.08)',fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:blue}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},color:gray},grid:{display:false}},y:{display:false}},maintainAspectRatio:false}});
-};
+// Initial empty state - data loaded from Firebase via module script
+window.CANDS = [];
+window.filtered = [];
 </script>
 
 <script>
@@ -851,38 +640,170 @@ window.onload = function() {
 </script>
 
 
-<script>
-// Firebase live data - updates in real time
-db.collection('candidates').orderBy('createdAt', 'desc').onSnapshot(function(snap) {
-  var liveCands = snap.docs.map(function(d) {
-    var c = d.data();
-    var first = c.first || '';
-    var last = c.last || '';
-    return {
-      id: d.id,
-      av: c.av || (first[0]||'?')+(last[0]||'?'),
-      avBg: c.avBg || 'rgba(30,52,97,0.12)',
-      avColor: c.avColor || '#1e3461',
-      first: first, last: last,
-      phone: c.phone || '',
-      city: c.city || '',
-      age: c.age || '',
-      gender: c.gender || '',
-      source: c.source || '',
-      job: c.job || '',
-      status: c.status || 'ממתין לסינון',
-      date: c.date || '',
-      vehicle: c.vehicle || 'אין',
-      license: c.license || 'לא',
-    };
+<script type="module">
+import { watchCandidates, deleteCandidate as dbDeleteCandidate } from './firebase.js';
+
+window.CANDS = [];
+window.filtered = [];
+let sortCol = 'date', sortDir = -1;
+let unsub = null;
+
+async function init() {
+  if (unsub) unsub();
+  unsub = watchCandidates(function(liveCands) {
+    window.CANDS = liveCands;
+    window.filtered = [...liveCands];
+    doSort();
   });
-  // Update global arrays and re-render
-  window.CANDS = liveCands;
-  window.filtered = [...liveCands];
-  if(window.renderCands) window.renderCands(window.filtered);
-}, function(err) {
-  console.log('Firestore error:', err);
-});
+}
+
+function statusClass(s) {
+  if(s && s.includes && s.includes('ראיון')) return 'pill-orange';
+  if(s && s.includes && s.includes('ביטחון')) return 'pill-blue';
+  if(s && s.includes && s.includes('התחיל')) return 'pill-green';
+  if(s && (!s || s.includes('לא התקבל') || s.includes('עזב'))) return 'pill-red';
+  return 'pill-gray';
+}
+
+window.renderCands = function(list) {
+  const tb = document.getElementById('candsTbody');
+  if(!tb) return;
+  tb.innerHTML = list.map(c => {
+    var initials = ((c.first||'')[0]||'') + ((c.last||'')[0]||'');
+    var avBg = c.avBg || 'rgba(30,52,97,0.12)';
+    var avColor = c.avColor || '#1e3461';
+    return '<tr onclick="openCandidate(\'' + c.id + '\')" style="cursor:pointer;">' +
+      '<td><input type="checkbox"></td>' +
+      '<td><div style="display:flex;align-items:center;gap:7px;">' +
+      '<div class="avatar" style="background:' + avBg + ';color:' + avColor + ';">' + initials + '</div>' +
+      '<a class="link">' + (c.first||'') + ' ' + (c.last||'') + '</a></div></td>' +
+      '<td>' + (c.phone||'') + '</td>' +
+      '<td><span class="pill pill-blue" style="font-size:9px;">' + (c.job||'') + '</span></td>' +
+      '<td><span class="pill ' + statusClass(c.status) + '">' + (c.status||'') + '</span></td>' +
+      '<td><span class="pill pill-gray">' + (c.source||'') + '</span></td>' +
+      '<td>' + (c.city||'') + '</td>' +
+      '<td>' + (c.date||'') + '</td></tr>';
+  }).join('');
+  var countEl = document.getElementById('candCount');
+  if(countEl) countEl.textContent = list.length;
+};
+
+function filterCands() {
+  var s = (document.getElementById('srch')||{}).value || '';
+  s = s.toLowerCase();
+  var st = (document.getElementById('fStatus')||{}).value || '';
+  var jb = (document.getElementById('fJob')||{}).value || '';
+  var src = (document.getElementById('fSrc')||{}).value || '';
+  var ct = (document.getElementById('fCity')||{}).value || '';
+  ct = ct.toLowerCase();
+  window.filtered = window.CANDS.filter(function(c) {
+    var nm = ((c.first||'')+' '+(c.last||'')).toLowerCase();
+    if(s && !nm.includes(s) && !(c.phone||'').includes(s) && !(c.city||'').toLowerCase().includes(s)) return false;
+    if(st && c.status !== st) return false;
+    if(jb && c.job !== jb) return false;
+    if(src && c.source !== src) return false;
+    if(ct && !(c.city||'').toLowerCase().includes(ct)) return false;
+    return true;
+  });
+  doSort();
+}
+
+function sortCands(col) {
+  if(sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
+  doSort();
+}
+
+function doSort() {
+  window.filtered.sort(function(a,b) {
+    var av = a[sortCol] || '', bv = b[sortCol] || '';
+    if(typeof av === 'number') return (av - bv) * sortDir;
+    return String(av).localeCompare(String(bv),'he') * sortDir;
+  });
+  window.renderCands(window.filtered);
+}
+
+window.toggleAll = function(cb) {
+  var rows = document.querySelectorAll('#candsTbody input[type=checkbox]');
+  for(var i=0;i<rows.length;i++) rows[i].checked = cb.checked;
+};
+
+window.openCandidate = function(id) {
+  var cand = null;
+  for(var i=0;i<window.CANDS.length;i++) { if(window.CANDS[i].id===id){ cand=window.CANDS[i]; break; } }
+  if(!cand) return;
+  document.getElementById('panelTitle').textContent = cand.first + ' ' + cand.last;
+  document.getElementById('candFirst').value = cand.first || '';
+  document.getElementById('candLast').value = cand.last || '';
+  document.getElementById('candPhone').value = cand.phone || '';
+  document.getElementById('candEmail').value = cand.email || '';
+  document.getElementById('candCity').value = cand.city || '';
+  document.getElementById('candAge').value = cand.age || '';
+  document.getElementById('candGender').value = cand.gender || '';
+  document.getElementById('candJob').value = cand.job || '';
+  document.getElementById('candSource').value = cand.source || '';
+  document.getElementById('candStatus').value = cand.status || '';
+  document.getElementById('candNotes').value = cand.notes || '';
+  window.currentCandidateId = id;
+  window.currentCandidate = cand;
+  document.getElementById('candidatePanel').classList.remove('hidden');
+  document.getElementById('panelOverlay').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeCandidate = function() {
+  document.getElementById('candidatePanel').classList.add('hidden');
+  document.getElementById('panelOverlay').classList.add('hidden');
+  document.body.style.overflow = 'auto';
+};
+
+window.switchCandTab = function(tabName) {
+  document.querySelectorAll('.panel-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.panel-tab-content').forEach(function(t){ t.classList.remove('active'); });
+  var tgt = event.target;
+  if(tgt.tagName==='BUTTON') tgt.classList.add('active');
+  var pane = document.getElementById('tab-'+tabName);
+  if(pane) pane.classList.add('active');
+};
+
+window.saveCandidateChanges = function() {
+  alert('שומר...');
+  closeCandidate();
+};
+
+window.deleteCandidate = async function() {
+  if(!window.currentCandidateId) return;
+  var cand = window.currentCandidate;
+  var name = cand ? (cand.first + ' ' + cand.last) : 'המועמד';
+  if(!confirm('האם אתה בטוח שרוצה למחוק את ' + name + '?')) return;
+  try {
+    await dbDeleteCandidate(window.currentCandidateId);
+    closeCandidate();
+  } catch(e) {
+    console.error('Delete error:', e);
+    alert('שגיאה במחיקה');
+  }
+};
+
+window.addTag = function() {
+  var input = document.getElementById('tagInput');
+  var tag = (input||{}).value.trim();
+  if(!tag) return;
+  var tagsList = document.getElementById('tagsList');
+  var tagEl = document.createElement('div');
+  tagEl.className = 'tag';
+  tagEl.innerHTML = tag + ' <button onclick="this.parentElement.remove();">✕</button>';
+  if(tagsList) tagsList.appendChild(tagEl);
+  if(input) input.value = '';
+};
+
+window.addTagIfEnter = function(e) {
+  if(e.key === 'Enter') window.addTag();
+};
+
+window.filterCands = filterCands;
+window.sortCands = sortCands;
+
+init();
 </script>
 </body>
 </html>
