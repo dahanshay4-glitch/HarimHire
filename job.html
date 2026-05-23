@@ -604,18 +604,26 @@
         async function saveJobCities() {
           const list = uniqueCities([...selectedCities]);
           savedCities = list;
+          currentJobCities = list;
+          renderSelectedCities();
           if (currentJobId) {
             try {
-              await updateDoc(doc(db, 'jobs', currentJobId), { cities: list, updatedAt: new Date().toISOString() });
-              alert('הערים נשמרו למשרה');
+              await updateDoc(doc(db, 'jobs', currentJobId), { cities: list });
+              // Keep jobData in sync so refresh retains the saved cities
+              var jobDataStr = sessionStorage.getItem('jobData');
+              if (jobDataStr) {
+                var jobData = JSON.parse(jobDataStr);
+                jobData.cities = list;
+                sessionStorage.setItem('jobData', JSON.stringify(jobData));
+              }
+              alert('הערים נשמרו בהצלחה');
             } catch (e) {
-              console.error(e);
-              alert('לא הצלחתי לשמור ל-Firebase. הערים נשמרו זמנית במסך בלבד.');
+              console.error('saveJobCities error:', e);
+              alert('שגיאה בשמירת הערים');
             }
           } else {
             alert('הערים נשמרו זמנית במסך.');
           }
-          renderSelectedCities();
         }
         window.saveJobCities = saveJobCities;
 
