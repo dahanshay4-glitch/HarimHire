@@ -363,12 +363,15 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script type="module" src="firebase.js"></script>
     <script type="module">
-        import { db } from './firebase.js';
+        import { db, watchCandidates } from './firebase.js';
         import { collection, query, where, orderBy, onSnapshot, getDocs, updateDoc, doc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
         import { CITY_AREAS } from './city_areas.js';
         let currentJobId = null;
         let allJobs = [];
         let currentJobIndex = 0;
+        let currentJobCities = [];
+        let unwatchCandidates = null;
+        let candidatesData = [];
         
         function loadJob() {
             const jobData = sessionStorage.getItem('jobData');
@@ -398,6 +401,7 @@
             document.getElementById('jobDescription').textContent = job.description || 'אין תיאור';
             savedCities = uniqueCities(job.cities || job.areas || []);
             selectedCities = new Set(savedCities);
+            currentJobCities = savedCities;
             renderCityAreas();
             renderSelectedCities();
             
@@ -424,9 +428,72 @@
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
             document.getElementById(tabName).classList.remove('hidden');
+            event.target.classList.add('active');
+            if (tabName === 'candidates') {
+                renderCandidatesTab(candidatesData);
+            }
         }
         window.switchTab = switchTab;
-        
+
+        function renderCandidatesTab(candidates) {
+            var container = document.getElementById('candidatesContent');
+            if (!container) return;
+
+            if (!currentJobCities || currentJobCities.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#6b7a99;font-size:13px;"><div style="font-size:28px;margin-bottom:10px;">🏙️</div><div>לא הוגדרו ערים למשרה זו</div></div>';
+                return;
+            }
+
+            var jobCitiesLower = currentJobCities.map(function(c) { return String(c).trim().toLowerCase(); });
+            var matched = candidates.filter(function(c) {
+                var candCity = String(c.city || '').trim().toLowerCase();
+                return candCity && jobCitiesLower.indexOf(candCity) !== -1;
+            });
+
+            if (matched.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#6b7a99;font-size:13px;"><div style="font-size:28px;margin-bottom:10px;">🔍</div><div>לא נמצאו מועמדים מתאימים לפי עיר</div></div>';
+                return;
+            }
+
+            var statusMap = {
+                'ממתין לסינון': ['rgba(30,52,97,0.12)','#1e3461'],
+                'תואם ראיון': ['rgba(232,153,46,0.12)','#b5720a'],
+                'נשלח ביטחון': ['rgba(232,153,46,0.12)','#b5720a'],
+                'עבר ביטחון': ['rgba(28,169,122,0.12)','#0e7a55'],
+                'התחיל לעבוד': ['rgba(28,169,122,0.12)','#0e7a55'],
+                'לא התקבל': ['rgba(220,53,69,0.1)','#a02030']
+            };
+
+            container.innerHTML = matched.map(function(c) {
+                var initials = ((c.first||'')[0]||'?') + ((c.last||'')[0]||'?');
+                var avBg = c.avBg || 'rgba(30,52,97,0.12)';
+                var avColor = c.avColor || '#1e3461';
+                var name = (c.first||'') + ' ' + (c.last||'');
+                var sc = statusMap[c.status] || ['rgba(30,52,97,0.12)','#1e3461'];
+                return '<div style="display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:0.5px solid #edf0f4;cursor:pointer;" onclick="window.openCand(\'' + c.id + '\')" onmouseover="this.style.background=\'#f7f8fa\'" onmouseout="this.style.background=\'transparent\'">' +
+                    '<div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;background:' + avBg + ';color:' + avColor + ';">' + initials + '</div>' +
+                    '<div style="flex:1;min-width:0;">' +
+                    '<div style="font-size:13px;font-weight:500;color:#1a2332;margin-bottom:3px;">' + name + '</div>' +
+                    '<div style="font-size:11px;color:#6b7a99;">' + (c.city||'') + ' · ' + (c.phone||'') + '</div>' +
+                    '</div>' +
+                    '<span style="padding:4px 10px;border-radius:999px;font-size:11px;font-weight:500;background:' + sc[0] + ';color:' + sc[1] + ';">' + (c.status||'') + '</span>' +
+                    '<i class="fa-solid fa-chevron-left" style="color:#6b7a99;font-size:11px;"></i>' +
+                '</div>';
+            }).join('');
+        }
+        window.renderCandidatesTab = renderCandidatesTab;
+
+        window.openCand = function(id) { window.location.href = 'candidate.html?id=' + encodeURIComponent(id); };
+
+        if (unwatchCandidates) unwatchCandidates();
+        unwatchCandidates = watchCandidates(function(candidates) {
+            candidatesData = candidates;
+            var activeTab = document.querySelector('.tab.active');
+            if (activeTab && activeTab.textContent.trim() === 'מועמדים') {
+                renderCandidatesTab(candidates);
+            }
+        });
+
         function navigateNext() {
             alert('ניווט בין משרות - בשלב בנייה');
         }
