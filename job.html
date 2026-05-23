@@ -364,7 +364,7 @@
     <script type="module" src="firebase.js"></script>
     <script type="module">
         import { db, watchCandidates } from './firebase.js';
-        import { collection, query, where, orderBy, onSnapshot, getDocs, updateDoc, doc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+        import { collection, query, where, orderBy, onSnapshot, getDocs, getDoc, updateDoc, doc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
         import { CITY_AREAS } from './city_areas.js';
         let currentJobId = null;
         let allJobs = [];
@@ -374,22 +374,48 @@
         let candidatesData = [];
         
         function loadJob() {
-            const jobData = sessionStorage.getItem('jobData');
-            if (jobData) {
-                const job = JSON.parse(jobData);
-                displayJob(job);
-                currentJobId = job.id;
-            } else {
-                onSnapshot(query(collection(db, 'jobs'), where('status', '!=', 'deleted'), orderBy('createdDate', 'desc')), snapshot => {
-                    if (!snapshot.empty) {
-                        const docSnap = snapshot.docs[0];
-                        const job = docSnap.data();
-                        job.id = docSnap.id;
-                            displayJob(job);
-                            currentJobId = job.id;
-                        }
-                    });
+            var params = new URLSearchParams(window.location.search);
+            var jobIdParam = params.get('id');
+
+            // Try sessionStorage first
+            var jobDataStr = sessionStorage.getItem('jobData');
+            if (jobDataStr) {
+                try {
+                    var stored = JSON.parse(jobDataStr);
+                    // If URL has ?id= and it matches stored job, use it
+                    if (!jobIdParam || stored.id === jobIdParam) {
+                        displayJob(stored);
+                        currentJobId = stored.id;
+                        return;
+                    }
+                } catch(e) { /* fall through to Firestore */ }
             }
+
+            // Load by ?id= from Firestore
+            if (jobIdParam) {
+                getDoc(doc(db, 'jobs', jobIdParam)).then(function(docSnap) {
+                    if (docSnap.exists()) {
+                        var job = docSnap.data();
+                        job.id = docSnap.id;
+                        displayJob(job);
+                        currentJobId = job.id;
+                    }
+                }).catch(function(err) {
+                    console.error('loadJob error:', err);
+                });
+                return;
+            }
+
+            // Fallback: load most recent job from Firestore
+            onSnapshot(query(collection(db, 'jobs'), where('status', '!=', 'deleted'), orderBy('createdDate', 'desc')), function(snapshot) {
+                if (!snapshot.empty) {
+                    var docSnap = snapshot.docs[0];
+                    var job = docSnap.data();
+                    job.id = docSnap.id;
+                    displayJob(job);
+                    currentJobId = job.id;
+                }
+            });
         }
         
         function displayJob(job) {
@@ -602,27 +628,28 @@
         window.loadJobCities = loadJobCities;
 
         async function saveJobCities() {
-          const list = uniqueCities([...selectedCities]);
-          savedCities = list;
-          currentJobCities = list;
-          renderSelectedCities();
-          if (currentJobId) {
-            try {
-              await updateDoc(doc(db, 'jobs', currentJobId), { cities: list });
-              // Keep jobData in sync so refresh retains the saved cities
-              var jobDataStr = sessionStorage.getItem('jobData');
-              if (jobDataStr) {
-                var jobData = JSON.parse(jobDataStr);
-                jobData.cities = list;
-                sessionStorage.setItem('jobData', JSON.stringify(jobData));
-              }
-              alert('הערים נשמרו בהצלחה');
-            } catch (e) {
-              console.error('saveJobCities error:', e);
-              alert('שגיאה בשמירת הערים');
+          var list = uniqueCities([...selectedCities]);
+          if (!currentJobId) {
+            alert('לא נטענה משרה - לא ניתן לשמור');
+            return;
+          }
+          try {
+            await updateDoc(doc(db, 'jobs', currentJobId), { cities: list });
+            // Update sessionStorage so refresh loads the saved cities as the source of truth
+            var jobDataStr = sessionStorage.getItem('jobData');
+            if (jobDataStr) {
+              var jobData = JSON.parse(jobDataStr);
+              jobData.cities = list;
+              sessionStorage.setItem('jobData', JSON.stringify(jobData));
             }
-          } else {
-            alert('הערים נשמרו זמנית במסך.');
+            // Sync local state to the persisted data
+            savedCities = list;
+            currentJobCities = list;
+            renderSelectedCities();
+            alert('הערים נשמרו בהצלחה');
+          } catch (e) {
+            console.error('saveJobCities error:', e);
+            alert('שגיאה בשמירת הערים');
           }
         }
         window.saveJobCities = saveJobCities;
