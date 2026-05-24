@@ -175,11 +175,9 @@
         </div>
         <div class="ch-row2" id="cdPills"></div>
         <div class="divider-line"></div>
-        <div class="clients-row">
+        <div class="clients-row" id="clientsRow">
           <span class="clients-label">לקוחות רלוונטיים:</span>
-          <span class="client-pill cp1" onclick="window.location.href='clients.html'">מוקד ירושלים</span>
-          <span class="client-pill cp2" onclick="window.location.href='clients.html'">מוקד בית שמש</span>
-          <span class="client-pill cp4" onclick="window.location.href='clients.html'">מוקד אשקלון</span>
+          <span class="client-pill" id="cdRelevantClients">טוען...</span>
         </div>
       </div>
 
@@ -392,6 +390,9 @@ function loadCandidate(c) {
     '<span class="pill ' + sc + '"><i class="fa-regular fa-clock" style="font-size:9px"></i> ' + c.status + '</span>' +
     '<span class="pill pill-gray"><i class="fa-regular fa-calendar" style="font-size:9px"></i> נכנס ' + c.date + '</span>';
 
+  // Relevant clients via live Firestore jobs
+  if (c.city) renderRelevantClients(c.city);
+
   // Personal tab
   document.getElementById('cdFirst').textContent = c.first;
   document.getElementById('cdLast').textContent = c.last;
@@ -577,6 +578,12 @@ window.onload = async function() {
 
   loadCandidate(cand);
   updateNavButtons();
+
+  // Subscribe to live Firestore jobs for relevant clients
+  jobsUnsub = watchJobs(function(jobs) {
+    currentJobs = jobs;
+    if (cand && cand.city) renderRelevantClients(cand.city);
+  });
   var delBtn = document.getElementById('btnDeleteCand');
   var detailLayout = document.getElementById('detailLayout');
   if (delBtn && cand) {
@@ -629,9 +636,47 @@ window.onload = async function() {
 </script>
 
 <script type="module">
-import { deleteCandidate as dbDeleteCandidate, getCandidate } from './firebase.js';
+import { deleteCandidate as dbDeleteCandidate, getCandidate, watchJobs } from './firebase.js';
 
 window.getCandidate = getCandidate;
+
+// Relevant clients: sync from live Firestore jobs by city match
+let currentJobs = [];
+let jobsUnsub = null;
+
+function renderRelevantClients(city) {
+  var el = document.getElementById('cdRelevantClients');
+  if (!el) return;
+  if (!city) {
+    el.outerHTML = '<span id="cdRelevantClients" class="client-pill" style="color:var(--text-light);font-size:11px;">אין עיר מוגדרת</span>';
+    return;
+  }
+  var cityNorm = city.trim().toLowerCase();
+  var seen = {};
+  var names = [];
+  currentJobs.forEach(function(j) {
+    if (!j.clientName) return;
+    if (j.deleted || j.status === 'deleted') return;
+    var cities = j.cities;
+    if (!Array.isArray(cities) || cities.length === 0) return;
+    var matched = cities.some(function(c) {
+      return c && c.trim().toLowerCase() === cityNorm;
+    });
+    if (matched && !seen[j.clientName]) {
+      seen[j.clientName] = true;
+      names.push(j.clientName);
+    }
+  });
+  if (names.length === 0) {
+    el.outerHTML = '<span id="cdRelevantClients" class="client-pill" style="color:var(--text-light);font-size:11px;">אין לקוחות רלוונטיים לפי עיר</span>';
+  } else {
+    el.outerHTML = names.map(function(name) {
+      return '<span class="client-pill" onclick="window.location.href=\'clients.html\'" style="cursor:pointer;">' + name + '</span>';
+    }).join('');
+  }
+}
+
+window.renderRelevantClients = renderRelevantClients;
 
 window.deleteCandidateFromDetail = async function(candId) {
   var name = (window.cand && window.cand.first ? window.cand.first : '') + ' ' + (window.cand && window.cand.last ? window.cand.last : '');
