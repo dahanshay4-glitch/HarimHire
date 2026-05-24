@@ -631,6 +631,8 @@ window.onload = async function() {
 <script type="module">
 import { deleteCandidate as dbDeleteCandidate, getCandidate } from './firebase.js';
 
+window.getCandidate = getCandidate;
+
 window.deleteCandidateFromDetail = async function(candId) {
   var name = (window.cand && window.cand.first ? window.cand.first : '') + ' ' + (window.cand && window.cand.last ? window.cand.last : '');
   if(!confirm('האם אתה בטוח שרוצה למחוק את ' + name + '?')) return;
