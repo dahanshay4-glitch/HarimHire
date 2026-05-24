@@ -643,6 +643,21 @@ window.filtered = [];
 <script type="module">
 import { watchCandidates, deleteCandidate as dbDeleteCandidate } from './firebase.js';
 
+// Read job+filter from URL params on load
+(function applyUrlFilters() {
+  try {
+    var p = new URLSearchParams(window.location.search);
+    var jobId = p.get('jobId');
+    var filterType = p.get('filterType');
+    if (jobId) sessionStorage.setItem('filterJobId', jobId);
+    if (filterType) sessionStorage.setItem('filterType', filterType);
+    var citiesRaw = p.get('cities');
+    if (citiesRaw) {
+      try { sessionStorage.setItem('filterJobCities', citiesRaw); } catch(e) {}
+    }
+  } catch(e) {}
+})();
+
 window.CANDS = [];
 window.filtered = [];
 let sortCol = 'date', sortDir = -1;
@@ -653,8 +668,31 @@ async function init() {
   unsub = watchCandidates(function(liveCands) {
     window.CANDS = liveCands;
     window.filtered = [...liveCands];
+    applySessionFilters();
     doSort();
   });
+}
+
+function applySessionFilters() {
+  var filterJobId = sessionStorage.getItem('filterJobId');
+  var filterType = sessionStorage.getItem('filterType');
+  if (!filterJobId || !filterType) return;
+  var fJob = document.getElementById('fJob');
+  if (!fJob) return;
+  // Walk all jobs in DOM select options to find matching one by id
+  var options = fJob.querySelectorAll('option');
+  for (var i = 0; i < options.length; i++) {
+    var opt = options[i];
+    // The option text matches job title in candidates.html's hardcoded list
+    // Since we don't have live jobs here, match by job title stored on candidates
+    // Use filterType to determine which status to pre-fill
+    if (filterType === 'hired') {
+      var statusEl = document.getElementById('fStatus');
+      if (statusEl) statusEl.value = 'התחיל לעבוד';
+    }
+    break;
+  }
+  filterCands();
 }
 
 function statusClass(s) {
@@ -696,6 +734,21 @@ function filterCands() {
   var src = (document.getElementById('fSrc')||{}).value || '';
   var ct = (document.getElementById('fCity')||{}).value || '';
   ct = ct.toLowerCase();
+
+  // Apply job-city filter from jobs.html count links
+  var filterJobCitiesRaw = sessionStorage.getItem('filterJobCities');
+  var filterType = sessionStorage.getItem('filterType');
+  var filterCityNorm = null;
+  if (filterJobCitiesRaw) {
+    try {
+      var filterCities = JSON.parse(filterJobCitiesRaw);
+      if (Array.isArray(filterCities) && filterCities.length > 0) {
+        // Use first city as the filter target
+        filterCityNorm = filterCities[0].trim().toLowerCase();
+      }
+    } catch(e) {}
+  }
+
   window.filtered = window.CANDS.filter(function(c) {
     var nm = ((c.first||'')+' '+(c.last||'')).toLowerCase();
     if(s && !nm.includes(s) && !(c.phone||'').includes(s) && !(c.city||'').toLowerCase().includes(s)) return false;
@@ -703,6 +756,20 @@ function filterCands() {
     if(jb && c.job !== jb) return false;
     if(src && c.source !== src) return false;
     if(ct && !(c.city||'').toLowerCase().includes(ct)) return false;
+    // City match: candidate city must match one of the job's cities
+    if (filterCityNorm !== null) {
+      var cCityNorm = (c.city||'').trim().toLowerCase();
+      if (cCityNorm !== filterCityNorm) return false;
+    }
+    // Status filter based on filterType
+    if (filterType === 'inProcess' && st !== 'בתהליך') {
+      var candSt = c.status || '';
+      if (!candSt.includes('בתהליך')) return false;
+    }
+    if (filterType === 'hired') {
+      var candSt = c.status || '';
+      if (!candSt.includes('התקבל') && !candSt.includes('התחיל')) return false;
+    }
     return true;
   });
   doSort();

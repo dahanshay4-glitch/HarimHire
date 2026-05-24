@@ -285,7 +285,22 @@ window.currentJobs = [];
 window.sortOrder = {};
 window.lastSortCol = null;
 
-function openCandidatesList(type, jobId) { sessionStorage.setItem('filterType', type); sessionStorage.setItem('filterJobId', jobId); window.location.href = 'candidates.html'; }
+function openCandidatesList(type, jobId) {
+  // Resolve job cities from live jobs list and pass via URL params to candidates.html
+  var cities = [];
+  var jobs = window.currentJobs || [];
+  for (var i = 0; i < jobs.length; i++) {
+    if (jobs[i].id === jobId) {
+      cities = jobs[i].cities || [];
+      break;
+    }
+  }
+  var params = new URLSearchParams();
+  params.set('jobId', jobId);
+  params.set('filterType', type);
+  if (cities.length > 0) params.set('cities', JSON.stringify(cities));
+  window.location.href = 'candidates.html?' + params.toString();
+}
 
 refreshActiveClients().then(function() {
   if (candidatesUnsub) candidatesUnsub();
