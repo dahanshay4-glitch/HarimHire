@@ -35,8 +35,15 @@ export async function getCandidates() {
 }
 
 export async function getCandidate(id) {
-  const snap = await getDoc(doc(db, 'candidates', id));
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  try {
+    const snap = await getDoc(doc(db, 'candidates', id));
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  } catch(e) {
+    // Only re-throw genuine Firestore/network errors; missing docs return null
+    if (e && e.code === 'not-found') return null;
+    console.error('getCandidate error:', e);
+    throw e;
+  }
 }
 
 export async function updateCandidate(id, data) {

@@ -550,7 +550,13 @@ window.onload = async function() {
       }
     } catch(e) {
       console.error('Failed to load candidate:', e);
-      alert('שגיאה בטעינת המועמד');
+      // Distinguish genuine Firestore errors from missing documents
+      var isFirestoreError = e && (e.code === 'permission-denied' || e.code === 'unavailable' || e.code === 'network-error' || e.name === 'FirebaseError');
+      if (isFirestoreError) {
+        alert('שגיאה בטעינה מ-Firestore. אנא רענן את הדף.');
+      } else {
+        alert('שגיאה בטעינת המועמד');
+      }
       return;
     }
   } else {
