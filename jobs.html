@@ -302,6 +302,8 @@ function openCandidatesList(type, jobId) {
   window.location.href = 'candidates.html?' + params.toString();
 }
 
+window.openCandidatesList = openCandidatesList;
+
 refreshActiveClients().then(function() {
   if (candidatesUnsub) candidatesUnsub();
   candidatesUnsub = watchCandidates(function(candidates) {
