@@ -141,7 +141,7 @@ th { cursor: pointer; user-select: none; }
   </div>
 </div>
 <script type="module">
-import { db, watchJobs } from "./firebase.js";
+import { db, watchJobs, watchCandidates } from "./firebase.js";
 
 function formatDate(v) {
   try {
@@ -161,6 +161,25 @@ function statusLabel(s) {
 let jobsUnsub = null;
 let activeClientIds = new Set();
 let activeClientNames = new Set();
+let candidatesUnsub = null;
+let currentCandidates = [];
+
+function calcJobCounts(j) {
+  if (!j.cities || !Array.isArray(j.cities) || j.cities.length === 0) return { interested: 0, inProcess: 0, hired: 0 };
+  var cityNorms = j.cities.map(function(c) { return c.trim().toLowerCase(); });
+  var interested = 0, inProcess = 0, hired = 0;
+  currentCandidates.forEach(function(c) {
+    if (!c.city) return;
+    if (c.deleted || c.status === 'deleted') return;
+    var cNorm = c.city.trim().toLowerCase();
+    if (!cityNorms.includes(cNorm)) return;
+    interested++;
+    var s = c.status || '';
+    if (s.includes('בתהליך')) inProcess++;
+    if (s.includes('התקבל')) hired++;
+  });
+  return { interested: interested, inProcess: inProcess, hired: hired };
+}
 
 async function refreshActiveClients() {
   const { getClients } = await import('./firebase.js');
@@ -207,14 +226,15 @@ function renderTable() {
     const title = j.title || j.jobTypeName || '';
     const clientId = j.clientId || '';
     const serialNum = filtered.length - displayIndex;
+    const counts = calcJobCounts(j);
     row.innerHTML = '<td>' + serialNum + '</td>' +
       '<td><a href="job.html?id=' + encodeURIComponent(j.id) + '" onclick="event.stopPropagation()">' + title + '</a></td>' +
       '<td><a href="clients.html?id=' + encodeURIComponent(clientId) + '" onclick="event.stopPropagation()">' + (j.clientName || 'לא ידוע') + '</a></td>' +
       '<td><span class="pill status-' + (j.status || '') + '">' + statusLabel(j.status) + '</span></td>' +
       '<td>' + created + '</td>' +
-      '<td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList(\'interested\', \'' + j.id + '\')">' + (j.interestedCount || j.waitingCount || 0) + '</span></td>' +
-      '<td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList(\'inProcess\', \'' + j.id + '\')">' + (j.inProcessCount || 0) + '</span></td>' +
-      '<td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList(\'hired\', \'' + j.id + '\')">' + (j.hiredCount || 0) + '</span></td>' +
+      '<td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList(\'interested\', \'' + j.id + '\')">' + counts.interested + '</span></td>' +
+      '<td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList(\'inProcess\', \'' + j.id + '\')">' + counts.inProcess + '</span></td>' +
+      '<td><span class="clickable-number" onclick="event.stopPropagation(); openCandidatesList(\'hired\', \'' + j.id + '\')">' + counts.hired + '</span></td>' +
       '<td><button class="btn" style="padding:2px 6px;color:#999;" title="מחיקה" onclick="event.stopPropagation(); window.confirmDeleteJob(\'' + j.id + '\')"><i class="fa-solid fa-trash"></i></button></td>';
     row.addEventListener('click', function() {
       sessionStorage.setItem('jobData', JSON.stringify(j));
@@ -239,9 +259,9 @@ function sortTable(colIndex) {
       case 2: aVal = (a.clientName || ''); bVal = (b.clientName || ''); break;
       case 3: aVal = (a.status || ''); bVal = (b.status || ''); break;
       case 4: aVal = String(a.createdDate || a.createdAt || ''); bVal = String(b.createdDate || b.createdAt || ''); break;
-      case 5: aVal = Number(a.interestedCount || a.waitingCount || 0); bVal = Number(b.interestedCount || b.waitingCount || 0); break;
-      case 6: aVal = Number(a.inProcessCount || 0); bVal = Number(b.inProcessCount || 0); break;
-      case 7: aVal = Number(a.hiredCount || 0); bVal = Number(b.hiredCount || 0); break;
+      case 5: aVal = calcJobCounts(a).interested; bVal = calcJobCounts(b).interested; break;
+      case 6: aVal = calcJobCounts(a).inProcess; bVal = calcJobCounts(b).inProcess; break;
+      case 7: aVal = calcJobCounts(a).hired; bVal = calcJobCounts(b).hired; break;
       default: aVal = ''; bVal = '';
     }
     if (window.sortOrder[colIndex] === 'asc') {
@@ -268,6 +288,12 @@ window.lastSortCol = null;
 function openCandidatesList(type, jobId) { sessionStorage.setItem('filterType', type); sessionStorage.setItem('filterJobId', jobId); window.location.href = 'candidates.html'; }
 
 refreshActiveClients().then(function() {
+  if (candidatesUnsub) candidatesUnsub();
+  candidatesUnsub = watchCandidates(function(candidates) {
+    currentCandidates = candidates;
+    window.renderTable();
+  });
+
   if (jobsUnsub) jobsUnsub();
   jobsUnsub = watchJobs(function(jobs) {
     jobs.forEach(function(j, index) {
