@@ -18,11 +18,11 @@
 body { font-family: var(--font); background: var(--bg); color: var(--text); font-size: 13px; }
 
 /* ── NAVBAR ── */
-.navbar { background: var(--blue); height: 74px; display: flex; align-items: center; justify-content: space-between; padding: 0 1.75rem; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.06); }
-.navbar-right { display: flex; align-items: center; gap: 16px; }
-.navbar-logo { display: flex; align-items: center; cursor: pointer; text-decoration: none; user-select: none; padding: 0 4px; }
+.navbar, .topbar { background: var(--blue); height: 78px; display: flex; align-items: center; justify-content: space-between; padding: 0 1.75rem; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.navbar-right { display: flex; align-items: center; gap: 16px; padding-right: 24px; }
+.navbar-logo { display: flex; align-items: center; cursor: pointer; text-decoration: none; user-select: none; padding: 0 24px; }
 .navbar-logo:hover { opacity: 0.88; }
-.navbar-logo img { display: block; }
+.logo-img { height: 58px; width: auto; object-fit: contain; display: block; }
 .navbar-icons { display: flex; gap: 16px; color: rgba(255,255,255,0.5); font-size: 17px; }
 .navbar-icons i { cursor: pointer; transition: color 0.18s; }
 .navbar-icons i:hover { color: #fff; }
@@ -32,7 +32,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); font
 .nav-links a.active { color: #fff; font-weight: 600; background: rgba(255,255,255,0.13); }
 
 /* ── LAYOUT ── */
-.main { padding-top: 86px; }
+.main { padding-top: 90px; }
 .page { display: none; padding: 0.75rem 1rem; min-height: calc(100vh - 44px); }
 .page.active { display: block; }
 .subbar { background: var(--white); border-bottom: 1px solid var(--border); padding: 10px 1.4rem; display: flex; align-items: center; justify-content: space-between; margin: 0 0 1rem 0; }
