@@ -337,6 +337,28 @@
             margin-top: 30px;
             justify-content: space-between;
         }
+    
+        /* ── CITY SELECTOR ── */
+        .city-section { margin-top: 20px; border: 1px solid var(--border); border-radius: 10px; padding: 16px; background: #fff; }
+        .city-section-title { font-size: 14px; font-weight: 700; color: var(--blue); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .city-search { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: inherit; margin-bottom: 10px; }
+        .city-regions { max-height: 240px; overflow-y: auto; }
+        .city-region-header { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); cursor: pointer; font-weight: 600; font-size: 13px; color: var(--text); }
+        .city-region-header:hover { color: var(--blue); }
+        .city-region-header input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+        .city-region-header .region-toggle { margin-right: auto; font-size: 11px; color: var(--text-light); transition: transform 0.15s; }
+        .city-region-header .region-toggle.open { transform: rotate(180deg); }
+        .city-cities { padding: 6px 0 6px 28px; display: none; flex-wrap: wrap; gap: 6px; }
+        .city-cities.open { display: flex; }
+        .city-check-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text); cursor: pointer; }
+        .city-check-item input { cursor: pointer; }
+        .city-check-item.hidden { display: none; }
+        .city-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .city-actions.button { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); cursor: pointer; font-size: 12px; font-family: inherit; }
+        .city-actions.button.primary { background: var(--blue); color: white; border-color: var(--blue); }
+        .city-summary { font-size: 11px; color: var(--text-light); margin-top: 8px; }
+        .city-count-badge { font-size: 11px; background: var(--blue); color: white; border-radius: 999px; padding: 2px 8px; }
+
     </style>
 </head>
 <body>
@@ -461,6 +483,21 @@
                     </div>
                 </div>
                 
+                
+                <div class="city-section" id="citySection">
+                    <div class="city-section-title">
+                        <span>🏙️ ערים ואזורים</span>
+                        <span class="city-count-badge" id="cityCountBadge">0 נבחרו</span>
+                    </div>
+                    <input class="city-search" id="citySearch" placeholder="חפש עיר או אזור..." oninput="filterCityAreasNew()">
+                    <div class="city-regions" id="cityRegionsBox"></div>
+                    <div class="city-actions">
+                        <button class="city-actions button" onclick="selectAllCitiesNew()">בחר הכל</button>
+                        <button class="city-actions button" onclick="clearAllCitiesNew()">נקה הכל</button>
+                    </div>
+                    <div class="city-summary" id="citySummary">לא נבחרו ערים</div>
+                </div>
+
                 <div class="button-group">
                     <button class="btn-primary" onclick="saveJob()" style="background: #4caf50;">שמור ויצא</button>
                 </div>
@@ -470,6 +507,7 @@
 
     <script type="module">
         import { db } from './firebase.js';
+        import { CITY_AREAS } from './city_areas.js';
         import { collection, getDocs, addDoc, serverTimestamp, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
         window.allClients = [];
         const urlParams = new URLSearchParams(window.location.search);
@@ -615,6 +653,8 @@
                 history.pushState({step: 3}, '', '#step3');
             } else if (step === 1) {
                 history.pushState({step: 1}, '', '#step1');
+        renderCityAreasNew();
+        updateCityBadge();
             }
         }
         
@@ -710,6 +750,84 @@
             }
         });
 
+        
+        let selectedJobCities = new Set();
+        const allSelectedCities = () => [...selectedJobCities];
+
+        function toggleRegionNew(idx, checked) {
+            CITY_AREAS[idx].cities.forEach(city => checked ? selectedJobCities.add(city) : selectedJobCities.delete(city));
+            renderCityAreasNew();
+            updateCityBadge();
+        }
+
+        function toggleCityNew(city, checked) {
+            checked ? selectedJobCities.add(city) : selectedJobCities.delete(city);
+            updateCityBadge();
+        }
+
+        function selectAllCitiesNew() {
+            CITY_AREAS.forEach((_, idx) => {
+                CITY_AREAS[idx].cities.forEach(c => selectedJobCities.add(c));
+            });
+            renderCityAreasNew();
+            updateCityBadge();
+        }
+
+        function clearAllCitiesNew() {
+            selectedJobCities.clear();
+            renderCityAreasNew();
+            updateCityBadge();
+        }
+
+        function filterCityAreasNew() {
+            const q = document.getElementById('citySearch').value.trim().toLowerCase();
+            renderCityAreasNew(q);
+        }
+
+        function updateCityBadge() {
+            const count = selectedJobCities.size;
+            document.getElementById('cityCountBadge').textContent = count + ' נבחרו';
+            document.getElementById('citySummary').textContent = count > 0 ? 'נבחרו ' + count + ' ערים' : 'לא נבחרו ערים';
+        }
+
+        function renderCityAreasNew(filter) {
+            const box = document.getElementById('cityRegionsBox');
+            if (!box) return;
+            let html = '';
+            CITY_AREAS.forEach((area, idx) => {
+                const cities = area.cities || [];
+                const q = filter || '';
+                const visibleCities = q ? cities.filter(c => c.toLowerCase().includes(q)) : cities;
+                if (q && visibleCities.length === 0) return; // skip region if no city matches
+                const allChecked = !q && cities.every(c => selectedJobCities.has(c));
+                const someChecked = !allChecked && cities.some(c => selectedJobCities.has(c));
+                const openClass = (q || someChecked) ? 'open' : '';
+                html += '<div class="city-region">';
+                html += '<div class="city-region-header" onclick="toggleRegionHeaderNew(' + idx + ', this)">';
+                html += '<input type="checkbox" ' + (allChecked ? 'checked' : '') + ' onchange="toggleRegionNew(' + idx + ', this.checked)">';
+                html += '<span>' + area.region + '</span>';
+                html += '<span class="region-toggle ' + openClass + '">▼</span>';
+                html += '</div>';
+                html += '<div class="city-cities ' + openClass + '" id="cities-' + idx + '">';
+                cities.forEach(city => {
+                    const hidden = q && !city.toLowerCase().includes(q) ? 'hidden' : '';
+                    html += '<label class="city-check-item ' + hidden + '">';
+                    html += '<input type="checkbox" ' + (selectedJobCities.has(city) ? 'checked' : '') + ' onchange="toggleCityNew(\'' + city.replace(/'/g, "\'") + '\', this.checked)">';
+                    html += city + '</label>';
+                });
+                html += '</div></div>';
+            });
+            box.innerHTML = html;
+        }
+
+        function toggleRegionHeaderNew(idx, headerEl) {
+            const citiesDiv = document.getElementById('cities-' + idx);
+            const toggle = headerEl.querySelector('.region-toggle');
+            citiesDiv.classList.toggle('open');
+            toggle.classList.toggle('open');
+        }
+
+
         window.saveJob = async function() {
             if (!window.selectedClient) { alert('יש לבחור לקוח'); return; }
             if (!window.selectedJobType) { alert('יש לבחור סוג משרה'); return; }
@@ -752,7 +870,9 @@
                     createdAt: serverTimestamp(),
                     interestedCount: 0,
                     inProcessCount: 0,
-                    hiredCount: 0
+                    hiredCount: 0,
+                    cities: allSelectedCities(),
+                    areas: []
                 });
 
                 alert(`משרה ${jobNumber} נוצרה בהצלחה!`);
@@ -771,6 +891,8 @@
 
         window.loadClients();
         history.pushState({step: 1}, '', '#step1');
+        renderCityAreasNew();
+        updateCityBadge();
     </script>
 
     <script>
