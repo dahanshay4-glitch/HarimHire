@@ -158,27 +158,27 @@
   <!-- TOP STATS -->
   <div class="db-grid" id="statsRow">
     <div class="db-card" onclick="window.location.href='process.html'">
-      <div class="db-card-num" id="s1">27</div>
+      <div class="db-card-num" id="s1">0</div>
       <div class="db-card-label">מועמדים בתהליך</div>
       <div class="db-card-bar" style="background:var(--orange);"></div>
     </div>
     <div class="db-card" onclick="window.location.href='referrals.html'">
-      <div class="db-card-num" id="s2">44</div>
+      <div class="db-card-num" id="s2">0</div>
       <div class="db-card-label">הפניות החודש</div>
       <div class="db-card-bar" style="background:var(--blue);"></div>
     </div>
     <div class="db-card">
-      <div class="db-card-num" id="s3">7</div>
+      <div class="db-card-num" id="s3">0</div>
       <div class="db-card-label">התקבלו לעבודה החודש</div>
       <div class="db-card-bar" style="background:var(--green);"></div>
     </div>
     <div class="db-card">
-      <div class="db-card-num" id="s4">8</div>
+      <div class="db-card-num" id="s4">0</div>
       <div class="db-card-label">התחילו לעבוד החודש</div>
       <div class="db-card-bar" style="background:var(--blue);opacity:0.6;"></div>
     </div>
     <div class="db-card" onclick="window.location.href='fixes.html'">
-      <div class="db-card-num" id="s5">12</div>
+      <div class="db-card-num" id="s5">0</div>
       <div class="db-card-label">תיקונים</div>
       <div class="db-card-bar" style="background:var(--red);"></div>
     </div>
@@ -190,7 +190,7 @@
     <!-- מקורות גיוס -->
     <div class="widget">
       <div class="widget-title"><span>מקורות גיוס</span><span style="font-size:10px;color:var(--text-light);">שנה אחרונה</span></div>
-      <div class="widget-num">7</div>
+      <div class="widget-num">0</div>
       <canvas id="donutChart" height="140"></canvas>
       <a class="widget-link" onclick="window.location.href='index.html'">דוח מקורות ›</a>
     </div>
@@ -198,7 +198,7 @@
     <!-- מועמדים בתהליך -->
     <div class="widget">
       <div class="widget-title"><span>מועמדים בתהליך</span><span style="font-size:10px;color:var(--text-light);">חודש אחרון</span></div>
-      <div class="widget-num">27</div>
+      <div class="widget-num">0</div>
       <div style="margin-bottom:10px;">
         <div class="bar-row"><span class="bar-label">תואם ראיון</span><div class="bar-track"><div class="bar-fill" style="width:70%;background:var(--blue);"></div></div><span class="bar-val">10</span></div>
         <div class="bar-row"><span class="bar-label">נשלח ביטחון</span><div class="bar-track"><div class="bar-fill" style="width:14%;background:var(--orange);"></div></div><span class="bar-val">2</span></div>
@@ -293,7 +293,7 @@ window.addEventListener('DOMContentLoaded', function() {
     type: 'doughnut',
     data: {
       labels: ['לידים', 'דרושים', 'פייסבוק', 'אחר'],
-      datasets: [{ data: [4, 1, 1, 1], backgroundColor: ['#1e3461','#e8992e','#6b7ab8','#c5cad6'], borderWidth: 0 }]
+      datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#1e3461','#e8992e','#6b7ab8','#c5cad6'], borderWidth: 0 }]
     },
     options: { plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10, padding: 8 } } }, cutout: '65%', responsive: true, maintainAspectRatio: false }
   });
@@ -303,7 +303,7 @@ window.addEventListener('DOMContentLoaded', function() {
     type: 'bar',
     data: {
       labels: ['נוב','דצ','ינ','פבר','מרץ','אפר','מאי'],
-      datasets: [{ data: [1650,1420,1380,1510,1680,1750,1820], backgroundColor: '#e8992e', borderRadius: 4, barPercentage: 0.6 }]
+      datasets: [{ data: [0,0,0,0,0,0,0], backgroundColor: '#e8992e', borderRadius: 4, barPercentage: 0.6 }]
     },
     options: { plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 9 } } }, y: { display: false } }, responsive: true, maintainAspectRatio: false }
   });
@@ -313,7 +313,7 @@ window.addEventListener('DOMContentLoaded', function() {
     type: 'line',
     data: {
       labels: ['נוב','דצ','ינ','פבר','מרץ','אפר','מאי'],
-      datasets: [{ data: [6,8,7,9,10,11,11], borderColor: '#1e3461', backgroundColor: 'rgba(30,52,97,0.06)', fill: true, tension: 0.4, pointRadius: 3, pointBackgroundColor: '#1e3461', borderWidth: 2 }]
+      datasets: [{ data: [0,0,0,0,0,0,0], borderColor: '#1e3461', backgroundColor: 'rgba(30,52,97,0.06)', fill: true, tension: 0.4, pointRadius: 3, pointBackgroundColor: '#1e3461', borderWidth: 2 }]
     },
     options: { plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 9 } } }, y: { display: false } }, responsive: true, maintainAspectRatio: false }
   });

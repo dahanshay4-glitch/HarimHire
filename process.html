@@ -431,31 +431,9 @@
 
 <script>
 // ── DATA ──
-const PROCESS_JOBS = [
-  {num:25,title:'עובד מיון',client:'מוקד חיפה',screening:'טלפוני',recruiter:'המערכת',handler:'בתאל',delivery:'לא',waiting:828,process:0,total:15},
-  {num:47,title:'שליח עצמאי',client:'מוקד מגדל העמק',screening:'טלפוני',recruiter:'נטלי',handler:'בתאל',delivery:'לא',waiting:131,process:5,total:20},
-  {num:48,title:'שליח שכיר',client:'מוקד מגדל העמק',screening:'טלפוני',recruiter:'המערכת',handler:'בתאל',delivery:'לא',waiting:158,process:4,total:15},
-  {num:10,title:'שליח שכיר',client:'מוקד אשדוד',screening:'טלפוני',recruiter:'נטלי',handler:'בתאל',delivery:'לא',waiting:594,process:3,total:18},
-  {num:11,title:'שליח שכיר',client:'מוקד ירושלים',screening:'טלפוני',recruiter:'המערכת',handler:'בתאל',delivery:'לא',waiting:425,process:10,total:67},
-];
+const PROCESS_JOBS = [];
 
-const ALL_CANDIDATES = [
-  {name:'Mohemad Nuj',phone:'0502800721',city:'בועיינה-נוגידאת',age:19,gender:'זכר',source:'לידים',date:'15/05/2026 16:56'},
-  {name:'אביחי רחום',phone:'0543535913',city:'חיפה',age:21,gender:'זכר',source:'לידים',date:'15/05/2026 16:10'},
-  {name:'חוניראת פיאד',phone:'0559241250',city:'ביר אל-מכסור',age:45,gender:'נקבה',source:'לידים',date:'15/05/2026 12:58'},
-  {name:'Moyaal Khashan',phone:'0543440131',city:'חיפה',age:34,gender:'זכר',source:'לידים',date:'15/05/2026 12:58'},
-  {name:'דור חיים',phone:'0526685599',city:'קרית ים',age:22,gender:'זכר',source:'לידים',date:'15/05/2026 12:07'},
-  {name:'הנאו',phone:'0528465117',city:'כרמיאל',age:37,gender:'זכר',source:'לידים',date:'15/05/2026 11:21'},
-  {name:'מאור סלם',phone:'0534300370',city:'חיפה',age:26,gender:'זכר',source:'אחר',date:'15/05/2026 10:53'},
-  {name:'Anan Shaheen',phone:'0545696614',city:'חיפה',age:30,gender:'זכר',source:'לידים',date:'15/05/2026 10:39'},
-  {name:'Khaled Osman',phone:'0522375859',city:'חיפה',age:33,gender:'זכר',source:'לידים',date:'15/05/2026 09:48'},
-  {name:'גיא פורטה',phone:'0505756084',city:'חיפה',age:55,gender:'זכר',source:'לידים',date:'15/05/2026 08:08'},
-  {name:'דינה רובני',phone:'0528353528',city:'נשר',age:63,gender:'נקבה',source:'לידים',date:'15/05/2026 07:18'},
-  {name:'רועי לוי',phone:'0521234567',city:'קרית ביאליק',age:28,gender:'זכר',source:'דרושים',date:'14/05/2026 18:30'},
-  {name:'שירי כהן',phone:'0509876543',city:'נשר',age:32,gender:'נקבה',source:'דרושים',date:'14/05/2026 16:45'},
-  {name:'עמיר בן דוד',phone:'0541234567',city:'חיפה',age:24,gender:'זכר',source:'לידים',date:'14/05/2026 14:20'},
-  {name:'Avi Cohen',phone:'0533415647',city:'חיפה',age:37,gender:'זכר',source:'לידים',date:'14/05/2026 21:06'},
-];
+const ALL_CANDIDATES = [];
 
 let filteredProcess = [...PROCESS_JOBS];
 let sortProcessCol = 'waiting', sortProcessDir = -1;

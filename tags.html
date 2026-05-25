@@ -254,26 +254,7 @@ const COLORS = [
 const DOT_COLORS = ['#1e3461','#e8992e','#1ca97a','#dc3545','#8a9ab5','#9333ea','#ec4899','#14b8a6','#f97316','#3b82f6'];
 
 // ── DATA ──
-let TAGS = [
-  {id:1, name:'רישיון ג׳', colorIdx:0, candidates:['שלמה בנלולו','רועי עזרי','דנה לוי']},
-  {id:2, name:'דובר ערבית', colorIdx:2, candidates:['אברהם בסול','Mohemad Nuj']},
-  {id:3, name:'רכב פרטי', colorIdx:1, candidates:['שלמה בנלולו','רועי כהן','משה כץ','דנה לוי','אברהם בסול']},
-  {id:4, name:'ניסיון לוגיסטיקה', colorIdx:3, candidates:['רועי עזרי','משה כץ']},
-  {id:5, name:'זמין מיידית', colorIdx:5, candidates:['שלמה בנלולו','Mohemad Nuj','רועי כהן']},
-  {id:6, name:'מוקדן מנוסה', colorIdx:7, candidates:['דנה לוי']},
-  {id:7, name:'אנגלית גבוהה', colorIdx:9, candidates:['Mohemad Nuj','רועי כהן','דנה לוי','משה כץ']},
-  {id:8, name:'ניסיון ניהול', colorIdx:6, candidates:['רועי עזרי']},
-];
-
-const CAND_DATA = {
-  'שלמה בנלולו': {phone:'0525371524', job:'1001 – שליח עצמאי', status:'תואם ראיון', city:'בית שמש', date:'15/05/2026', av:'שב', avBg:'rgba(30,52,97,0.12)', avColor:'#1e3461'},
-  'אברהם בסול': {phone:'0529409451', job:'1002 – שליח שכיר', status:'נשלח ביטחון', city:'כפר כנא', date:'15/05/2026', av:'אב', avBg:'rgba(232,153,46,0.12)', avColor:'#b5720a'},
-  'רועי עזרי': {phone:'0525483086', job:'1001 – שליח עצמאי', status:'עבר ביטחון', city:'גן יבנה', date:'14/05/2026', av:'רע', avBg:'rgba(28,169,122,0.12)', avColor:'#0e7a55'},
-  'רועי כהן': {phone:'0725093639', job:'1002 – שליח שכיר', status:'נשלח ביטחון', city:'עפולה עלית', date:'14/05/2026', av:'רכ', avBg:'rgba(30,52,97,0.12)', avColor:'#1e3461'},
-  'דנה לוי': {phone:'0521234567', job:'1004 – דואר נע', status:'התחיל לעבוד', city:'ירושלים', date:'07/05/2026', av:'דל', avBg:'rgba(28,169,122,0.12)', avColor:'#0e7a55'},
-  'משה כץ': {phone:'0509876543', job:'1002 – שליח שכיר', status:'לא התקבל', city:'תל אביב', date:'05/05/2026', av:'מכ', avBg:'rgba(220,53,69,0.1)', avColor:'#a02030'},
-  'Mohemad Nuj': {phone:'0502800721', job:'1001 – שליח עצמאי', status:'תואם ראיון', city:'בועיינה', date:'15/05/2026', av:'MN', avBg:'rgba(138,154,181,0.2)', avColor:'#4a5568'},
-};
+let TAGS = [];
 
 let selectedColorIdx = 0;
 let editingTagId = null;

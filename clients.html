@@ -314,17 +314,7 @@
 
 <script>
 // ── DATA ──
-window.CLIENTS = [
-  {id:18,name:'עמית זרד',type:'לקוח פעיל',date:'15/04/2026',contact:'עמית זרד',phone:'0545965676',email:'office@noam-harim.com',handler:'נטלי',recruiter:'שי דהן',city:'תל אביב',industry:'כללי',rejDays:90,notes:'',jobs:[],contacts:[{name:'עמית זרד',role:'איש קשר ראשי',phone:'0545965676',email:'office@noam-harim.com',av:'עז',avColor:'#1e3461'}]},
-  {id:17,name:'בנת אדם – מרכז דואר מודיעין',type:'לקוח פעיל',date:'29/01/2026',contact:'אייל מוצניק',phone:'0524203350',email:'shay@noam-harim.com',handler:'נטלי',recruiter:'שי דהן',city:'מודיעין',industry:'לוגיסטיקה',rejDays:90,notes:'',jobs:[],contacts:[{name:'אייל מוצניק',role:'איש קשר ראשי',phone:'0524203350',email:'eyal@edycom-solutions.com',av:'אמ',avColor:'#b5720a'}]},
-  {id:6,name:'מוקד מגדל העמק',type:'לקוח פעיל',date:'11/12/2025',contact:'שי דהן',phone:'0523283400',email:'shay@noam-harim.com',handler:'שי דהן',recruiter:'נטלי',city:'מגדל העמק',industry:'לוגיסטיקה',rejDays:90,notes:'הזית 15',jobs:[{num:48,title:'שליח שכיר',status:'פתוחה',date:'11/12/2025',send:'לא',h24:0,week:3,month:4,total:4},{num:47,title:'שליח עצמאי (קבלן)',status:'פתוחה',date:'11/12/2025',send:'לא',h24:0,week:10,month:15,total:15},{num:46,title:'עובד מיון',status:'מוקפאת',date:'11/12/2025',send:'לא',h24:0,week:0,month:0,total:0}],contacts:[{name:'שי דהן',role:'איש קשר ראשי',phone:'0523283400',email:'shay@noam-harim.com',av:'שד',avColor:'#1e3461'},{name:'אייל מוצניק',role:'איש קשר משני',phone:'0524203350',email:'eyal@edycom-solutions.com',av:'אמ',avColor:'#b5720a'}],events:[{text:'לקוח נוצר',date:'11/12/2025',user:'שי דהן',color:'var(--blue)'},{text:'נפתחה משרה 47 – שליח עצמאי',date:'11/12/2025',user:'שי דהן',color:'var(--orange)'},{text:'10 מועמדים התחילו לעבוד',date:'24/02/2026',user:'אוטומטי',color:'var(--green)'}]},
-  {id:1,name:'מוקד חיפה',type:'לקוח פעיל',date:'10/12/2025',contact:'שי דהן',phone:'0523283400',email:'shay@noam-harim.com',handler:'שי דהן',recruiter:'נטלי',city:'חיפה',industry:'לוגיסטיקה',rejDays:90,notes:'',jobs:[{num:25,title:'עובד מיון',status:'פתוחה',date:'10/12/2025',send:'לא',h24:0,week:0,month:15,total:15}],contacts:[{name:'שי דהן',role:'איש קשר ראשי',phone:'0523283400',email:'shay@noam-harim.com',av:'שד',avColor:'#1e3461'}],events:[{text:'לקוח נוצר',date:'10/12/2025',user:'שי דהן',color:'var(--blue)'}]},
-  {id:2,name:'מוקד ירושלים',type:'לקוח פעיל',date:'10/12/2025',contact:'אייל מוצניק',phone:'0524203350',email:'eyal@edycom-solutions.com',handler:'נטלי',recruiter:'שי דהן',city:'ירושלים',industry:'לוגיסטיקה',rejDays:90,notes:'',jobs:[],contacts:[{name:'אייל מוצניק',role:'איש קשר ראשי',phone:'0524203350',email:'eyal@edycom-solutions.com',av:'אמ',avColor:'#b5720a'}],events:[]},
-  {id:12,name:'מוקד באר שבע',type:'לקוח פעיל',date:'11/12/2025',contact:'אייל מוצניק',phone:'0524203350',email:'eyal@edycom-solutions.com',handler:'נטלי',recruiter:'שי דהן',city:'באר שבע',industry:'לוגיסטיקה',rejDays:90,notes:'',jobs:[],contacts:[{name:'אייל מוצניק',role:'איש קשר ראשי',phone:'0524203350',email:'eyal@edycom-solutions.com',av:'אמ',avColor:'#b5720a'}],events:[]},
-];
-
-const extraCols = ['handler','recruiter','city','industry'];
-let colVisible = {handler:false,recruiter:false,city:false,industry:false};
+window.CLIENTS = [];
 let filtered = [...CLIENTS];
 let sortCol = 'id', sortDir = -1;
 let currentClient = null;

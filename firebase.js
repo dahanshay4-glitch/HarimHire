@@ -56,7 +56,7 @@ export async function deleteCandidate(id) {
 }
 
 export function watchCandidates(callback) {
-  return onSnapshot(query(collection(db, 'candidates'), orderBy('createdAt', 'desc')), snap => {
+  return onSnapshot(query(collection(db, 'candidates'), where('deleted', '!=', true), orderBy('createdAt', 'desc')), snap => {
     callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
   });
 }
@@ -68,7 +68,7 @@ export async function addClient(data) {
 }
 
 export async function getClients() {
-  const snap = await getDocs(query(collection(db, 'clients'), orderBy('createdAt', 'desc')));
+  const snap = await getDocs(query(collection(db, 'clients'), where('deleted', '!=', true), orderBy('createdAt', 'desc')));
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
@@ -77,7 +77,7 @@ export async function updateClient(id, data) {
 }
 
 export function watchClients(callback) {
-  return onSnapshot(collection(db, 'clients'), snap => {
+  return onSnapshot(query(collection(db, 'clients'), where('deleted', '!=', true)), snap => {
     callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
   });
 }
@@ -90,7 +90,7 @@ export async function addJob(data) {
 }
 
 export async function getJobs() {
-  const snap = await getDocs(query(collection(db, 'jobs'), orderBy('createdAt', 'desc')));
+  const snap = await getDocs(query(collection(db, 'jobs'), where('deleted', '!=', true), orderBy('createdAt', 'desc')));
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
@@ -100,7 +100,7 @@ export async function updateJob(id, data) {
 }
 
 export function watchJobs(callback) {
-  return onSnapshot(collection(db, 'jobs'), snap => {
+  return onSnapshot(query(collection(db, 'jobs'), where('deleted', '!=', true)), snap => {
     callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
   });
 }
@@ -112,7 +112,7 @@ export async function addReferral(data) {
 }
 
 export async function getReferrals() {
-  const snap = await getDocs(query(collection(db, 'referrals'), orderBy('createdAt', 'desc')));
+  const snap = await getDocs(query(collection(db, 'referrals'), where('deleted', '!=', true), orderBy('createdAt', 'desc')));
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
@@ -121,7 +121,7 @@ export async function updateReferral(id, data) {
 }
 
 export function watchReferrals(callback) {
-  return onSnapshot(query(collection(db, 'referrals'), orderBy('createdAt','desc')), snap => {
+  return onSnapshot(query(collection(db, 'referrals'), where('deleted', '!=', true), orderBy('createdAt','desc')), snap => {
     callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
   });
 }
