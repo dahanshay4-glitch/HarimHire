@@ -55,21 +55,21 @@
 .dropdown-item:hover i { color: #1e3461 !important; }
 </style>
 <style>
-.db-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:14px; }
-.db-card { background:var(--white); border:0.5px solid var(--border); border-radius:10px; padding:16px 18px; position:relative; overflow:hidden; cursor:pointer; transition:box-shadow 0.15s; }
+.db-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:10px; }
+.db-card { background:var(--white); border:0.5px solid var(--border); border-radius:8px; padding:12px 14px; position:relative; overflow:hidden; cursor:pointer; transition:box-shadow 0.15s; }
 .db-card:hover { box-shadow:0 2px 12px rgba(0,0,0,0.08); }
-.db-card-num { font-size:32px; font-weight:600; color:var(--text); margin-bottom:4px; }
+.db-card-num { font-size:24px; font-weight:600; color:var(--text); margin-bottom:2px; }
 .db-card-label { font-size:11px; color:var(--text-light); }
-.db-card-bar { height:3px; width:100%; border-radius:2px; margin-top:12px; }
-.db-widgets { display:grid; grid-template-columns:1fr 1.6fr 2fr; gap:10px; margin-bottom:10px; }
-.db-widgets2 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; }
-.widget { background:var(--white); border:0.5px solid var(--border); border-radius:10px; padding:16px 18px; }
+.db-card-bar { height:3px; width:100%; border-radius:2px; margin-top:8px; }
+.db-widgets { display:grid; grid-template-columns:1fr 1.6fr 2fr; gap:8px; margin-bottom:8px; }
+.db-widgets2 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; }
+.widget { background:var(--white); border:0.5px solid var(--border); border-radius:8px; padding:12px 14px; }
 .widget-title { font-size:11px; color:var(--text-light); margin-bottom:4px; display:flex; align-items:center; justify-content:space-between; }
-.widget-num { font-size:28px; font-weight:600; color:var(--text); margin-bottom:10px; }
+.widget-num { font-size:22px; font-weight:600; color:var(--text); margin-bottom:6px; }
 .widget-link { font-size:10px; color:var(--blue); cursor:pointer; }
-.bar-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.bar-row { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
 .bar-label { font-size:11px; color:var(--text); min-width:110px; text-align:right; }
-.bar-track { flex:1; height:8px; background:var(--bg); border-radius:4px; overflow:hidden; }
+.bar-track { flex:1; height:5px; background:var(--bg); border-radius:3px; overflow:hidden; }
 .bar-fill { height:100%; border-radius:4px; }
 .bar-val { font-size:11px; color:var(--text-light); min-width:24px; }
 .edit-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.3); z-index:500; display:none; align-items:center; justify-content:center; }
@@ -159,6 +159,7 @@
 </a>
   </div>
 </nav>
+<div class="page-title-bar"><span>דשבורד</span></div>
 <div class="page-title-bar">
   <span>דשבורד</span>
 </div>
@@ -206,7 +207,7 @@
       <div class="widget-title"><span>מקורות גיוס</span><span style="font-size:10px;color:var(--text-light);">שנה אחרונה</span></div>
       <div class="widget-num">0</div>
       <canvas id="donutChart" height="140"></canvas>
-      <a class="widget-link" onclick="window.location.href='index.html'">דוח מקורות ›</a>
+      <a class="widget-link" onclick="window.location.href='dashboard.html'">דוח מקורות ›</a>
     </div>
 
     <!-- מועמדים בתהליך -->
@@ -228,7 +229,7 @@
       <div class="widget-title"><span>מועמדים שנכנסו למערכת</span><span style="font-size:10px;color:var(--text-light);">חודשים אחרונים</span></div>
       <div class="widget-num">0</div>
       <canvas id="barChart" height="130"></canvas>
-      <a class="widget-link" onclick="window.location.href='index.html'">כל המועמדים ›</a>
+      <a class="widget-link" onclick="window.location.href='dashboard.html'">כל המועמדים ›</a>
     </div>
   </div>
 
