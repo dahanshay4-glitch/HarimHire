@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="talento.css">
 <script src="firebase.js" type="module"></script>
-<style>
 .nav-dropdown { position: relative; display: inline-block; }
 .nav-dropdown > a { display: flex; align-items: center; gap: 5px; padding: 6px 4px; }
 .nav-dropdown > a::after { content: "\25BE"; font-size: 10px; opacity: 0.8; }
@@ -36,72 +35,55 @@
 .clickable-number:hover { text-decoration: underline; }
 .table-wrap table { font-size: 14px; }
 th { cursor: pointer; user-select: none; }
-</style>
 
-<style>
-/* Hard isolated navbar for jobs page - prevents broken legacy nav styles */
-#hhNav { background:#1e3461; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 1.4rem; position:fixed; top:0; left:0; right:0; z-index:1000; box-sizing:border-box; font-family:var(--font, 'Segoe UI', Arial, sans-serif); direction:rtl; }
-#hhNav * { box-sizing:border-box; }
-#hhNav .hh-logo { display:flex; align-items:center; gap:10px; cursor:pointer; color:#fff; text-decoration:none; }
-#hhNav .hh-logo img { width:34px; height:25px; }
-#hhNav .hh-left { display:flex; align-items:center; gap:14px; }
-#hhNav .hh-icons { display:flex; gap:12px; color:rgba(255,255,255,.65); font-size:15px; margin-left:8px; }
-#hhNav .hh-links { display:flex; align-items:center; gap:1.35rem; height:56px; }
-#hhNav .hh-link, #hhNav .hh-drop-title { color:rgba(255,255,255,.76); font-size:14px; text-decoration:none; cursor:pointer; padding:18px 2px 15px; height:56px; display:flex; align-items:center; gap:5px; background:transparent !important; border:0 !important; outline:0 !important; font-family:var(--font, 'Segoe UI', Arial, sans-serif); white-space:nowrap; }
-#hhNav .hh-link:hover, #hhNav .hh-drop-title:hover { color:#fff; }
-#hhNav .hh-link.active, #hhNav .hh-drop-title.active { color:#fff; font-weight:600; border-bottom:2.5px solid #e8992e !important; }
-#hhNav .hh-drop { position:relative; height:56px; display:flex; align-items:center; }
-#hhNav .hh-drop-title::after { content:'▾'; font-size:10px; opacity:.8; margin-right:3px; }
-#hhNav .hh-menu { position:absolute; top:56px; right:50%; transform:translateX(50%); background:#fff; border:1px solid #dde2ea; border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,.14); min-width:200px; display:none; overflow:hidden; padding:5px 0; z-index:100000; }
-#hhNav .hh-drop:hover .hh-menu { display:block; }
-#hhNav .hh-item { display:flex; align-items:center; gap:12px; padding:12px 18px; font-size:13px; color:#1a2332; text-decoration:none; background:#fff; border-bottom:.5px solid #f0f2f5; white-space:nowrap; }
-#hhNav .hh-item:hover { background:#f4f6f9; color:#1e3461; }
-#hhNav .hh-item i { color:#6b7a99; width:18px; text-align:center; }
-</style>
 </head>
 <body>
 <!-- NAVBAR -->
-<nav id="hhNav">
-  <div class="hh-links">
-    <div class="hh-drop">
-      <a class="hh-drop-title" href="candidates.html">מועמדים</a>
-      <div class="hh-menu">
-        <a class="hh-item" href="candidates.html"><i class="fa-solid fa-users"></i> מועמדים</a>
-        <a class="hh-item" href="new_candidate.html"><i class="fa-solid fa-user-plus"></i> מועמד חדש</a>
-        <a class="hh-item" href="segments.html"><i class="fa-solid fa-filter"></i> חיתוכי מועמדים</a>
-        <a class="hh-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+<nav class="navbar">
+  <div class="nav-links">
+    <div class="nav-dropdown">
+      <a href="candidates.html">מועמדים</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="candidates.html"><i class="fa-solid fa-users"></i> מועמדים</a>
+        <a class="dropdown-item" href="new_candidate.html"><i class="fa-solid fa-user-plus"></i> מועמד חדש</a>
+        <a class="dropdown-item" href="segments.html"><i class="fa-solid fa-filter"></i> חיתוכי מועמדים</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
       </div>
     </div>
-    <div class="hh-drop">
-      <a class="hh-drop-title" href="clients.html">לקוחות</a>
-      <div class="hh-menu">
-        <a class="hh-item" href="clients.html"><i class="fa-solid fa-building"></i> לקוחות</a>
-        <a class="hh-item" href="new_client.html"><i class="fa-solid fa-building-circle-arrow-right"></i> לקוח חדש</a>
+    <div class="nav-dropdown">
+      <a href="clients.html">לקוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="clients.html"><i class="fa-solid fa-building"></i> לקוחות</a>
+        <a class="dropdown-item" href="new_client.html"><i class="fa-solid fa-building-circle-arrow-right"></i> לקוח חדש</a>
       </div>
     </div>
-    <div class="hh-drop">
-      <a class="hh-drop-title active" href="jobs.html">משרות</a>
-      <div class="hh-menu">
-        <a class="hh-item" href="jobs.html"><i class="fa-solid fa-briefcase"></i> משרות</a>
-        <a class="hh-item" href="new_job.html"><i class="fa-solid fa-plus"></i> משרה חדשה</a>
+    <div class="nav-dropdown">
+      <a href="jobs.html" class="active">משרות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="jobs.html"><i class="fa-solid fa-briefcase"></i> משרות</a>
+        <a class="dropdown-item" href="new_job.html"><i class="fa-solid fa-plus"></i> משרה חדשה</a>
       </div>
     </div>
-    <a class="hh-link" href="process.html">תהליך ראשוני</a>
-    <a class="hh-link" href="fixes.html">תיקונים</a>
-    <a class="hh-link" href="tags.html">תגיות</a>
-    <div class="hh-drop">
-      <a class="hh-drop-title" href="#">דוחות</a>
-      <div class="hh-menu">
-        <a class="hh-item" href="#"><i class="fa-solid fa-chart-bar"></i> דוחות</a>
-        <a class="hh-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
-        <a class="hh-item" href="#"><i class="fa-solid fa-bullseye"></i> דוח מקורות גיוס</a>
-        <a class="hh-item" href="#"><i class="fa-solid fa-briefcase"></i> דוח סוגי משרה</a>
+    <a href="process.html">תהליך ראשוני</a>
+    <a href="fixes.html">תיקונים</a>
+    <a href="tags.html">תגיות</a>
+    <div class="nav-dropdown">
+      <a href="#">דוחות</a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-chart-bar"></i> דוחות</a>
+        <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-bullseye"></i> דוח מקורות גיוס</a>
+        <a class="dropdown-item" href="#"><i class="fa-solid fa-briefcase"></i> דוח סוגי משרה</a>
       </div>
     </div>
   </div>
-  <div class="hh-left">
-    <div class="hh-icons"><i class="fa-regular fa-bell"></i><i class="fa-solid fa-gear"></i><i class="fa-regular fa-circle-question"></i></div>
-    <a class="hh-logo" href="index.html">
+  <div class="navbar-right">
+    <div class="navbar-icons">
+      <i class="fa-regular fa-bell"></i>
+      <i class="fa-solid fa-gear"></i>
+      <i class="fa-regular fa-circle-question"></i>
+    </div>
+    <a class="brand-logo" href="index.html">
       <img src="images/talento-final-logo.svg" class="navbar-logo-img" alt="Talento HR Solutions">
     </a>
   </div>
