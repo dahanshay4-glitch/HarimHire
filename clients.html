@@ -315,6 +315,9 @@
 <script>
 // ── DATA ──
 window.CLIENTS = [];
+
+const extraCols = ['handler','recruiter','city','industry'];
+let colVisible = {handler:false,recruiter:false,city:false,industry:false};
 let filtered = [...CLIENTS];
 let sortCol = 'id', sortDir = -1;
 let currentClient = null;
