@@ -805,7 +805,7 @@
                 html += '<div class="city-region">';
                 html += '<div class="city-region-header" onclick="toggleRegionHeaderNew(' + idx + ', this)">';
                 html += '<input type="checkbox" ' + (allChecked ? 'checked' : '') + ' onchange="toggleRegionNew(' + idx + ', this.checked)">';
-                html += '<span>' + area.region + '</span>';
+                html += '<span>' + area.name + '</span>';
                 html += '<span class="region-toggle ' + openClass + '">▼</span>';
                 html += '</div>';
                 html += '<div class="city-cities ' + openClass + '" id="cities-' + idx + '">';
