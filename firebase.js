@@ -68,8 +68,8 @@ export async function addClient(data) {
 }
 
 export async function getClients() {
-  const snap = await getDocs(query(collection(db, 'clients'), where('deleted', '!=', true), orderBy('createdAt', 'desc')));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const snap = await getDocs(query(collection(db, 'clients'), orderBy('createdAt', 'desc')));
+  return snap.docs.map(d => { var data = d.data(); if (data.deleted === true) return null; return { id: d.id, ...data }; }).filter(Boolean);
 }
 
 export async function updateClient(id, data) {
