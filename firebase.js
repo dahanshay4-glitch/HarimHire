@@ -56,8 +56,8 @@ export async function deleteCandidate(id) {
 }
 
 export function watchCandidates(callback) {
-  return onSnapshot(query(collection(db, 'candidates'), where('deleted', '!=', true), orderBy('createdAt', 'desc')), snap => {
-    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  return onSnapshot(query(collection(db, 'candidates'), orderBy('createdAt', 'desc')), snap => {
+    callback(snap.docs.map(d => { var data = d.data(); if (data.deleted === true) return null; return { id: d.id, ...data }; }).filter(Boolean));
   });
 }
 
@@ -90,8 +90,8 @@ export async function addJob(data) {
 }
 
 export async function getJobs() {
-  const snap = await getDocs(query(collection(db, 'jobs'), where('deleted', '!=', true), orderBy('createdAt', 'desc')));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const snap = await getDocs(query(collection(db, 'jobs'), orderBy('createdAt', 'desc')));
+  return snap.docs.map(d => { var data = d.data(); if (data.deleted === true) return null; return { id: d.id, ...data }; }).filter(Boolean);
 }
 
 export async function updateJob(id, data) {
@@ -100,8 +100,8 @@ export async function updateJob(id, data) {
 }
 
 export function watchJobs(callback) {
-  return onSnapshot(query(collection(db, 'jobs'), where('deleted', '!=', true)), snap => {
-    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  return onSnapshot(query(collection(db, 'jobs'), orderBy('createdAt', 'desc')), snap => {
+    callback(snap.docs.map(d => { var data = d.data(); if (data.deleted === true) return null; return { id: d.id, ...data }; }).filter(Boolean));
   });
 }
 
