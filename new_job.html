@@ -762,12 +762,13 @@
 
         function toggleCityNew(city, checked) {
             checked ? selectedJobCities.add(city) : selectedJobCities.delete(city);
+            renderCityAreasNew();
             updateCityBadge();
         }
 
         function selectAllCitiesNew() {
-            CITY_AREAS.forEach((_, idx) => {
-                CITY_AREAS[idx].cities.forEach(c => selectedJobCities.add(c));
+            CITY_AREAS.forEach(area => {
+                area.cities.forEach(c => selectedJobCities.add(c));
             });
             renderCityAreasNew();
             updateCityBadge();
