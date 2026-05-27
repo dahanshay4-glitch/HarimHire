@@ -393,17 +393,27 @@ function saveEdit() {
 })();
 </script>
 <script type="module">
+import { watchCandidates, watchJobs, watchReferrals, getFixes } from './firebase.js';
+import { getDashboardCandidateStats, getHebrewMonthName } from './syncLogic.js';
+
 console.log('[dashboard] MODULE LOADED - firestore sync active');
+console.log('[dashboard] firebase import OK');
+console.log('[dashboard] syncLogic import OK');
+
 window.onerror = function(message, source, line, col, error) {
- console.error('[dashboard][GLOBAL ERROR]', { message, source, line, col, stack: error?.stack });
+ console.error('[dashboard][GLOBAL ERROR]', {
+  message,
+  source,
+  line,
+  col,
+  stack: error?.stack
+ });
 };
 window.addEventListener('unhandledrejection', function(e) {
  console.error('[dashboard][PROMISE REJECTION]', e.reason);
 });
-import { watchCandidates, watchJobs, watchReferrals, getFixes } from './firebase.js';
-console.log('[dashboard] firebase import OK');
-import { getDashboardCandidateStats, getHebrewMonthName } from './syncLogic.js';
-console.log('[dashboard] syncLogic import OK');
+
+console.log('[dashboard] attaching watchCandidates');
 
 function updateDashboard(candidates) {
   const stats = getDashboardCandidateStats(candidates, null);
