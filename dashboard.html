@@ -393,8 +393,10 @@ function saveEdit() {
 })();
 </script>
 <script type="module">
+console.log('[dashboard] MODULE LOADED - firestore sync active');
 import { watchCandidates, watchJobs, watchReferrals, getFixes } from './firebase.js';
 import { getDashboardCandidateStats, getHebrewMonthName } from './syncLogic.js';
+console.log('[dashboard] imports resolved, attaching listeners now');
 
 function updateDashboard(candidates) {
   const stats = getDashboardCandidateStats(candidates, null);
