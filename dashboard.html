@@ -394,13 +394,20 @@ function saveEdit() {
 </script>
 <script type="module">
 console.log('[dashboard] MODULE LOADED - firestore sync active');
+window.onerror = function(message, source, line, col, error) {
+ console.error('[dashboard][GLOBAL ERROR]', { message, source, line, col, stack: error?.stack });
+};
+window.addEventListener('unhandledrejection', function(e) {
+ console.error('[dashboard][PROMISE REJECTION]', e.reason);
+});
 import { watchCandidates, watchJobs, watchReferrals, getFixes } from './firebase.js';
+console.log('[dashboard] firebase import OK');
 import { getDashboardCandidateStats, getHebrewMonthName } from './syncLogic.js';
-console.log('[dashboard] imports resolved, attaching listeners now');
+console.log('[dashboard] syncLogic import OK');
 
 function updateDashboard(candidates) {
   const stats = getDashboardCandidateStats(candidates, null);
-  console.log('[dashboard] updateDashboard stats:', JSON.stringify(stats));
+  console.log('[dashboard] stats', stats);
 
   // Top stat cards
   document.getElementById('s1').textContent = stats.inProcess;
@@ -475,9 +482,9 @@ function updateBarRow(label, count) {
 // Initialize Firestore live listeners
 let candidatesUnsub = null;
 let fixesCount = 0;
-
+console.log('[dashboard] attaching watchCandidates');
 candidatesUnsub = watchCandidates(function(candidates) {
-  console.log('[dashboard] watchCandidates fired, count:', candidates.length);
+  console.log('[dashboard] watchCandidates fired', candidates?.length);
   if (candidates.length > 0) {
     console.log('[dashboard] first candidate:', JSON.stringify({ city: candidates[0].city, status: candidates[0].status, createdAt: candidates[0].createdAt }));
   }
