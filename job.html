@@ -357,6 +357,7 @@
     <script type="module" src="firebase.js"></script>
     <script type="module">
         import { db, watchCandidates } from './firebase.js';
+        import { candidateMatchesJob } from './syncLogic.js';
         import { collection, query, where, orderBy, onSnapshot, getDocs, getDoc, updateDoc, doc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
         import { CITY_AREAS } from './city_areas.js';
         let currentJobId = null;
@@ -466,10 +467,8 @@
                 return;
             }
 
-            var jobCitiesLower = currentJobCities.map(function(c) { return String(c).trim().toLowerCase(); });
             var matched = candidates.filter(function(c) {
-                var candCity = String(c.city || '').trim().toLowerCase();
-                return candCity && jobCitiesLower.indexOf(candCity) !== -1;
+                return candidateMatchesJob(c, currentJob);
             });
 
             if (matched.length === 0) {

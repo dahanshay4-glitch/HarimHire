@@ -641,6 +641,7 @@ window.filtered = [];
 
 <script type="module">
 import { watchCandidates, deleteCandidate as dbDeleteCandidate } from './firebase.js';
+import { normalizeCity, citiesMatch } from './syncLogic.js';
 
 // Read job+filter from URL params on load
 (function applyUrlFilters() {
@@ -737,15 +738,10 @@ function filterCands() {
   // Apply job-city filter from jobs.html count links
   var filterJobCitiesRaw = sessionStorage.getItem('filterJobCities');
   var filterType = sessionStorage.getItem('filterType');
-  var filterCityNorm = null;
+  var filterCities = [];
   if (filterJobCitiesRaw) {
-    try {
-      var filterCities = JSON.parse(filterJobCitiesRaw);
-      if (Array.isArray(filterCities) && filterCities.length > 0) {
-        // Use first city as the filter target
-        filterCityNorm = filterCities[0].trim().toLowerCase();
-      }
-    } catch(e) {}
+    try { filterCities = JSON.parse(filterJobCitiesRaw); } catch(e) { filterCities = []; }
+    if (!Array.isArray(filterCities)) filterCities = [];
   }
 
   window.filtered = window.CANDS.filter(function(c) {
@@ -755,10 +751,10 @@ function filterCands() {
     if(jb && c.job !== jb) return false;
     if(src && c.source !== src) return false;
     if(ct && !(c.city||'').toLowerCase().includes(ct)) return false;
-    // City match: candidate city must match one of the job's cities
-    if (filterCityNorm !== null) {
-      var cCityNorm = (c.city||'').trim().toLowerCase();
-      if (cCityNorm !== filterCityNorm) return false;
+    // City match: candidate city must match one of the job's cities (canonical)
+    if (filterCities.length > 0) {
+      var matchedCity = filterCities.some(function(jc) { return citiesMatch(c.city, jc); });
+      if (!matchedCity) return false;
     }
     // Status filter based on filterType
     if (filterType === 'inProcess' && st !== 'בתהליך') {

@@ -122,6 +122,7 @@ th { cursor: pointer; user-select: none; }
 </div>
 <script type="module">
 import { db, watchJobs, watchCandidates } from "./firebase.js";
+import { candidateMatchesJob, isCandidateInProcess, isCandidateHired } from './syncLogic.js';
 
 function formatDate(v) {
   try {
@@ -146,17 +147,14 @@ let currentCandidates = [];
 
 function calcJobCounts(j) {
   if (!j.cities || !Array.isArray(j.cities) || j.cities.length === 0) return { interested: 0, inProcess: 0, hired: 0 };
-  var cityNorms = j.cities.map(function(c) { return c.trim().toLowerCase(); });
   var interested = 0, inProcess = 0, hired = 0;
   currentCandidates.forEach(function(c) {
-    if (!c.city) return;
     if (c.deleted || c.status === 'deleted') return;
-    var cNorm = c.city.trim().toLowerCase();
-    if (!cityNorms.includes(cNorm)) return;
+    if (!candidateMatchesJob(c, j)) return;
     interested++;
     var s = c.status || '';
-    if (s.includes('בתהליך')) inProcess++;
-    if (s.includes('התקבל')) hired++;
+    if (isCandidateInProcess(c)) inProcess++;
+    if (isCandidateHired(c)) hired++;
   });
   return { interested: interested, inProcess: inProcess, hired: hired };
 }

@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="talento.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script type="module" src="firebase.js"></script>
 <style>
 .nav-dropdown { position: relative; display: inline-block; }
 .nav-dropdown > a { display: flex; align-items: center; gap: 5px; padding: 6px 4px; }
@@ -390,6 +391,114 @@ function saveEdit() {
     });
   });
 })();
+</script>
+<script type="module">
+import { watchCandidates, watchJobs, watchReferrals, getFixes } from './firebase.js';
+import { getDashboardCandidateStats, getHebrewMonthName } from './syncLogic.js';
+
+function updateDashboard(candidates) {
+  const stats = getDashboardCandidateStats(candidates, null);
+
+  // Top stat cards
+  document.getElementById('s1').textContent = stats.inProcess;
+  document.getElementById('s3').textContent = stats.hiredThisMonth;
+  document.getElementById('s4').textContent = stats.hiredThisMonth;
+
+  // New candidates bar chart – last 7 months
+  const now = new Date();
+  const monthLabels = [];
+  const monthData = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    monthLabels.push(getHebrewMonthName(d.getMonth()));
+    monthData.push(stats.byMonth[key] || 0);
+  }
+  const barChart = Chart.getChart('barChart');
+  if (barChart) {
+    barChart.data.labels = monthLabels;
+    barChart.data.datasets[0].data = monthData;
+    barChart.update();
+  }
+  // Update widget number in "מועמדים שנכנסו"
+  const enteredWidget = document.querySelector('#barChart').closest('.widget');
+  if (enteredWidget) {
+    const numEl = enteredWidget.querySelector('.widget-num');
+    if (numEl) numEl.textContent = stats.newThisMonth;
+  }
+
+  // Recruitment sources donut
+  const src = stats.bySource;
+  const srcLabels = ['לידים', 'דרושים', 'פייסבוק', 'אחר'];
+  const srcKeyMap = { 'לידים': 'לידים', 'דרושים': 'דרושים', 'פייסבוק': 'פייסבוק', 'אחר': 'אחר' };
+  const srcData = srcLabels.map(l => src[l] || 0);
+  const donutChart = Chart.getChart('donutChart');
+  if (donutChart) {
+    donutChart.data.datasets[0].data = srcData;
+    donutChart.update();
+  }
+  const topSourceWidget = document.querySelector('#donutChart').closest('.widget');
+  if (topSourceWidget) {
+    const numEl = topSourceWidget.querySelector('.widget-num');
+    if (numEl) numEl.textContent = Object.keys(src).length;
+  }
+
+  // In-process breakdown bars
+  const st = stats.byStatus;
+  const processWidget = document.querySelector('#barChart').closest('.widget') ||
+    document.querySelectorAll('.widget')[1];
+  // Update individual bars
+  const interviewCount = st['תואם ראיון'] || 0;
+  const securityCount  = st['נשלח ביטחון'] || 0;
+  const passedSecurity = st['עבר ביטחון'] || 0;
+  const startedCount   = st['התחיל לעבוד'] || 0;
+  updateBarRow('תואם ראיון', interviewCount);
+  updateBarRow('נשלח ביטחון', securityCount);
+  updateBarRow('הגיע – המתנה', 0);
+  updateBarRow('עבר ביטחון', passedSecurity);
+  updateBarRow('התחיל לעבוד', startedCount);
+}
+
+function updateBarRow(label, count) {
+  document.querySelectorAll('.bar-row').forEach(row => {
+    const lbl = row.querySelector('.bar-label');
+    if (lbl && lbl.textContent.trim() === label) {
+      const valEl = row.querySelector('.bar-val');
+      if (valEl) valEl.textContent = count;
+    }
+  });
+}
+
+// Initialize Firestore live listeners
+let candidatesUnsub = null;
+let fixesCount = 0;
+
+candidatesUnsub = watchCandidates(function(candidates) {
+  updateDashboard(candidates);
+  window.dbAllCandidates = candidates;
+});
+
+// Fixes count
+getFixes().then(function(fixes) {
+  fixesCount = fixes ? fixes.length : 0;
+  var s5 = document.getElementById('s5');
+  if (s5) s5.textContent = fixesCount;
+  window.dbFixesCount = fixesCount;
+}).catch(function() { /* silent */ });
+
+
+// Referrals this month
+let referralsUnsub = watchReferrals(function(referrals) {
+  var now = new Date();
+  var thisMonth = referrals.filter(function(r) {
+    if (!r.createdAt) return false;
+    var d = r.createdAt.toDate ? r.createdAt.toDate() : new Date(r.createdAt);
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  });
+  var s2 = document.getElementById('s2');
+  if (s2) s2.textContent = thisMonth.length;
+  window.dbReferralsThisMonth = thisMonth.length;
+});
 </script>
 </body>
 </html>

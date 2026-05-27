@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 44" width="180" height="44">
+  <title>Talento</title>
+  
+  <!-- T mark: futuristic geometric -->
+  <g transform="translate(0, 7)">
+    <!-- crossbar -->
+    <rect x="0" y="0" width="20" height="5" rx="1.2" fill="#0d1a35"/>
+    <!-- stem -->
+    <rect x="7" y="0" width="6" height="27" rx="1.2" fill="#0d1a35"/>
+    <!-- blue accent on left of crossbar -->
+    <rect x="0" y="0" width="4" height="5" fill="#3b82f6"/>
+  </g>
+  
+  <!-- ALENTO text wordmark -->
+  <text x="26" y="31" font-family="'Heebo', system-ui, -apple-system, sans-serif" font-weight="600" font-size="22" fill="#0d1a35" letter-spacing="0.5">ALENTO</text>
+  
+  <!-- HR subtle line (two-segment geometric) -->
+  <g transform="translate(120, 17)">
+    <rect x="0" y="0" width="14" height="2.5" rx="1.25" fill="#3b82f6"/>
+    <rect x="16" y="0" width="5" height="2.5" rx="1.25" fill="#0d1a35" opacity="0.35"/>
+  </g>
+  
+  <!-- Electric blue dot accent -->
+  <circle cx="168" cy="18.5" r="2.5" fill="#3b82f6"/>
+</svg>
