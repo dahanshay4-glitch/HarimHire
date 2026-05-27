@@ -264,7 +264,8 @@ window.sortOrder = {};
 window.lastSortCol = null;
 
 function openCandidatesList(type, jobId) {
-  // Resolve job cities from live jobs list and pass via URL params to candidates.html
+  // Resolve job cities from live jobs list and store in sessionStorage
+  // matching the keys candidates.html expects
   var cities = [];
   var jobs = window.currentJobs || [];
   for (var i = 0; i < jobs.length; i++) {
@@ -273,11 +274,12 @@ function openCandidatesList(type, jobId) {
       break;
     }
   }
-  var params = new URLSearchParams();
-  params.set('jobId', jobId);
-  params.set('filterType', type);
-  if (cities.length > 0) params.set('cities', JSON.stringify(cities));
-  window.location.href = 'candidates.html?' + params.toString();
+  // Use sessionStorage (consistent with candidates.html expectations)
+  sessionStorage.setItem('filterJobCities', JSON.stringify(cities));
+  sessionStorage.setItem('filterType', type);
+  sessionStorage.setItem('filterJobId', jobId);
+  // Preserve existing navigation via setTimeout for sessionStorage to sync
+  window.location.href = 'candidates.html';
 }
 
 window.openCandidatesList = openCandidatesList;

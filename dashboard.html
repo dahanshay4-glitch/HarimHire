@@ -398,6 +398,7 @@ import { getDashboardCandidateStats, getHebrewMonthName } from './syncLogic.js';
 
 function updateDashboard(candidates) {
   const stats = getDashboardCandidateStats(candidates, null);
+  console.log('[dashboard] updateDashboard stats:', JSON.stringify(stats));
 
   // Top stat cards
   document.getElementById('s1').textContent = stats.inProcess;
@@ -474,6 +475,10 @@ let candidatesUnsub = null;
 let fixesCount = 0;
 
 candidatesUnsub = watchCandidates(function(candidates) {
+  console.log('[dashboard] watchCandidates fired, count:', candidates.length);
+  if (candidates.length > 0) {
+    console.log('[dashboard] first candidate:', JSON.stringify({ city: candidates[0].city, status: candidates[0].status, createdAt: candidates[0].createdAt }));
+  }
   updateDashboard(candidates);
   window.dbAllCandidates = candidates;
 });

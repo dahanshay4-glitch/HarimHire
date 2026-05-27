@@ -163,13 +163,16 @@ export function isCandidateRejected(candidate) {
  */
 export function getCreatedDate(record) {
   if (!record) return null;
-  const ts = record.createdAt || record.createdDate || record.date;
+  // Try createdAt first (Firestore Timestamp with toDate())
+  var ts = record.createdAt || record.createdDate || record.date;
   if (!ts) return null;
   try {
-    if (ts.toDate && typeof ts.toDate === 'function') {
+    if (ts && typeof ts.toDate === 'function') {
       return ts.toDate();
     }
-    return new Date(ts);
+    var d = new Date(ts);
+    if (isNaN(d.getFullYear())) return null;
+    return d;
   } catch (e) {
     return null;
   }
