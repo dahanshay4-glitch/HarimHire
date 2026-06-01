@@ -357,7 +357,7 @@
     <script type="module" src="firebase.js"></script>
     <script type="module">
         import { db, watchCandidates } from './firebase.js';
-        import { candidateMatchesJob } from './syncLogic.js';
+        import { getMatchingCandidatesForJob } from './syncLogic.js';
         import { collection, query, where, orderBy, onSnapshot, getDocs, getDoc, updateDoc, doc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
         import { CITY_AREAS } from './city_areas.js';
         let currentJobId = null;
@@ -479,14 +479,9 @@
                 return;
             }
 
-            var matched = candidates.filter(function(c) {
-                if (!currentJob) {
-                    console.warn('[job] renderCandidatesTab: currentJob not yet loaded, skipping match');
-                    return false;
-                }
-                var result = candidateMatchesJob(c, currentJob);
-                if (result) console.log('[job] candidate matched:', c.first, c.last, 'city:', c.city);
-                return result;
+            var matched = !currentJob ? [] : getMatchingCandidatesForJob(candidates, currentJob);
+            matched.forEach(function(c) {
+                console.log('[job] candidate matched:', c.first, c.last, 'city:', c.city);
             });
 
             if (matched.length === 0) {
