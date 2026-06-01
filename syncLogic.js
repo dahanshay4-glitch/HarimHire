@@ -281,6 +281,7 @@ export function getDashboardCandidateStats(candidates, jobs) {
   let inProcess = 0;
   let newThisMonth = 0;
   let hiredThisMonth = 0;
+  let startedThisMonth = 0;
   let referralsThisMonth = 0;
   const bySource = {};
   const byStatus = {};
@@ -314,6 +315,7 @@ export function getDashboardCandidateStats(candidates, jobs) {
 
       // Hired this month (status = התחיל לעבוד, created this month)
       if (st === STATUS_STARTED) hiredThisMonth++;
+      if (isCandidateStarted(c)) startedThisMonth++;
     }
 
     // Monthly histogram (last 7 months including current)
@@ -321,5 +323,5 @@ export function getDashboardCandidateStats(candidates, jobs) {
     byMonth[monthKey] = (byMonth[monthKey] || 0) + 1;
   });
 
-  return { inProcess, newThisMonth, hiredThisMonth, referralsThisMonth, bySource, byStatus, byMonth };
+  return { inProcess, newThisMonth, hiredThisMonth, startedThisMonth, referralsThisMonth, bySource, byStatus, byMonth };
 }
