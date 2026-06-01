@@ -117,7 +117,7 @@ export function isCandidateInProcess(candidate) {
   if (!candidate) return false;
   const s = normalizeStatus(candidate.status);
   if (!s) return false;
-  if (s === STATUS_WAITING_FILTER) return false;
+  if (s === STATUS_WAITING_FILTER) return true;
   if (s === STATUS_NOT_ACCEPTED) return false;
   if (s === STATUS_LEFT) return false;
   if (s === STATUS_INTERVIEW_MATCH) return true;
