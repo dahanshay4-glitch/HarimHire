@@ -41,6 +41,12 @@ console.log('[dashboard] attaching watchCandidates');
 
 watchCandidates(function(candidates) {
  console.log('[dashboard] watchCandidates fired', candidates.length);
+ console.log('FULL_CANDIDATES', JSON.stringify(candidates, null, 2));
+ if (candidates[0]) {
+  console.log('FIRST_CANDIDATE', candidates[0]);
+  console.log('FIRST_CANDIDATE_STATUS', candidates[0].status);
+  console.log('FIRST_CANDIDATE_CREATEDAT', candidates[0].createdAt);
+ }
  if (runtimeBox) {
   runtimeBox.textContent = 'Dashboard JS loaded | candidates: ' + candidates.length;
  }
