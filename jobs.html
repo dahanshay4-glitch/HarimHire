@@ -307,6 +307,9 @@ refreshActiveClients().then(function() {
   if (jobsUnsub) jobsUnsub();
   jobsUnsub = watchJobs(function(jobs) {
     jobs.forEach(function(j, index) {
+      console.log('[JOB RAW]', JSON.stringify(j));
+      console.log('[JOB CITIES FIELD]', j.cities);
+      console.log('[JOB AREAS FIELD]', j.areas);
       j.id = j.id || index;
       j.num = j.num || j.jobTypeCode || (index + 1);
     });

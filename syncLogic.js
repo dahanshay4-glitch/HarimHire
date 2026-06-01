@@ -239,6 +239,8 @@ function isJobOpen(job) {
  *   5. Candidate city must not be empty/unknown
  */
 export function candidateMatchesJob(candidate, job) {
+  console.log('[MATCH INPUT JOB]', job);
+  console.log('[MATCH INPUT JOB.CITIES]', job?.cities);
   if (!candidate || !job) return false;
   if (candidate.deleted === true) return false;
   if (!isJobOpen(job)) return false;
