@@ -122,7 +122,7 @@ th { cursor: pointer; user-select: none; }
 </div>
 <script type="module">
 import { db, watchJobs, watchCandidates } from "./firebase.js";
-import { getMatchingCandidatesForJob, isCandidateInProcess, isCandidateHired } from './syncLogic.js';
+import { candidateMatchesJob, getMatchingCandidatesForJob, isCandidateInProcess, isCandidateHired } from './syncLogic.js';
 
 function formatDate(v) {
   try {
@@ -146,6 +146,15 @@ let candidatesUnsub = null;
 let currentCandidates = [];
 
 function calcJobCounts(j) {
+  console.log('[jobs sync] candidates count:', currentCandidates.length);
+  console.log('[jobs sync] job:', j);
+  console.log('[jobs sync] job cities:', j && j.cities);
+  console.log('[jobs sync] first candidate:', currentCandidates[0]);
+  console.log('[jobs sync] first candidate city:', currentCandidates[0]?.city);
+  console.log('[jobs sync] first candidate job:', currentCandidates[0]?.job);
+  console.log('[jobs sync] first candidate status:', currentCandidates[0]?.status);
+  console.log('[jobs sync] candidateMatchesJob:', currentCandidates[0] ? candidateMatchesJob(currentCandidates[0], j) : false);
+  console.log('[jobs sync] matches:', getMatchingCandidatesForJob(currentCandidates, j));
   if (!j.cities || !Array.isArray(j.cities) || j.cities.length === 0) return { interested: 0, inProcess: 0, hired: 0 };
   var matched = getMatchingCandidatesForJob(currentCandidates, j).filter(function(c) {
     return !(c.deleted || c.status === 'deleted');

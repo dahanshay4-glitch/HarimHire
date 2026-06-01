@@ -357,7 +357,7 @@
     <script type="module" src="firebase.js"></script>
     <script type="module">
         import { db, watchCandidates } from './firebase.js';
-        import { getMatchingCandidatesForJob } from './syncLogic.js';
+        import { candidateMatchesJob, getMatchingCandidatesForJob } from './syncLogic.js';
         import { collection, query, where, orderBy, onSnapshot, getDocs, getDoc, updateDoc, doc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
         import { CITY_AREAS } from './city_areas.js';
         let currentJobId = null;
@@ -479,6 +479,15 @@
                 return;
             }
 
+            console.log('[jobs sync] candidates count:', candidates.length);
+            console.log('[jobs sync] job:', currentJob);
+            console.log('[jobs sync] job cities:', currentJob && currentJob.cities);
+            console.log('[jobs sync] first candidate:', candidates[0]);
+            console.log('[jobs sync] first candidate city:', candidates[0]?.city);
+            console.log('[jobs sync] first candidate job:', candidates[0]?.job);
+            console.log('[jobs sync] first candidate status:', candidates[0]?.status);
+            console.log('[jobs sync] candidateMatchesJob:', (currentJob && candidates[0]) ? candidateMatchesJob(candidates[0], currentJob) : false);
+            console.log('[jobs sync] matches:', currentJob ? getMatchingCandidatesForJob(candidates, currentJob) : []);
             var matched = !currentJob ? [] : getMatchingCandidatesForJob(candidates, currentJob);
             matched.forEach(function(c) {
                 console.log('[job] candidate matched:', c.first, c.last, 'city:', c.city);
