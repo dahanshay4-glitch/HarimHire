@@ -155,7 +155,10 @@ function calcJobCounts(j) {
   console.log('[jobs sync] first candidate status:', currentCandidates[0]?.status);
   console.log('[jobs sync] candidateMatchesJob:', currentCandidates[0] ? candidateMatchesJob(currentCandidates[0], j) : false);
   console.log('[jobs sync] matches:', getMatchingCandidatesForJob(currentCandidates, j));
-  if (!j.cities || !Array.isArray(j.cities) || j.cities.length === 0) return { interested: 0, inProcess: 0, hired: 0 };
+  if (!j.cities || !Array.isArray(j.cities) || j.cities.length === 0) {
+    console.warn('[jobs sync] job has no cities, cannot match candidates');
+    return { interested: 0, inProcess: 0, hired: 0 };
+  }
   var matched = getMatchingCandidatesForJob(currentCandidates, j).filter(function(c) {
     return !(c.deleted || c.status === 'deleted');
   });
