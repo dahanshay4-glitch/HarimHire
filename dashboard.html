@@ -355,12 +355,26 @@ function saveEdit() {
 }
 
 <script type="module">
-import { watchCandidates, watchJobs, watchReferrals, getFixes } from './firebase.js';
-import { getDashboardCandidateStats, getHebrewMonthName } from './syncLogic.js';
+let watchCandidates, watchJobs, watchReferrals, getFixes;
+let getDashboardCandidateStats, getHebrewMonthName;
+
+try {
+ const firebaseModule = await import('./firebase.js');
+ ({ watchCandidates, watchJobs, watchReferrals, getFixes } = firebaseModule);
+ console.log('[dashboard] firebase loaded');
+} catch (e) {
+ console.error('[dashboard] FIREBASE IMPORT FAILED', e);
+}
+
+try {
+ const syncModule = await import('./syncLogic.js');
+ ({ getDashboardCandidateStats, getHebrewMonthName } = syncModule);
+ console.log('[dashboard] syncLogic loaded');
+} catch (e) {
+ console.error('[dashboard] SYNCLOGIC IMPORT FAILED', e);
+}
 
 console.log('[dashboard] MODULE LOADED - firestore sync active');
-console.log('[dashboard] firebase import OK');
-console.log('[dashboard] syncLogic import OK');
 
 window.onerror = function(message, source, line, col, error) {
  console.error('[dashboard][GLOBAL ERROR]', {
