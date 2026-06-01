@@ -11,7 +11,9 @@
 console.log('PRE MODULE SCRIPT EXECUTED');
 </script>
 <script type="module" src="firebase.js"></script>
-<style>
+
+<script type="module">
+import { watchCandidates, watchJobs, watchReferrals, getFixes } from './firebase.js';
 .nav-dropdown { position: relative; display: inline-block; }
 .nav-dropdown > a { display: flex; align-items: center; gap: 5px; padding: 6px 4px; }
 .nav-dropdown > a::after { content: "\25BE"; font-size: 10px; opacity: 0.8; }
