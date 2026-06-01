@@ -187,7 +187,12 @@
             <div class="form-group"><div class="form-label">טלפון 1 <span class="req">*</span></div><input class="form-input" id="fPhone" type="text" placeholder="05X-XXXXXXX" oninput="validateReq('fPhone')"></div>
             <div class="form-group"><div class="form-label">טלפון 2</div><input class="form-input" type="text" placeholder="טלפון נוסף..."></div>
             <div class="form-group"><div class="form-label">תעודת זהות</div><input class="form-input" type="text" placeholder="תעודת זהות..."></div>
-            <div class="form-group"><div class="form-label">עיר <span class="req">*</span></div><select class="form-select" id="fCity" onchange="validateReq('fCity')"><option value="">בחר עיר...</option></select></div>
+            <div class="form-group"><div class="form-label">עיר <span class="req">*</span></div>
+<div style="position:relative;">
+<input class="form-input" id="fCity" type="text" autocomplete="off" placeholder="הקלד שם עיר..." style="width:100%;box-sizing:border-box;">
+<ul id="citySuggestions" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border,#d1d5db);border-top:none;border-radius:0 0 6px 6px;box-shadow:0 4px 12px rgba(0,0,0,.08);z-index:50;max-height:220px;overflow-y:auto;list-style:none;margin:2px 0 0;padding:0;display:none;"></ul>
+</div>
+<div id="cityError" style="color:#dc3545;font-size:11px;margin-top:4px;display:none;">יש לבחור עיר מהרשימה</div>
             <div class="form-group"><div class="form-label">רחוב</div><input class="form-input" type="text" placeholder="רחוב..."></div>
             <div class="form-group"><div class="form-label">מס׳ בית</div><input class="form-input" type="text" placeholder="מס׳ בית..."></div>
             <div class="form-group"><div class="form-label">מין</div><select class="form-select"><option value="">-</option><option>זכר</option><option>נקבה</option></select></div>
@@ -313,15 +318,62 @@ function getCanonicalCities() {
     .sort((a, b) => a.localeCompare(b, 'he'));
 }
 
-function populateCityOptions() {
-  const select = document.getElementById('fCity');
-  if (!select) return;
-  const current = select.value;
-  const cities = getCanonicalCities();
-  select.innerHTML = '<option value="">בחר עיר...</option>' + cities.map(function(city) {
-    return '<option value="' + city.replace(/"/g, '&quot;') + '">' + city + '</option>';
-  }).join('');
-  if (current && cities.includes(current)) select.value = current;
+var canonicalCityList = [];
+
+function getCanonicalCities() {
+  if (canonicalCityList.length) return canonicalCityList;
+  canonicalCityList = [...new Set(CITY_AREAS.flatMap(area => area.cities || []).map(city => String(city).trim()).filter(Boolean))].sort(function(a, b) { return a.localeCompare(b, 'he'); });
+  return canonicalCityList;
+}
+
+function setupCityAutocomplete() {
+  var input = document.getElementById('fCity');
+  if (!input) return;
+  input.addEventListener('input', function() {
+    var val = input.value.trim();
+    document.getElementById('cityError').style.display = 'none';
+    if (!val) { hideSuggestions(); return; }
+    var cities = getCanonicalCities();
+    var filtered = cities.filter(function(c) { return c.includes(val); }).slice(0, 20);
+    var ul = document.getElementById('citySuggestions');
+    if (filtered.length === 0) { ul.style.display = 'none'; return; }
+    ul.innerHTML = filtered.map(function(c) {
+      return '<li style="padding:8px 12px;cursor:pointer;font-size:13px;" onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background=''" onclick="selectCity(\'' + c.replace(/'/g, "\\'") + '\')">' + c + '</li>';
+    }).join('');
+    ul.style.display = 'block';
+  });
+  input.addEventListener('blur', function() { setTimeout(hideSuggestions, 150); });
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') hideSuggestions();
+  });
+}
+
+function selectCity(city) {
+  var input = document.getElementById('fCity');
+  input.value = city;
+  hideSuggestions();
+  validateReq('fCity');
+}
+
+function hideSuggestions() {
+  var ul = document.getElementById('citySuggestions');
+  if (ul) ul.style.display = 'none';
+}
+
+function validateCity() {
+  var input = document.getElementById('fCity');
+  var error = document.getElementById('cityError');
+  if (!input) return true;
+  var val = input.value.trim();
+  var cities = getCanonicalCities();
+  if (!val || !cities.includes(val)) {
+    error.style.display = 'block';
+    input.classList.add('missing');
+    return false;
+  }
+  error.style.display = 'none';
+  input.classList.remove('missing');
+  return true;
 }
 
 function saveCandidate() {
@@ -330,8 +382,7 @@ function saveCandidate() {
   if(!document.getElementById('fLast').value.trim()) missing.push('שם משפחה');
   if(!document.getElementById('fPhone').value.trim()) missing.push('טלפון');
   if(!document.getElementById('fJob').value) missing.push('מתעניין במשרות');
-
-  if(missing.length) {
+  if(!validateCity()) return;
     document.getElementById('missingMsg').textContent = 'שדות חובה חסרים: ' + missing.join(', ');
     document.getElementById('missingAlert').classList.remove('hidden');
     ['fFirst','fLast','fPhone','fJob'].forEach(id => {
@@ -348,7 +399,7 @@ function saveCandidate() {
     last: last,
     phone: document.getElementById('fPhone').value.trim(),
     job: document.getElementById('fJob').value,
-    city: document.getElementById('fCity') ? document.getElementById('fCity').value.trim() : '',
+    city: (function() { var i = document.getElementById('fCity'); return i ? i.value.trim() : ''; })(),
     age: document.getElementById('fAge') ? document.getElementById('fAge').value : '',
     gender: document.getElementById('fGender') ? document.getElementById('fGender').value : '',
     license: document.getElementById('fLicense') ? document.getElementById('fLicense').value : '',
@@ -373,7 +424,7 @@ function saveCandidate() {
 </script>
 
 <script>
-populateCityOptions();
+setupCityAutocomplete();
 
 (function() {
   var closeTimer = null;
