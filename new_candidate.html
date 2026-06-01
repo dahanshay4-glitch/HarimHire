@@ -187,7 +187,7 @@
             <div class="form-group"><div class="form-label">טלפון 1 <span class="req">*</span></div><input class="form-input" id="fPhone" type="text" placeholder="05X-XXXXXXX" oninput="validateReq('fPhone')"></div>
             <div class="form-group"><div class="form-label">טלפון 2</div><input class="form-input" type="text" placeholder="טלפון נוסף..."></div>
             <div class="form-group"><div class="form-label">תעודת זהות</div><input class="form-input" type="text" placeholder="תעודת זהות..."></div>
-            <div class="form-group"><div class="form-label">עיר <span class="req">*</span></div><input class="form-input" id="fCity" type="text" placeholder="עיר מגורים..."></div>
+            <div class="form-group"><div class="form-label">עיר <span class="req">*</span></div><select class="form-select" id="fCity" onchange="validateReq('fCity')"><option value="">בחר עיר...</option></select></div>
             <div class="form-group"><div class="form-label">רחוב</div><input class="form-input" type="text" placeholder="רחוב..."></div>
             <div class="form-group"><div class="form-label">מס׳ בית</div><input class="form-input" type="text" placeholder="מס׳ בית..."></div>
             <div class="form-group"><div class="form-label">מין</div><select class="form-select"><option value="">-</option><option>זכר</option><option>נקבה</option></select></div>
@@ -308,6 +308,22 @@ function validateReq(id) {
   }
 }
 
+function getCanonicalCities() {
+  return [...new Set(CITY_AREAS.flatMap(area => area.cities || []).map(city => String(city).trim()).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, 'he'));
+}
+
+function populateCityOptions() {
+  const select = document.getElementById('fCity');
+  if (!select) return;
+  const current = select.value;
+  const cities = getCanonicalCities();
+  select.innerHTML = '<option value="">בחר עיר...</option>' + cities.map(function(city) {
+    return '<option value="' + city.replace(/"/g, '&quot;') + '">' + city + '</option>';
+  }).join('');
+  if (current && cities.includes(current)) select.value = current;
+}
+
 function saveCandidate() {
   const missing = [];
   if(!document.getElementById('fFirst').value.trim()) missing.push('שם פרטי');
@@ -357,6 +373,8 @@ function saveCandidate() {
 </script>
 
 <script>
+populateCityOptions();
+
 (function() {
   var closeTimer = null;
   var currentOpen = null;
