@@ -384,14 +384,14 @@ function loadCandidate(c) {
     '<span class="pill pill-gray"><i class="fa-regular fa-calendar" style="font-size:9px"></i> נכנס ' + c.date + '</span>';
 
   // Relevant clients via live Firestore jobs
-  if (c.city) renderRelevantClients(c.city);
+  if (c.city) renderRelevantClients(canonicalizeCandidateCity(c.city));
 
   // Personal tab
   document.getElementById('cdFirst').textContent = c.first;
   document.getElementById('cdLast').textContent = c.last;
   document.getElementById('cdPhone').innerHTML = '<a href="' + waPhone + '" target="_blank" style="color:#25d366;text-decoration:none;"><i class="fa-brands fa-whatsapp"></i> ' + c.phone + '</a>';
   document.getElementById('cdAge').textContent = c.age;
-  document.getElementById('cdCity').textContent = c.city;
+  document.getElementById('cdCity').textContent = canonicalizeCandidateCity(c.city);
   document.getElementById('cdGender').textContent = c.gender;
   document.getElementById('cdVehicle').textContent = c.vehicle;
   document.getElementById('cdLicense').textContent = c.license;
@@ -447,6 +447,24 @@ function swTab(id, el) {
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('tab-' + id).classList.add('active');
+}
+
+function getCanonicalCities() {
+  return [...new Set(CITY_AREAS.flatMap(area => area.cities || []).map(city => String(city).trim()).filter(Boolean))];
+}
+
+function canonicalizeCandidateCity(city) {
+  if (!city) return '';
+  var raw = String(city).trim();
+  if (!raw) return '';
+  var canonicalCities = getCanonicalCities();
+  var exact = canonicalCities.find(function(c) { return c === raw; });
+  if (exact) return exact;
+  var normalizedRaw = raw.replace(/\s+/g, ' ').replace(/הכרמל/g, 'כרמל').toLowerCase();
+  var fallback = canonicalCities.find(function(c) {
+    return c.replace(/\s+/g, ' ').replace(/הכרמל/g, 'כרמל').toLowerCase() === normalizedRaw;
+  });
+  return fallback || raw;
 }
 
 function changeStatus(val) {
@@ -575,7 +593,7 @@ window.onload = async function() {
   // Subscribe to live Firestore jobs for relevant clients
   jobsUnsub = watchJobs(function(jobs) {
     currentJobs = jobs;
-    if (cand && cand.city) renderRelevantClients(cand.city);
+    if (cand && cand.city) renderRelevantClients(canonicalizeCandidateCity(cand.city));
   });
   var delBtn = document.getElementById('btnDeleteCand');
   var detailLayout = document.getElementById('detailLayout');
@@ -630,6 +648,7 @@ window.onload = async function() {
 
 <script type="module">
 import { deleteCandidate as dbDeleteCandidate, getCandidate, watchJobs } from './firebase.js';
+import { CITY_AREAS } from './city_areas.js';
 
 window.getCandidate = getCandidate;
 
