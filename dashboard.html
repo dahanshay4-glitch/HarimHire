@@ -166,6 +166,9 @@
 </div>
 
 <div class="main">
+  <div id="dashboardRuntimeStatus" style="position:fixed;bottom:12px;left:12px;z-index:99999;background:#b91c1c;color:white;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:700;">
+    Dashboard JS NOT loaded
+  </div>
   <div class="db-grid">
     <div class="db-card">
       <div class="db-card-num" id="s1">0</div>
@@ -301,6 +304,12 @@
 import { watchCandidates, watchReferrals, getFixes } from './firebase.js';
 import { getDashboardCandidateStats } from './syncLogic.js';
 
+const runtimeBox = document.getElementById('dashboardRuntimeStatus');
+if (runtimeBox) {
+ runtimeBox.textContent = 'Dashboard JS loaded';
+ runtimeBox.style.background = '#047857';
+}
+
 console.log('[dashboard] MODULE LOADED');
 
 function setText(id, value) {
@@ -313,6 +322,10 @@ function updateDashboard(candidates) {
 
  const stats = getDashboardCandidateStats(candidates, null);
  console.log('[dashboard] stats', stats);
+
+ if (runtimeBox) {
+  runtimeBox.textContent = 'Dashboard JS loaded | candidates: ' + candidates.length + ' | inProcess: ' + (stats.inProcess ?? 0);
+ }
 
  setText('s1', stats.inProcess);
  setText('s3', stats.hiredThisMonth);
@@ -331,6 +344,9 @@ console.log('[dashboard] attaching watchCandidates');
 
 watchCandidates(function(candidates) {
  console.log('[dashboard] watchCandidates fired', candidates.length);
+ if (runtimeBox) {
+  runtimeBox.textContent = 'Dashboard JS loaded | candidates: ' + candidates.length;
+ }
  updateDashboard(candidates);
 });
 
