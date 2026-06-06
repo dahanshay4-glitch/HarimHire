@@ -290,13 +290,21 @@ export function getDashboardCandidateStats(candidates, jobs) {
   const byMonth = {}; // key = "YYYY-MM", value = count
 
   candidates.forEach(c => {
-    if (c.deleted === true) return;
+    if (c.deleted === true) {
+      console.log('[stats] SKIP deleted', c.id, c.first, c.last);
+      return;
+    }
+
+    const st = normalizeStatus(c.status);
+    const d = getCreatedDate(c);
+    const dateOk = d && !isNaN(d.getFullYear());
+    const inProcessFlag = isCandidateInProcess(c);
+    console.log('[stats] candidate', c.id, c.first, c.last, '| status:', JSON.stringify(c.status), '→ normalized:', JSON.stringify(st), '| createdAt:', c.createdAt, '| getCreatedDate:', d, '| dateOk:', dateOk, '| inProcess:', inProcessFlag);
 
     // In-process
-    if (isCandidateInProcess(c)) inProcess++;
+    if (inProcessFlag) inProcess++;
 
     // Status breakdown
-    const st = normalizeStatus(c.status);
     if (st) {
       byStatus[st] = (byStatus[st] || 0) + 1;
     }
@@ -308,8 +316,10 @@ export function getDashboardCandidateStats(candidates, jobs) {
     }
 
     // Date-based metrics using createdAt as canonical
-    const d = getCreatedDate(c);
-    if (!d || isNaN(d.getFullYear())) return;
+    if (!dateOk) {
+      console.log('[stats] SKIP date invalid', c.id);
+      return;
+    }
 
     // New this month
     if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) {
@@ -325,5 +335,6 @@ export function getDashboardCandidateStats(candidates, jobs) {
     byMonth[monthKey] = (byMonth[monthKey] || 0) + 1;
   });
 
+  console.log('[stats] RESULT inProcess:', inProcess, 'newThisMonth:', newThisMonth, 'hiredThisMonth:', hiredThisMonth, 'startedThisMonth:', startedThisMonth);
   return { inProcess, newThisMonth, hiredThisMonth, startedThisMonth, referralsThisMonth, bySource, byStatus, byMonth };
 }
