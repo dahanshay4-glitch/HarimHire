@@ -375,6 +375,9 @@
             // If ?id= is in URL, always load from Firestore as authoritative source
             if (jobIdParam) {
                 getDoc(doc(db, 'jobs', jobIdParam)).then(function(docSnap) {
+                    console.log('[job loadJob] jobIdParam:', jobIdParam);
+                    console.log('[job loadJob] exists:', docSnap.exists());
+                    console.log('[job loadJob] firestore cities:', docSnap.data()?.cities);
                     if (docSnap.exists()) {
                         var job = docSnap.data();
                         job.id = docSnap.id;
@@ -422,8 +425,11 @@
             document.getElementById('jobType').textContent = job.jobTypeName;
             document.getElementById('createdDate').textContent = new Date(job.createdDate).toLocaleDateString('he-IL');
             document.getElementById('jobDescription').textContent = job.description || 'אין תיאור';
+            console.log('[job displayJob] job.id:', job.id, '| job.cities:', job.cities);
             savedCities = uniqueCities(job.cities || job.areas || []);
+            console.log('[job displayJob] savedCities:', savedCities);
             selectedCities = new Set(savedCities);
+            console.log('[job displayJob] selectedCities size:', selectedCities.size, 'values:', [...selectedCities]);
             currentJobCities = savedCities;
             // FIX 1: currentJob is now fully loaded — if candidates tab is already active,
             // re-render it immediately so candidateMatchesJob has the real job object
@@ -548,6 +554,7 @@
         }
 
         function renderCityAreas(filterText='') {
+          console.log('[job renderCityAreas] selectedCities size:', selectedCities.size, 'values:', [...selectedCities]);
           const container = document.getElementById('areasContainer');
           if (!container) return;
           const q = (filterText || '').trim().toLowerCase();
@@ -579,6 +586,7 @@
         }
 
         function renderSelectedCities() {
+          console.log('[job renderSelectedCities] selectedCities size:', selectedCities.size, 'values:', [...selectedCities]);
           const box = document.getElementById('selectedCitiesBox');
           const count = document.getElementById('selectedCitiesCount');
           if (!box || !count) return;

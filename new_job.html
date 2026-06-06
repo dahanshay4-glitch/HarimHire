@@ -837,7 +837,9 @@
                 const jobNumber = 1000 + jobsSnap.size + 1;
                 const sc = window.selectedClient;
                 const sj = window.selectedJobType;
-                await addDoc(collection(db, 'jobs'), {
+                console.log('[new_job saveJob] selectedJobCities:', [...selectedJobCities]);
+                console.log('[new_job saveJob] allSelectedCities:', allSelectedCities());
+                const docRef = await addDoc(collection(db, 'jobs'), {
                     clientId: String(sc.id),
                     clientName: sc.name || (sc.extraCoords && sc.extraCoords.name) || '',
                     clientCity: sc.city || (sc.extraCoords && sc.extraCoords.city) || '',
@@ -875,6 +877,7 @@
                     cities: allSelectedCities(),
                     areas: []
                 });
+                console.log('[new_job saveJob] job created, id:', docRef ? docRef.id : 'unknown');
 
                 alert(`משרה ${jobNumber} נוצרה בהצלחה!`);
                 window.location.href = 'jobs.html';
