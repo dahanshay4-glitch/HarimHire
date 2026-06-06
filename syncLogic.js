@@ -41,10 +41,6 @@ export function normalizeText(value) {
 // CITY NORMALIZATION VIA city_areas.js
 // ─────────────────────────────────────────────────
 
-/**
- * Build a fast lookup map: city → canonical area name
- * @returns {{ [normalizedCity]: areaName }}
- */
 let _cityToCanonicalMap = null;
 function buildCityToCanonicalMap() {
   if (_cityToCanonicalMap) return _cityToCanonicalMap;
@@ -58,11 +54,6 @@ function buildCityToCanonicalMap() {
   return _cityToCanonicalMap;
 }
 
-/**
- * Get the canonical area name for a given city string.
- * Returns the CITY_AREAS area name containing this city,
- * or the normalized city string itself if not found.
- */
 export function getCanonicalCity(city) {
   if (!city) return null;
   const map = buildCityToCanonicalMap();
@@ -70,20 +61,11 @@ export function getCanonicalCity(city) {
   return map[norm] || norm;
 }
 
-/**
- * Normalize a city string:
- * - returns the canonical area name if the city is in CITY_AREAS
- * - otherwise returns the normalized city string directly
- * - returns null for empty/falsy inputs
- */
 export function normalizeCity(city) {
   if (!city) return null;
   return getCanonicalCity(city);
 }
 
-/**
- * Check if two city strings match after canonicalization.
- */
 export function citiesMatch(cityA, cityB) {
   if (!cityA && !cityB) return true;
   if (!cityA || !cityB) return false;
@@ -99,19 +81,17 @@ export function normalizeStatus(s) {
   return String(s).trim();
 }
 
-// Status constant shorthands
-const STATUS_WAITING_FILTER   = 'ממתין לסינון';
+const STATUS_WAITING_FILTER = 'ממתין לסינון';
 const STATUS_INTERVIEW_MATCH = 'תואם ראיון';
-const STATUS_SENT_SECURITY   = 'נשלח ביטחון';
+const STATUS_SENT_SECURITY = 'נשלח ביטחון';
 const STATUS_PASSED_SECURITY = 'עבר ביטחון';
-const STATUS_STARTED         = 'התחיל לעבוד';
-const STATUS_NOT_ACCEPTED    = 'לא התקבל';
-const STATUS_LEFT            = 'עזב';
+const STATUS_STARTED = 'התחיל לעבוד';
+const STATUS_NOT_ACCEPTED = 'לא התקבל';
+const STATUS_LEFT = 'עזב';
 const STATUS_IN_PROCESS_PHRASE = 'בתהליך';
 
 /**
  * Returns true if candidate is in-process (past screening, not yet hired/rejected).
- * Excludes: ממתין לסינון, לא התקבל, עזב
  */
 export function isCandidateInProcess(candidate) {
   if (!candidate) return false;
@@ -128,24 +108,15 @@ export function isCandidateInProcess(candidate) {
   return false;
 }
 
-/**
- * Returns true if candidate was hired (status = "התחיל לעבוד").
- */
 export function isCandidateHired(candidate) {
   if (!candidate) return false;
   return normalizeStatus(candidate.status) === STATUS_STARTED;
 }
 
-/**
- * Returns true if candidate has started working (same as hired in this system).
- */
 export function isCandidateStarted(candidate) {
   return isCandidateHired(candidate);
 }
 
-/**
- * Returns true if candidate was not accepted or left.
- */
 export function isCandidateRejected(candidate) {
   if (!candidate) return false;
   const s = normalizeStatus(candidate.status);
@@ -156,14 +127,8 @@ export function isCandidateRejected(candidate) {
 // DATE HELPER
 // ─────────────────────────────────────────────────
 
-/**
- * Get a valid Date object from a candidate/job record.
- * Prefers createdAt (Firestore Timestamp), falls back to createdDate / date.
- * Returns null if no date info available.
- */
 export function getCreatedDate(record) {
   if (!record) return null;
-  // Try createdAt first (Firestore Timestamp with toDate())
   var ts = record.createdAt || record.createdDate || record.date;
   if (!ts) return null;
   try {
@@ -178,9 +143,6 @@ export function getCreatedDate(record) {
   }
 }
 
-/**
- * Returns true if the candidate was created within the current calendar month.
- */
 export function isCandidateNewThisMonth(candidate) {
   if (!candidate) return false;
   const d = getCreatedDate(candidate);
@@ -189,9 +151,6 @@ export function isCandidateNewThisMonth(candidate) {
   return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
 }
 
-/**
- * Returns true if candidate was created within N days from now.
- */
 export function isCandidateNewWithinDays(candidate, days) {
   if (!candidate) return false;
   const d = getCreatedDate(candidate);
@@ -200,19 +159,60 @@ export function isCandidateNewWithinDays(candidate, days) {
   return now - d >= 0 && now - d <= days * 864e5;
 }
 
-/**
- * Get month-year key string (e.g. "2025-05").
- */
 export function getMonthKey(d) {
   if (!d || isNaN(d.getFullYear())) return null;
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
-// Hebrew 3-letter month abbreviations (index = js month 0-based)
 const HEBREW_MONTHS = ['ינ', 'פבר', 'מרץ', 'אפר', 'מאי', 'יונ', 'יול', 'אוג', 'ספט', 'אוק', 'נוב', 'דצ'];
-
 export function getHebrewMonthName(monthIndex) {
   return HEBREW_MONTHS[monthIndex] || '';
+}
+
+// ─────────────────────────────────────────────────
+// JOB TYPE / CODE EXTRACTION
+// ─────────────────────────────────────────────────
+
+/**
+ * Extract the leading numeric code from a string like "1002 – שליח שכיר"
+ * Returns null if no leading code found.
+ */
+function extractJobCode(value) {
+  if (!value) return null;
+  const str = String(value).trim();
+  const match = str.match(/^(\d+)/);
+  return match ? match[1] : null;
+}
+
+/**
+ * Determine if two job identifiers match.
+ * Prefer numeric code match; fall back to normalized text.
+ * "1002 – שליח שכיר" matches "1002" but NOT "1001".
+ * "שליח שכיר" does NOT match "שליח עצמאי/קבלן".
+ */
+function jobTypesMatch(candidateJobValue, jobTypeValue, jobTypeCodeValue) {
+  if (!candidateJobValue && !jobTypeValue && !jobTypeCodeValue) return false;
+  if (!candidateJobValue) return false;
+
+  const candCode = extractJobCode(candidateJobValue);
+  const jobCode = extractJobCode(jobTypeCodeValue);
+  const jobNameCode = extractJobCode(jobTypeValue);
+
+  // If both sides have a numeric code, codes must match
+  if (candCode && jobCode && candCode !== jobCode) return false;
+  if (candCode && jobNameCode && candCode !== jobNameCode) return false;
+
+  // If no codes on either side, compare normalized text
+  if (!candCode && !jobCode && !jobNameCode) {
+    return normalizeText(candidateJobValue) === normalizeText(jobTypeValue);
+  }
+
+  // If candidate has code but job has none, compare candidate code to job type name text
+  if (candCode && !jobCode && !jobNameCode) {
+    return normalizeText(candidateJobValue) === normalizeText(jobTypeValue);
+  }
+
+  return true;
 }
 
 // ─────────────────────────────────────────────────
@@ -228,30 +228,149 @@ function isJobOpen(job) {
   return OPEN_STATUS_VALUES.has(s);
 }
 
+function isCandidateStatusEligible(candidate) {
+  if (!candidate) return false;
+  const s = normalizeStatus(candidate.status);
+  if (!s) return false;
+  if (s === STATUS_NOT_ACCEPTED) return false;
+  if (s === STATUS_LEFT) return false;
+  if (s === STATUS_WAITING_FILTER) return true;
+  if (s === STATUS_INTERVIEW_MATCH) return true;
+  if (s === STATUS_SENT_SECURITY) return true;
+  if (s === STATUS_PASSED_SECURITY) return true;
+  if (s === STATUS_STARTED) return true;
+  if (s.includes(STATUS_IN_PROCESS_PHRASE)) return true;
+  // Any other status (including empty) is treated as potentially eligible
+  return true;
+}
+
+// ─────────────────────────────────────────────────
+// REQUIREMENTS CHECK
+// ─────────────────────────────────────────────────
+
+const NOT_IMPORTANT = 'לא חשוב';
+
+function checkRequirement(candidateValue, requirementValue, fieldName, req) {
+  // If requirement is "לא חשוב" or missing/empty, always pass
+  if (!requirementValue || requirementValue === NOT_IMPORTANT) return true;
+
+  // Candidate value missing: only allow if includeUnknown flag is set
+  if (!candidateValue || String(candidateValue).trim() === '') {
+    const includeUnknown = req['includeUnknown' + fieldName.charAt(0).toUpperCase() + fieldName.slice(1)];
+    if (includeUnknown === true) return true;
+    return false;
+  }
+
+  const cand = normalizeText(String(candidateValue));
+  const reqNorm = normalizeText(String(requirementValue));
+
+  // Exact match after normalization
+  return cand === reqNorm;
+}
+
+function matchesRequirements(candidate, requirements) {
+  if (!requirements || typeof requirements !== 'object') return true;
+  if (Object.keys(requirements).length === 0) return true;
+
+  // Age: candidate.age must be within [ageMin, ageMax]
+  if ('ageMin' in requirements || 'ageMax' in requirements) {
+    const ageMin = parseInt(requirements.ageMin) || 0;
+    const ageMax = parseInt(requirements.ageMax) || 999;
+    const candAge = parseInt(candidate.age);
+    if (!isNaN(candAge)) {
+      if (candAge < ageMin || candAge > ageMax) return false;
+    } else {
+      // Missing age: only allow if includeUnknownAge === true
+      if (requirements.includeUnknownAge !== true) return false;
+    }
+  }
+
+  // Gender
+  if ('gender' in requirements) {
+    if (!checkRequirement(candidate.gender, requirements.gender, 'gender', requirements)) return false;
+  }
+
+  // Driver license
+  if ('driverLicense' in requirements) {
+    // Candidate may have field 'license' (from new_candidate.html)
+    if (!checkRequirement(candidate.license, requirements.driverLicense, 'driverLicense', requirements)) return false;
+  }
+
+  // Mobility
+  if ('mobility' in requirements) {
+    if (!checkRequirement(candidate.mobility, requirements.mobility, 'mobility', requirements)) return false;
+  }
+
+  // Salary range
+  if ('salaryMin' in requirements || 'salaryMax' in requirements) {
+    const salaryMin = parseInt(requirements.salaryMin) || 0;
+    const salaryMax = parseInt(requirements.salaryMax) || 99999999;
+    const candSalary = parseInt(candidate.salary);
+    if (!isNaN(candSalary)) {
+      if (candSalary < salaryMin || candSalary > salaryMax) return false;
+    } else {
+      if (requirements.includeUnknownSalary !== true) return false;
+    }
+  }
+
+  // Return months / availability
+  if ('returnMonths' in requirements) {
+    const reqReturn = parseInt(requirements.returnMonths) || 0;
+    const candReturn = parseInt(candidate.returnMonths || candidate.returnMonthsMin);
+    if (!isNaN(candReturn)) {
+      if (candReturn > reqReturn) return false;
+    } else {
+      if (requirements.includeUnknownAvailability !== true) return false;
+    }
+  }
+
+  return true;
+}
+
+// ─────────────────────────────────────────────────
+// candidateMatchesJob
+// ─────────────────────────────────────────────────
+
 /**
- * Core matching: does a single candidate match a single job?
- *
- * Rules:
- *   1. Candidate must not be soft-deleted
- *   2. Job must be open (status = פתוחה / open / empty)
- *   3. Job must have at least one city defined
- *   4. Candidate city (canonical) must match at least one of job.cities (canonical)
- *   5. Candidate city must not be empty/unknown
+ * Returns true only if ALL mandatory conditions are satisfied:
+ * A. Valid records, not deleted
+ * B. Job is open/active
+ * C. Candidate status is eligible (not rejected/left)
+ * D. Candidate job type matches job's job type (numeric code preferred)
+ * E. Candidate city is in job.cities (canonical match)
+ * F. Candidate satisfies job.requirements (if present)
  */
 export function candidateMatchesJob(candidate, job) {
-  console.log('[MATCH INPUT JOB]', job);
-  console.log('[MATCH INPUT JOB.CITIES]', job?.cities);
+  // A: valid records
   if (!candidate || !job) return false;
-  if (candidate.deleted === true) return false;
+  if (candidate.deleted === true || candidate.isDeleted === true) return false;
+  if (job.deleted === true || job.isDeleted === true) return false;
+
+  // B: job must be open
   if (!isJobOpen(job)) return false;
-  const jobCities = job.cities;
-  if (!jobCities || !Array.isArray(jobCities) || jobCities.length === 0) return false;
-  const candCity = candidate.city;
+
+  // C: candidate status must be eligible (not rejected/left)
+  if (!isCandidateStatusEligible(candidate)) return false;
+
+  // D: job type / target job — HARD condition
+  const candJob = candidate.job || candidate.targetJob || candidate.jobType || '';
+  const jobType = job.jobType || job.jobTypeName || job.typeName || '';
+  const jobCode = job.jobTypeCode || job.code || job.number || job.num || '';
+  if (!jobTypesMatch(candJob, jobType, jobCode)) return false;
+
+  // E: city — mandatory
+  if (!job.cities || !Array.isArray(job.cities) || job.cities.length === 0) return false;
+  const candCity = candidate.city || candidate.candidateCity;
   if (!candCity) return false;
   const candNorm = normalizeCity(candCity);
   if (!candNorm) return false;
-  // Check against each job city after canonicalization
-  return jobCities.some(jc => normalizeCity(jc) === candNorm);
+  const cityMatch = job.cities.some(jc => normalizeCity(jc) === candNorm);
+  if (!cityMatch) return false;
+
+  // F: requirements
+  if (!matchesRequirements(candidate, job.requirements)) return false;
+
+  return true;
 }
 
 /**
@@ -266,14 +385,6 @@ export function getMatchingCandidatesForJob(candidates, job) {
 // DASHBOARD STATS
 // ─────────────────────────────────────────────────
 
-/**
- * Compute dashboard candidate statistics from live candidate/job arrays.
- *
- * @param {Array}  candidates  - live candidates array (from watchCandidates)
- * @param {Array}  [jobs]      - live jobs array (optional, for future job-level stats)
- * @returns {{ inProcess, newThisMonth, hiredThisMonth, referralsThisMonth,
- *             bySource, byStatus, byMonth }}
- */
 export function getDashboardCandidateStats(candidates, jobs) {
   if (!candidates) candidates = [];
   const now = new Date();
@@ -287,54 +398,29 @@ export function getDashboardCandidateStats(candidates, jobs) {
   let referralsThisMonth = 0;
   const bySource = {};
   const byStatus = {};
-  const byMonth = {}; // key = "YYYY-MM", value = count
+  const byMonth = {};
 
   candidates.forEach(c => {
-    if (c.deleted === true) {
-      console.log('[stats] SKIP deleted', c.id, c.first, c.last);
-      return;
-    }
+    if (c.deleted === true) return;
 
-    const st = normalizeStatus(c.status);
-    const d = getCreatedDate(c);
-    const dateOk = d && !isNaN(d.getFullYear());
-    const inProcessFlag = isCandidateInProcess(c);
-    console.log('[stats] candidate', c.id, c.first, c.last, '| status:', JSON.stringify(c.status), '→ normalized:', JSON.stringify(st), '| createdAt:', c.createdAt, '| getCreatedDate:', d, '| dateOk:', dateOk, '| inProcess:', inProcessFlag);
 
-    // In-process
-    if (inProcessFlag) inProcess++;
+    if (isCandidateInProcess(c)) inProcess++;
 
-    // Status breakdown
-    if (st) {
-      byStatus[st] = (byStatus[st] || 0) + 1;
-    }
-
-    // Source breakdown
+    if (st) byStatus[st] = (byStatus[st] || 0) + 1;
     const src = normalizeText(c.source);
-    if (src) {
-      bySource[src] = (bySource[src] || 0) + 1;
-    }
+    if (src) bySource[src] = (bySource[src] || 0) + 1;
 
-    // Date-based metrics using createdAt as canonical
-    if (!dateOk) {
-      console.log('[stats] SKIP date invalid', c.id);
-      return;
-    }
+    if (!d || isNaN(d.getFullYear())) return;
 
-    // New this month
     if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) {
       newThisMonth++;
-
-      // Hired this month (status = התחיל לעבוד, created this month)
       if (st === STATUS_STARTED) hiredThisMonth++;
       if (isCandidateStarted(c)) startedThisMonth++;
     }
 
-    // Monthly histogram (last 7 months including current)
     const monthKey = getMonthKey(d);
     byMonth[monthKey] = (byMonth[monthKey] || 0) + 1;
   });
 
-  console.log('[stats] RESULT inProcess:', inProcess, 'newThisMonth:', newThisMonth, 'hiredThisMonth:', hiredThisMonth, 'startedThisMonth:', startedThisMonth);
   return { inProcess, newThisMonth, hiredThisMonth, startedThisMonth, referralsThisMonth, bySource, byStatus, byMonth };
 }
