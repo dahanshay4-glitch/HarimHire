@@ -277,21 +277,20 @@ window.sortOrder = {};
 window.lastSortCol = null;
 
 function openCandidatesList(type, jobId) {
-  // Resolve job cities from live jobs list and store in sessionStorage
-  // matching the keys candidates.html expects
-  var cities = [];
   var jobs = window.currentJobs || [];
+  var matchedJob = null;
   for (var i = 0; i < jobs.length; i++) {
     if (jobs[i].id === jobId) {
-      cities = jobs[i].cities || [];
+      matchedJob = jobs[i];
       break;
     }
   }
-  // Use sessionStorage (consistent with candidates.html expectations)
-  sessionStorage.setItem('filterJobCities', JSON.stringify(cities));
+  // Store full job object for centralized matching in candidates.html
+  if (matchedJob) {
+    sessionStorage.setItem('filterJob', JSON.stringify(matchedJob));
+  }
   sessionStorage.setItem('filterType', type);
   sessionStorage.setItem('filterJobId', jobId);
-  // Preserve existing navigation via setTimeout for sessionStorage to sync
   window.location.href = 'candidates.html';
 }
 

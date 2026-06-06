@@ -641,20 +641,14 @@ window.filtered = [];
 
 <script type="module">
 import { watchCandidates, deleteCandidate as dbDeleteCandidate } from './firebase.js';
-import { normalizeCity, citiesMatch } from './syncLogic.js';
+import { getMatchingCandidatesForJob } from './syncLogic.js';
 
-// Read job+filter from URL params on load
+// Read filterType from URL params on load (e.g. direct links from other pages)
 (function applyUrlFilters() {
   try {
     var p = new URLSearchParams(window.location.search);
-    var jobId = p.get('jobId');
     var filterType = p.get('filterType');
-    if (jobId) sessionStorage.setItem('filterJobId', jobId);
     if (filterType) sessionStorage.setItem('filterType', filterType);
-    var citiesRaw = p.get('cities');
-    if (citiesRaw) {
-      try { sessionStorage.setItem('filterJobCities', citiesRaw); } catch(e) {}
-    }
   } catch(e) {}
 })();
 
@@ -735,29 +729,27 @@ function filterCands() {
   var ct = (document.getElementById('fCity')||{}).value || '';
   ct = ct.toLowerCase();
 
-  // Apply job-city filter from jobs.html count links
-  var filterJobCitiesRaw = sessionStorage.getItem('filterJobCities');
+  // Read full job object from sessionStorage for centralized matching
+  var filterJob = null;
+  try { filterJob = JSON.parse(sessionStorage.getItem('filterJob') || 'null'); } catch(e) { filterJob = null; }
   var filterType = sessionStorage.getItem('filterType');
-  var filterCities = [];
-  if (filterJobCitiesRaw) {
-    try { filterCities = JSON.parse(filterJobCitiesRaw); } catch(e) { filterCities = []; }
-    if (!Array.isArray(filterCities)) filterCities = [];
+
+  // Phase 1: apply centralized matching via getMatchingCandidatesForJob if job is stored
+  var baseList = window.CANDS;
+  if (filterJob && filterJob.jobTypeCode) {
+    baseList = getMatchingCandidatesForJob(window.CANDS, filterJob);
   }
 
-  window.filtered = window.CANDS.filter(function(c) {
+  // Phase 2: apply UI filters (search, status, job, source, city text)
+  window.filtered = baseList.filter(function(c) {
     var nm = ((c.first||'')+' '+(c.last||'')).toLowerCase();
     if(s && !nm.includes(s) && !(c.phone||'').includes(s) && !(c.city||'').toLowerCase().includes(s)) return false;
     if(st && c.status !== st) return false;
     if(jb && c.job !== jb) return false;
     if(src && c.source !== src) return false;
     if(ct && !(c.city||'').toLowerCase().includes(ct)) return false;
-    // City match: candidate city must match one of the job's cities (canonical)
-    if (filterCities.length > 0) {
-      var matchedCity = filterCities.some(function(jc) { return citiesMatch(c.city, jc); });
-      if (!matchedCity) return false;
-    }
     // Status filter based on filterType
-    if (filterType === 'inProcess' && st !== 'בתהליך') {
+    if (filterType === 'inProcess') {
       var candSt = c.status || '';
       if (!candSt.includes('בתהליך')) return false;
     }
