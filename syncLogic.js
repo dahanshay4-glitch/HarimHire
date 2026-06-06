@@ -303,9 +303,7 @@ function checkRequirement(candidateValue, requirementValue, fieldName, req) {
   const flagValue = req[flagKey];
 
   if (!flagExists) {
-    // Schema gap: field not saved by candidate AND flag not defined in requirements
-    // Do not over-filter — report and pass
-    console.warn('[match] schema gap: candidate.' + fieldName + ' missing and ' + flagKey + ' not defined in job.requirements');
+    // Schema gap: field not saved by candidate AND flag not defined — do not over-filter
     return true;
   }
   if (flagValue === true) return true;
