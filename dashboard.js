@@ -22,6 +22,11 @@ function updateDashboard(candidates) {
   if (sNew) sNew.textContent = newThisMonth;
 }
 
+document.getElementById('inProcessCard')?.addEventListener('click', function() {
+  sessionStorage.setItem('candidateStatusFilter', 'inProcess');
+  window.location.href = 'candidates.html';
+});
+
 watchCandidates(function(candidates) {
   updateDashboard(candidates);
 });
