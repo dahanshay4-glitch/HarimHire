@@ -121,9 +121,10 @@
 <body>
 <nav class="navbar">
   <div class="nav-links">
-          <a href="dashboard.html">מועמדים</a>
+    <div class="nav-dropdown">
+      <a href="candidates.html">מועמדים</a>
       <div class="dropdown-menu">
-        <a class="dropdown-item" href="dashboard.html"><i class="fa-solid fa-users"></i> מועמדים</a>
+        <a class="dropdown-item" href="candidates.html"><i class="fa-solid fa-users"></i> מועמדים</a>
         <a class="dropdown-item" href="new_candidate.html"><i class="fa-solid fa-user-plus"></i> מועמד חדש</a>
         <a class="dropdown-item" href="segments.html"><i class="fa-solid fa-filter"></i> חיתוכי מועמדים</a>
         <a class="dropdown-item" href="referrals.html"><i class="fa-solid fa-share-nodes"></i> הפניות</a>
@@ -164,9 +165,6 @@
 </div>
 
 <div class="main">
-  <div id="dashboardRuntimeStatus" style="position:fixed;bottom:12px;left:12px;z-index:99999;background:#b91c1c;color:white;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:700;">
-    Dashboard JS NOT loaded
-  </div>
   <div class="db-grid">
     <div class="db-card">
       <div class="db-card-num" id="s1">0</div>
