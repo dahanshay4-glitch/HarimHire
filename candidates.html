@@ -833,7 +833,7 @@ window.deleteCandidate = async function() {
     await dbDeleteCandidate(window.currentCandidateId);
     closeCandidate();
   } catch(e) {
-    console.error('Delete error:', e);
+    // delete error handled silently
     alert('שגיאה במחיקה');
   }
 };

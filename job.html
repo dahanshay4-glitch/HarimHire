@@ -384,7 +384,7 @@
                     }
                 }).catch(function(err) {
                     console.error('loadJob error:', err);
-                });
+                }).catch(err => { console.error('Delete job error:', err); alert('שגיאה במחיקה'); });
                 return;
             }
 
@@ -412,7 +412,7 @@
                     currentJobId = job.id;
                     currentJob = job;
                 }
-            });
+            }).catch(err => { console.error('Delete job error:', err); alert('שגיאה במחיקה'); });
         }
         
         function displayJob(job) {
@@ -479,19 +479,9 @@
                 return;
             }
 
-            console.log('[jobs sync] candidates count:', candidates.length);
-            console.log('[jobs sync] job:', currentJob);
-            console.log('[jobs sync] job cities:', currentJob && currentJob.cities);
-            console.log('[jobs sync] first candidate:', candidates[0]);
-            console.log('[jobs sync] first candidate city:', candidates[0]?.city);
-            console.log('[jobs sync] first candidate job:', candidates[0]?.job);
-            console.log('[jobs sync] first candidate status:', candidates[0]?.status);
-            console.log('[jobs sync] candidateMatchesJob:', (currentJob && candidates[0]) ? candidateMatchesJob(candidates[0], currentJob) : false);
-            console.log('[jobs sync] matches:', currentJob ? getMatchingCandidatesForJob(candidates, currentJob) : []);
             var matched = !currentJob ? [] : getMatchingCandidatesForJob(candidates, currentJob);
             matched.forEach(function(c) {
-                console.log('[job] candidate matched:', c.first, c.last, 'city:', c.city);
-            });
+            }).catch(err => { console.error('Delete job error:', err); alert('שגיאה במחיקה'); });
 
             if (matched.length === 0) {
                 container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#6b7a99;font-size:13px;"><div style="font-size:28px;margin-bottom:10px;">🔍</div><div>לא נמצאו מועמדים מתאימים לפי עיר</div></div>';
@@ -665,8 +655,7 @@
             renderSelectedCities();
             alert('הערים נשמרו בהצלחה');
           } catch (e) {
-            console.error('saveJobCities error:', e);
-            alert('שגיאה בשמירת הערים');
+              alert('שגיאה בשמירת הערים');
           }
         }
         window.saveJobCities = saveJobCities;

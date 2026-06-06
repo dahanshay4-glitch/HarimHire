@@ -347,9 +347,10 @@ function matchesRequirements(candidate, requirements) {
     if (!checkRequirement(candidate.license, requirements.driverLicense, 'driverLicense', requirements)) return false;
   }
 
-  // Mobility (candidate.mobility vs requirements.mobility)
+  // Mobility — candidate.vehicle is old field, normalize to mobility for check
   if ('mobility' in requirements) {
-    if (!checkRequirement(candidate.mobility, requirements.mobility, 'mobility', requirements)) return false;
+    const mob = candidate.mobility || candidate.vehicle; // backward compat
+    if (!checkRequirement(mob, requirements.mobility, 'mobility', requirements)) return false;
   }
 
   return true;

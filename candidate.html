@@ -147,6 +147,7 @@
       <button class="btn btn-wa" id="waTopBtn"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
       <button class="btn btn-danger" id="btnDeleteCand" style="display:none;"><i class="fa-solid fa-trash"></i> מחק</button>
       <button class="btn btn-primary"><i class="fa-solid fa-rotate"></i> שנה סטטוס</button>
+      <button class="btn" onclick="showEditModal()"><i class="fa-solid fa-pen"></i> עריכה</button>
     </div>
   </div>
 
@@ -201,8 +202,13 @@
             </div>
             <div class="section-title">פרטי רכב ורישיון</div>
             <div class="two-col">
-              <div class="field-row"><div class="field-label">סוג רכב</div><div class="field-val" id="cdVehicle"></div></div>
+              <div class="field-row"><div class="field-label">ניידות</div><div class="field-val" id="cdMobility"></div></div>
               <div class="field-row"><div class="field-label">רישיון נהיגה</div><div class="field-val" id="cdLicense"></div></div>
+            </div>
+            <div class="section-title">פרטים נוספים</div>
+            <div class="two-col">
+              <div class="field-row"><div class="field-label">שכר מבוקש (₪)</div><div class="field-val" id="cdSalary"></div></div>
+              <div class="field-row"><div class="field-label">חודשיים עד זמינות</div><div class="field-val" id="cdReturnMonths"></div></div>
             </div>
           </div>
 
@@ -319,6 +325,37 @@
   </div>
 </div>
 
+<!-- EDIT MODAL -->
+<div id="editModal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-title"><i class="fa-solid fa-pen" style="margin-left:6px;color:var(--blue);"></i>עריכת פרטי מועמד</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <div class="modal-field"><div class="modal-label">גיל</div><input class="modal-input" id="eAge" type="number" min="16" max="90"></div>
+      <div class="modal-field"><div class="modal-label">מין</div>
+        <select class="modal-select" id="eGender">
+          <option value="">-</option><option>זכר</option><option>נקבה</option>
+        </select>
+      </div>
+      <div class="modal-field"><div class="modal-label">ניידות</div>
+        <select class="modal-select" id="eMobility">
+          <option value="">-</option><option>יש רכב</option><option>אין רכב</option><option>תחבורה ציבורית</option>
+        </select>
+      </div>
+      <div class="modal-field"><div class="modal-label">רישיון נהיגה</div>
+        <select class="modal-select" id="eLicense">
+          <option value="">-</option><option>כן</option><option>לא</option>
+        </select>
+      </div>
+      <div class="modal-field"><div class="modal-label">שכר מבוקש (₪)</div><input class="modal-input" id="eSalary" type="number" min="0" step="100"></div>
+      <div class="modal-field"><div class="modal-label">חודשיים עד זמינות</div><input class="modal-input" id="eReturnMonths" type="number" min="0" max="24" placeholder="0 = מיידי"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="hideModal('editModal')">ביטול</button>
+      <button class="btn btn-primary" onclick="saveCandidateEdit()">שמור שינויים</button>
+    </div>
+  </div>
+</div>
+
 <!-- INTERVIEW MODAL -->
 <div id="interviewModal" class="modal-overlay hidden">
   <div class="modal">
@@ -390,11 +427,14 @@ function loadCandidate(c) {
   document.getElementById('cdFirst').textContent = c.first;
   document.getElementById('cdLast').textContent = c.last;
   document.getElementById('cdPhone').innerHTML = '<a href="' + waPhone + '" target="_blank" style="color:#25d366;text-decoration:none;"><i class="fa-brands fa-whatsapp"></i> ' + c.phone + '</a>';
+  // Personal tab — show new fields; backward-compat vehicle → mobility
   document.getElementById('cdAge').textContent = c.age;
   document.getElementById('cdCity').textContent = canonicalizeCandidateCity(c.city);
   document.getElementById('cdGender').textContent = c.gender;
-  document.getElementById('cdVehicle').textContent = c.vehicle;
+  document.getElementById('cdMobility').textContent = c.mobility || c.vehicle || '';
   document.getElementById('cdLicense').textContent = c.license;
+  document.getElementById('cdSalary').textContent = c.salary ? c.salary + ' ₪' : '';
+  document.getElementById('cdReturnMonths').textContent = (c.returnMonths !== undefined && c.returnMonths !== '' && c.returnMonths !== null) ? c.returnMonths + ' חודשים' : '';
 
   // Jobs tab
   document.getElementById('cdJobTitle').textContent = c.job;
@@ -403,8 +443,10 @@ function loadCandidate(c) {
   js.className = 'pill ' + sc;
 
   // Tags tab
+  // Tags tab — mobility shown as vehicle tag (backward-compat)
   document.getElementById('tagCity').textContent = c.city;
-  document.getElementById('tagVehicle').textContent = c.vehicle !== 'אין' ? 'רכב ' + c.vehicle : 'אין רכב';
+  var mob = c.mobility || c.vehicle || '';
+  document.getElementById('tagVehicle').textContent = mob && mob !== 'אין' ? 'ניידות: ' + mob : (mob === 'אין' ? 'אין ניידות' : '');
   document.getElementById('tagSource').textContent = c.source;
 
   // Right panel
@@ -497,6 +539,43 @@ function addLogEntry(text, color, icon) {
 }
 
 function showInterviewModal() { document.getElementById('interviewModal').classList.remove('hidden'); }
+function showEditModal() {
+  var c = window.cand;
+  if (!c) return;
+  document.getElementById('eAge').value = c.age || '';
+  document.getElementById('eGender').value = c.gender || '';
+  document.getElementById('eMobility').value = c.mobility || '';
+  document.getElementById('eLicense').value = c.license || '';
+  document.getElementById('eSalary').value = c.salary || '';
+  document.getElementById('eReturnMonths').value = c.returnMonths || '';
+  document.getElementById('editModal').classList.remove('hidden');
+}
+
+window.showEditModal = showEditModal;
+
+async function saveCandidateEdit() {
+  var c = window.cand;
+  if (!c || !c.id) return;
+  var updates = {
+    age: document.getElementById('eAge').value.trim(),
+    gender: document.getElementById('eGender').value,
+    mobility: document.getElementById('eMobility').value,
+    license: document.getElementById('eLicense').value,
+    salary: document.getElementById('eSalary').value.trim(),
+    returnMonths: document.getElementById('eReturnMonths').value.trim()
+  };
+  try {
+    var { updateCandidate } = await import('./firebase.js');
+    await updateCandidate(c.id, updates);
+    // Update local object
+    Object.assign(c, updates);
+    loadCandidate(c);
+    hideModal('editModal');
+  } catch(e) {
+    alert('שגיאה בשמירה: ' + e.message);
+  }
+}
+
 function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
 
 function updateWAPreview() {

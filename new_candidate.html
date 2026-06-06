@@ -224,10 +224,12 @@
             </div>
             <div class="form-group"><div class="form-label">רחוב</div><input class="form-input" type="text" placeholder="רחוב..."></div>
             <div class="form-group"><div class="form-label">מס׳ בית</div><input class="form-input" type="text" placeholder="מס׳ בית..."></div>
-            <div class="form-group"><div class="form-label">מין</div><select class="form-select"><option value="">-</option><option>זכר</option><option>נקבה</option></select></div>
-            <div class="form-group"><div class="form-label">מצב משפחתי</div><select class="form-select"><option value="">-</option><option>רווק/ה</option><option>נשוי/אה</option><option>גרוש/ה</option><option>אלמן/ה</option></select></div>
-            <div class="form-group"><div class="form-label">ניידות</div><select class="form-select"><option value="">-</option><option>יש רכב</option><option>אין רכב</option><option>תחבורה ציבורית</option></select></div>
-            <div class="form-group"><div class="form-label">רישיון נהיגה</div><select class="form-select"><option value="">-</option><option>כן</option><option>לא</option></select></div>
+            <div class="form-group"><div class="form-label">גיל</div><input class="form-input" id="fAge" type="number" min="16" max="90" placeholder="גיל..."></div>
+            <div class="form-group"><div class="form-label">מין</div><select class="form-select" id="fGender"><option value="">-</option><option>זכר</option><option>נקבה</option></select></div>
+            <div class="form-group"><div class="form-label">ניידות</div><select class="form-select" id="fMobility"><option value="">-</option><option>יש רכב</option><option>אין רכב</option><option>תחבורה ציבורית</option></select></div>
+            <div class="form-group"><div class="form-label">רישיון נהיגה</div><select class="form-select" id="fLicense"><option value="">-</option><option>כן</option><option>לא</option></select></div>
+            <div class="form-group"><div class="form-label">שכר מבוקש (₪)</div><input class="form-input" id="fSalary" type="number" min="0" step="100" placeholder="שכר..."></div>
+            <div class="form-group"><div class="form-label">חודשיים עד זמינות (חודשים)</div><input class="form-input" id="fReturnMonths" type="number" min="0" max="24" placeholder="0 = מיידי..."></div>
           </div>
         </div>
       </div>
@@ -497,9 +499,12 @@ async function saveCandidate() {
     phone: document.getElementById('fPhone').value.trim(),
     job: document.getElementById('fJob').value,
     city: selectedCanonicalCity,
-    age: document.getElementById('fAge') ? document.getElementById('fAge').value : '',
+    age: document.getElementById('fAge') ? document.getElementById('fAge').value.trim() : '',
     gender: document.getElementById('fGender') ? document.getElementById('fGender').value : '',
     license: document.getElementById('fLicense') ? document.getElementById('fLicense').value : '',
+    mobility: document.getElementById('fMobility') ? document.getElementById('fMobility').value : '',
+    salary: document.getElementById('fSalary') ? document.getElementById('fSalary').value.trim() : '',
+    returnMonths: document.getElementById('fReturnMonths') ? document.getElementById('fReturnMonths').value.trim() : '',
     source: 'הקמה ידנית',
     status: 'ממתין לסינון',
     av: (first[0]||'?') + (last[0]||'?'),
