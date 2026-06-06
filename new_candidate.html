@@ -86,6 +86,33 @@
 .status-indicator { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; font-size: 11px; background: rgba(30,52,97,0.06); color: var(--blue); border: 0.5px solid rgba(30,52,97,0.2); }
 .checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text); }
 .checkbox-row input { width: 14px; height: 14px; accent-color: var(--blue); }
+.city-autocomplete-wrap { position: relative; }
+.city-suggestions {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--border, #d1d5db);
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  z-index: 50;
+  max-height: 220px;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: none;
+}
+.city-suggestion-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.city-suggestion-item:hover,
+.city-suggestion-item.active {
+  background: #f0f4ff;
+}
 </style>
 </head>
 <body>
@@ -187,12 +214,14 @@
             <div class="form-group"><div class="form-label">טלפון 1 <span class="req">*</span></div><input class="form-input" id="fPhone" type="text" placeholder="05X-XXXXXXX" oninput="validateReq('fPhone')"></div>
             <div class="form-group"><div class="form-label">טלפון 2</div><input class="form-input" type="text" placeholder="טלפון נוסף..."></div>
             <div class="form-group"><div class="form-label">תעודת זהות</div><input class="form-input" type="text" placeholder="תעודת זהות..."></div>
-            <div class="form-group"><div class="form-label">עיר <span class="req">*</span></div>
-<div style="position:relative;">
-<input class="form-input" id="fCity" type="text" autocomplete="off" placeholder="הקלד שם עיר..." style="width:100%;box-sizing:border-box;">
-<ul id="citySuggestions" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border,#d1d5db);border-top:none;border-radius:0 0 6px 6px;box-shadow:0 4px 12px rgba(0,0,0,.08);z-index:50;max-height:220px;overflow-y:auto;list-style:none;margin:2px 0 0;padding:0;display:none;"></ul>
-</div>
-<div id="cityError" style="color:#dc3545;font-size:11px;margin-top:4px;display:none;">יש לבחור עיר מהרשימה</div>
+            <div class="form-group">
+              <div class="form-label">עיר <span class="req">*</span></div>
+              <div class="city-autocomplete-wrap">
+                <input class="form-input" id="fCity" type="text" autocomplete="off" placeholder="הקלד שם עיר..." oninput="validateReq('fCity')">
+                <ul id="citySuggestions" class="city-suggestions"></ul>
+              </div>
+              <div id="cityError" style="color:#dc3545;font-size:11px;margin-top:4px;display:none;">יש לבחור עיר מהרשימה</div>
+            </div>
             <div class="form-group"><div class="form-label">רחוב</div><input class="form-input" type="text" placeholder="רחוב..."></div>
             <div class="form-group"><div class="form-label">מס׳ בית</div><input class="form-input" type="text" placeholder="מס׳ בית..."></div>
             <div class="form-group"><div class="form-label">מין</div><select class="form-select"><option value="">-</option><option>זכר</option><option>נקבה</option></select></div>
@@ -289,7 +318,9 @@
   </div>
 </div>
 
-<script>
+<script type="module">
+import { CITY_AREAS } from './city_areas.js';
+
 function toggleSection(el) {
   const body = el.nextElementSibling;
   const icon = el.querySelector('i');
@@ -313,76 +344,140 @@ function validateReq(id) {
   }
 }
 
-function getCanonicalCities() {
-  return [...new Set(CITY_AREAS.flatMap(area => area.cities || []).map(city => String(city).trim()).filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b, 'he'));
-}
+window.toggleSection = toggleSection;
+window.validateReq = validateReq;
 
-var canonicalCityList = [];
+let canonicalCityList = [];
+let selectedCanonicalCity = '';
 
 function getCanonicalCities() {
   if (canonicalCityList.length) return canonicalCityList;
-  canonicalCityList = [...new Set(CITY_AREAS.flatMap(area => area.cities || []).map(city => String(city).trim()).filter(Boolean))].sort(function(a, b) { return a.localeCompare(b, 'he'); });
+  canonicalCityList = [...new Set(
+    CITY_AREAS
+      .flatMap(area => Array.isArray(area.cities) ? area.cities : [])
+      .map(city => String(city).trim())
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b, 'he'));
   return canonicalCityList;
 }
 
-function setupCityAutocomplete() {
-  var input = document.getElementById('fCity');
-  if (!input) return;
-  input.addEventListener('input', function() {
-    var val = input.value.trim();
-    document.getElementById('cityError').style.display = 'none';
-    if (!val) { hideSuggestions(); return; }
-    var cities = getCanonicalCities();
-    var filtered = cities.filter(function(c) { return c.includes(val); }).slice(0, 20);
-    var ul = document.getElementById('citySuggestions');
-    if (filtered.length === 0) { ul.style.display = 'none'; return; }
-    ul.innerHTML = filtered.map(function(c) {
-      return '<li style="padding:8px 12px;cursor:pointer;font-size:13px;" onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background=''" onclick="selectCity(\'' + c.replace(/'/g, "\\'") + '\')">' + c + '</li>';
-    }).join('');
-    ul.style.display = 'block';
+function hideSuggestions() {
+  const ul = document.getElementById('citySuggestions');
+  if (!ul) return;
+  ul.style.display = 'none';
+  ul.innerHTML = '';
+}
+
+function setCityError(visible) {
+  const input = document.getElementById('fCity');
+  const error = document.getElementById('cityError');
+  if (error) error.style.display = visible ? 'block' : 'none';
+  if (input) input.classList.toggle('missing', !!visible);
+}
+
+function renderSuggestions(matches) {
+  const ul = document.getElementById('citySuggestions');
+  if (!ul) return;
+
+  if (!matches.length) {
+    hideSuggestions();
+    return;
+  }
+
+  ul.innerHTML = '';
+  matches.forEach(city => {
+    const li = document.createElement('li');
+    li.className = 'city-suggestion-item';
+    li.textContent = city;
+    li.addEventListener('mousedown', function(event) {
+      event.preventDefault();
+      selectCity(city);
+    });
+    ul.appendChild(li);
   });
-  input.addEventListener('blur', function() { setTimeout(hideSuggestions, 150); });
+  ul.style.display = 'block';
+}
+
+function selectCity(city) {
+  const input = document.getElementById('fCity');
+  if (!input) return;
+  input.value = city;
+  selectedCanonicalCity = city;
+  setCityError(false);
+  validateReq('fCity');
+  hideSuggestions();
+}
+
+function validateCity() {
+  const input = document.getElementById('fCity');
+  if (!input) return false;
+
+  const val = input.value.trim();
+  const cities = getCanonicalCities();
+  const isCanonical = cities.includes(val) && selectedCanonicalCity === val;
+
+  if (!isCanonical) {
+    selectedCanonicalCity = '';
+    setCityError(true);
+    return false;
+  }
+
+  setCityError(false);
+  return true;
+}
+
+function setupCityAutocomplete() {
+  const cityList = getCanonicalCities();
+  const input = document.getElementById('fCity');
+  const suggestions = document.getElementById('citySuggestions');
+
+  if (!input || !suggestions) return;
+
+  input.addEventListener('input', function() {
+    const val = input.value.trim();
+
+    if (val !== selectedCanonicalCity) {
+      selectedCanonicalCity = '';
+    }
+
+    setCityError(false);
+
+    if (!val) {
+      hideSuggestions();
+      return;
+    }
+
+    const matches = cityList.filter(city => city.includes(val)).slice(0, 20);
+    renderSuggestions(matches);
+  });
+
+  input.addEventListener('blur', function() {
+    window.setTimeout(hideSuggestions, 150);
+  });
+
+  input.addEventListener('focus', function() {
+    const val = input.value.trim();
+    if (!val) return;
+    const matches = cityList.filter(city => city.includes(val)).slice(0, 20);
+    renderSuggestions(matches);
+  });
+
   input.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') hideSuggestions();
   });
 }
 
-function selectCity(city) {
-  var input = document.getElementById('fCity');
-  input.value = city;
-  hideSuggestions();
-  validateReq('fCity');
-}
-
-function hideSuggestions() {
-  var ul = document.getElementById('citySuggestions');
-  if (ul) ul.style.display = 'none';
-}
-
-function validateCity() {
-  var input = document.getElementById('fCity');
-  var error = document.getElementById('cityError');
-  if (!input) return true;
-  var val = input.value.trim();
-  var cities = getCanonicalCities();
-  if (!val || !cities.includes(val)) {
-    error.style.display = 'block';
-    input.classList.add('missing');
-    return false;
-  }
-  error.style.display = 'none';
-  input.classList.remove('missing');
-  return true;
-}
-
-function saveCandidate() {
+async function saveCandidate() {
   const missing = [];
   if(!document.getElementById('fFirst').value.trim()) missing.push('שם פרטי');
   if(!document.getElementById('fLast').value.trim()) missing.push('שם משפחה');
   if(!document.getElementById('fPhone').value.trim()) missing.push('טלפון');
   if(!document.getElementById('fJob').value) missing.push('מתעניין במשרות');
-  if(!validateCity()) return;
+
+  const cityValid = validateCity();
+  if (!cityValid) missing.push('עיר');
+
+  if (missing.length) {
     document.getElementById('missingMsg').textContent = 'שדות חובה חסרים: ' + missing.join(', ');
     document.getElementById('missingAlert').classList.remove('hidden');
     ['fFirst','fLast','fPhone','fJob'].forEach(id => {
@@ -391,15 +486,17 @@ function saveCandidate() {
     });
     return;
   }
-  // Save to Firebase
-  var first = document.getElementById('fFirst').value.trim();
-  var last = document.getElementById('fLast').value.trim();
-  var data = {
+
+  document.getElementById('missingAlert').classList.add('hidden');
+
+  const first = document.getElementById('fFirst').value.trim();
+  const last = document.getElementById('fLast').value.trim();
+  const data = {
     first: first,
     last: last,
     phone: document.getElementById('fPhone').value.trim(),
     job: document.getElementById('fJob').value,
-    city: (function() { var i = document.getElementById('fCity'); return i ? i.value.trim() : ''; })(),
+    city: selectedCanonicalCity,
     age: document.getElementById('fAge') ? document.getElementById('fAge').value : '',
     gender: document.getElementById('fGender') ? document.getElementById('fGender').value : '',
     license: document.getElementById('fLicense') ? document.getElementById('fLicense').value : '',
@@ -412,18 +509,22 @@ function saveCandidate() {
     needsFix: false,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   };
-  db.collection('candidates').get().then(function(snap) {
-    data.num = snap.size + 1;
-    return db.collection('candidates').add(data);
-  }).then(function() {
-    window.location.href = 'candidates.html';
-  }).catch(function(e) {
-    alert('שגיאה בשמירה: ' + e.message);
-  });
-}
-</script>
 
-<script>
+  try {
+    const snap = await db.collection('candidates').get();
+    data.num = snap.size + 1;
+    await db.collection('candidates').add(data);
+    window.location.href = 'candidates.html';
+  } catch (e) {
+    alert('שגיאה בשמירה: ' + e.message);
+  }
+}
+
+window.saveCandidate = saveCandidate;
+window.selectCity = selectCity;
+window.validateCity = validateCity;
+window.hideSuggestions = hideSuggestions;
+
 setupCityAutocomplete();
 
 (function() {
