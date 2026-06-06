@@ -254,74 +254,104 @@ function checkRequirement(candidateValue, requirementValue, fieldName, req) {
   // If requirement is "לא חשוב" or missing/empty, always pass
   if (!requirementValue || requirementValue === NOT_IMPORTANT) return true;
 
-  // Candidate value missing: only allow if includeUnknown flag is set
-  if (!candidateValue || String(candidateValue).trim() === '') {
-    const includeUnknown = req['includeUnknown' + fieldName.charAt(0).toUpperCase() + fieldName.slice(1)];
-    if (includeUnknown === true) return true;
-    return false;
+  // Numeric range fields: ageMin, ageMax, salaryMin, salaryMax, returnMonths
+  // Compare as numbers, not as text
+  const numericFields = {
+    ageMin: true, ageMax: true,
+    salaryMin: true, salaryMax: true,
+    returnMonths: true
+  };
+  if (numericFields[fieldName]) {
+    const candNum = parseInt(candidateValue);
+    const reqNum = parseInt(requirementValue);
+    // If candidate value is empty or not a valid number, treat as missing
+    if (!candidateValue || String(candidateValue).trim() === '' || isNaN(candNum)) {
+      // Resolve flag: field-specific first, then aggregate (for range fields like age/salary)
+      const fieldFlag = 'includeUnknown' + fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+      const hasFieldFlag = fieldFlag in req;
+      // Aggregate: strip Min/Max suffix from range fields to get shared flag like includeUnknownAge
+      const stripped = fieldName.replace(/Min$|Max$/, '');
+      const aggregateFlag = 'includeUnknown' + stripped.charAt(0).toUpperCase() + stripped.slice(1);
+      const hasAggregateFlag = aggregateFlag in req;
+      // Special case: returnMonths maps to includeUnknownAvailability
+      const hasAvailabilityFlag = 'includeUnknownAvailability' in req;
+      const flagValue = hasFieldFlag ? req[fieldFlag] : hasAggregateFlag ? req[aggregateFlag] : hasAvailabilityFlag ? req['includeUnknownAvailability'] : undefined;
+      const flagExists = hasFieldFlag || hasAggregateFlag || hasAvailabilityFlag;
+      if (!flagExists) {
+        return true;
+      }
+      return flagValue === true;
+    }
+    // Candidate has a valid numeric value: compare
+    if (fieldName === 'ageMin') return candNum >= reqNum;
+    if (fieldName === 'ageMax') return candNum <= reqNum;
+    if (fieldName === 'salaryMin') return candNum >= reqNum;
+    if (fieldName === 'salaryMax') return candNum <= reqNum;
+    if (fieldName === 'returnMonths') return candNum <= reqNum;
   }
 
-  const cand = normalizeText(String(candidateValue));
-  const reqNorm = normalizeText(String(requirementValue));
+  // Candidate has a value: compare normalized text
+  if (candidateValue && String(candidateValue).trim() !== '') {
+    const cand = normalizeText(String(candidateValue));
+    const reqNorm = normalizeText(String(requirementValue));
+    return cand === reqNorm;
+  }
 
-  // Exact match after normalization
-  return cand === reqNorm;
+  // Candidate value missing/empty
+  const flagKey = 'includeUnknown' + fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+  const flagExists = flagKey in req;
+  const flagValue = req[flagKey];
+
+  if (!flagExists) {
+    // Schema gap: field not saved by candidate AND flag not defined in requirements
+    // Do not over-filter — report and pass
+    console.warn('[match] schema gap: candidate.' + fieldName + ' missing and ' + flagKey + ' not defined in job.requirements');
+    return true;
+  }
+  if (flagValue === true) return true;
+  // flag is present but not true (false or other) → reject
+  return false;
 }
 
 function matchesRequirements(candidate, requirements) {
   if (!requirements || typeof requirements !== 'object') return true;
   if (Object.keys(requirements).length === 0) return true;
 
-  // Age: candidate.age must be within [ageMin, ageMax]
-  if ('ageMin' in requirements || 'ageMax' in requirements) {
-    const ageMin = parseInt(requirements.ageMin) || 0;
-    const ageMax = parseInt(requirements.ageMax) || 999;
-    const candAge = parseInt(candidate.age);
-    if (!isNaN(candAge)) {
-      if (candAge < ageMin || candAge > ageMax) return false;
-    } else {
-      // Missing age: only allow if includeUnknownAge === true
-      if (requirements.includeUnknownAge !== true) return false;
-    }
+  // Age — delegate to checkRequirement so schema-gap logic applies uniformly
+  if ('ageMin' in requirements) {
+    if (!checkRequirement(candidate.age, requirements.ageMin, 'ageMin', requirements)) return false;
+  }
+  if ('ageMax' in requirements) {
+    if (!checkRequirement(candidate.age, requirements.ageMax, 'ageMax', requirements)) return false;
   }
 
-  // Gender
+  // Salary — delegate to checkRequirement so schema-gap logic applies uniformly
+  if ('salaryMin' in requirements) {
+    if (!checkRequirement(candidate.salary, requirements.salaryMin, 'salaryMin', requirements)) return false;
+  }
+  if ('salaryMax' in requirements) {
+    if (!checkRequirement(candidate.salary, requirements.salaryMax, 'salaryMax', requirements)) return false;
+  }
+
+  // Return months / availability — delegate to checkRequirement
+  if ('returnMonths' in requirements) {
+    const raw = candidate.returnMonths != null ? candidate.returnMonths : candidate.returnMonthsMin;
+    if (!checkRequirement(raw, requirements.returnMonths, 'returnMonths', requirements)) return false;
+  }
+
+  // Gender (candidate.gender vs requirements.gender)
   if ('gender' in requirements) {
     if (!checkRequirement(candidate.gender, requirements.gender, 'gender', requirements)) return false;
   }
 
-  // Driver license
+  // Driver license (candidate.license vs requirements.driverLicense)
   if ('driverLicense' in requirements) {
-    // Candidate may have field 'license' (from new_candidate.html)
     if (!checkRequirement(candidate.license, requirements.driverLicense, 'driverLicense', requirements)) return false;
   }
 
-  // Mobility
+  // Mobility (candidate.mobility vs requirements.mobility)
   if ('mobility' in requirements) {
     if (!checkRequirement(candidate.mobility, requirements.mobility, 'mobility', requirements)) return false;
-  }
-
-  // Salary range
-  if ('salaryMin' in requirements || 'salaryMax' in requirements) {
-    const salaryMin = parseInt(requirements.salaryMin) || 0;
-    const salaryMax = parseInt(requirements.salaryMax) || 99999999;
-    const candSalary = parseInt(candidate.salary);
-    if (!isNaN(candSalary)) {
-      if (candSalary < salaryMin || candSalary > salaryMax) return false;
-    } else {
-      if (requirements.includeUnknownSalary !== true) return false;
-    }
-  }
-
-  // Return months / availability
-  if ('returnMonths' in requirements) {
-    const reqReturn = parseInt(requirements.returnMonths) || 0;
-    const candReturn = parseInt(candidate.returnMonths || candidate.returnMonthsMin);
-    if (!isNaN(candReturn)) {
-      if (candReturn > reqReturn) return false;
-    } else {
-      if (requirements.includeUnknownAvailability !== true) return false;
-    }
   }
 
   return true;
