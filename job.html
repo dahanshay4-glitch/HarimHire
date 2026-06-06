@@ -417,7 +417,7 @@
         
         function displayJob(job) {
             document.getElementById('jobTitle').textContent = job.title;
-            document.getElementById('jobNumber').textContent = job.number;
+            document.getElementById('jobNumber').textContent = job.number || job.num || job.jobTypeCode || '-';
             document.getElementById('jobClient').textContent = job.clientName;
             document.getElementById('jobType').textContent = job.jobTypeName;
             document.getElementById('createdDate').textContent = new Date(job.createdDate).toLocaleDateString('he-IL');

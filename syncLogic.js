@@ -431,22 +431,18 @@ export function getDashboardCandidateStats(candidates, jobs) {
 
   candidates.forEach(c => {
     if (c.deleted === true) return;
-
-
     if (isCandidateInProcess(c)) inProcess++;
-
+    const st = c.status;
+    const d = getCreatedDate(c);
     if (st) byStatus[st] = (byStatus[st] || 0) + 1;
     const src = normalizeText(c.source);
     if (src) bySource[src] = (bySource[src] || 0) + 1;
-
     if (!d || isNaN(d.getFullYear())) return;
-
     if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) {
       newThisMonth++;
       if (st === STATUS_STARTED) hiredThisMonth++;
       if (isCandidateStarted(c)) startedThisMonth++;
     }
-
     const monthKey = getMonthKey(d);
     byMonth[monthKey] = (byMonth[monthKey] || 0) + 1;
   });

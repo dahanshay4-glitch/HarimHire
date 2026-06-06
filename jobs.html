@@ -207,9 +207,10 @@ function renderTable() {
     const created = formatDate(j.createdDate || j.createdAt);
     const title = j.title || j.jobTypeName || '';
     const clientId = j.clientId || '';
+    const jobNum = j.num || j.number || j.jobTypeCode || '-';
     const serialNum = filtered.length - displayIndex;
     const counts = calcJobCounts(j);
-    row.innerHTML = '<td>' + serialNum + '</td>' +
+    row.innerHTML = '<td>' + jobNum + '</td>' +
       '<td><a href="job.html?id=' + encodeURIComponent(j.id) + '" onclick="event.stopPropagation()">' + title + '</a></td>' +
       '<td><a href="clients.html?id=' + encodeURIComponent(clientId) + '" onclick="event.stopPropagation()">' + (j.clientName || 'לא ידוע') + '</a></td>' +
       '<td><span class="pill status-' + (j.status || '') + '">' + statusLabel(j.status) + '</span></td>' +
